@@ -23,27 +23,40 @@ public class HRRankService {
         this.icfRepository = icfRepository;
     }
 
-    public List<HRRank> findAll() {
-        return rankRepository.findAll();
-    }
-
     public HRRank save(HRRank rank) {
-        return rankRepository.save(rank);
+        try {
+            // Resolve jobGrade and icf references
+            HRLuJobGrade jobGrade = jobGradeRepository.findById(rank.getJobGrade().getId())
+                    .orElseThrow(() -> new IllegalArgumentException("Invalid Job Grade ID: " + rank.getJobGrade().getId()));
+            HRLuIcf icf = icfRepository.findById(rank.getIcf().getId())
+                    .orElseThrow(() -> new IllegalArgumentException("Invalid ICF ID: " + rank.getIcf().getId()));
+
+            rank.setJobGrade(jobGrade);
+            rank.setIcf(icf);
+
+            return rankRepository.save(rank);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
     }
 
-   public List<HRRank> saveAll(List<HRRank> ranks) {
-    for (HRRank rank : ranks) {
-        // Fetch and set the managed entities for jobGrade and icf
-        HRLuJobGrade jobGrade = jobGradeRepository.findById(rank.getJobGrade().getId())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid Job Grade ID: " + rank.getJobGrade().getId()));
-        HRLuIcf icf = icfRepository.findById(rank.getIcf().getId())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid ICF ID: " + rank.getIcf().getId()));
-
-        rank.setJobGrade(jobGrade);
-        rank.setIcf(icf);
+    public List<HRRank> saveAll(List<HRRank> ranks) {
+    try {
+        System.out.println("Saving ranks: " + ranks);
+        return rankRepository.saveAll(ranks); // Save all ranks in bulk
+    } catch (Exception e) {
+        e.printStackTrace();
+        throw new RuntimeException("Error saving ranks: " + e.getMessage(), e);
     }
-    return rankRepository.saveAll(ranks);
 }
+    public List<HRRank> findAll() {
+        return rankRepository.findAll(); // Fetch all HRRank entries from the database
+    }
+
+    public List<HRRank> findByIcfAndClass(Long icfId, Long classId) {
+        return rankRepository.findByIcfIdAndJobGradeId(icfId, classId);
+    }
 
     public void deleteById(Long id) {
         rankRepository.deleteById(id);

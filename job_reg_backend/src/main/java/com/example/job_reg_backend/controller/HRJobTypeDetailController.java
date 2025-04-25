@@ -40,14 +40,28 @@ public class HRJobTypeDetailController {
             return ResponseEntity.status(404).body(e.getMessage());
         }
     }
+    @GetMapping("/filter")
+public ResponseEntity<?> getByJobTitleAndClass(
+    @RequestParam String jobTitle,
+    @RequestParam String jobClass
+) {
+    try {
+        List<HRJobTypeDetail> details = jobTypeDetailService.findByJobTitleAndClass(jobTitle, jobClass);
+        if (details.isEmpty()) {
+            return ResponseEntity.ok(details); // Return an empty list if no match is found
+        }
+        return ResponseEntity.ok(details);
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error fetching data: " + e.getMessage());
+    }
+}
 
     // Create a new job type detail
 @PostMapping("/save")
 public ResponseEntity<?> saveJobTypeDetails(@RequestBody List<HRJobTypeDetail> jobTypeDetails) {
     try {
         for (HRJobTypeDetail detail : jobTypeDetails) {
-            
-            // 🛑 Basic validation
+
             if (detail.getJobType() == null || detail.getJobType().getId() == null) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Job Type is missing or invalid.");

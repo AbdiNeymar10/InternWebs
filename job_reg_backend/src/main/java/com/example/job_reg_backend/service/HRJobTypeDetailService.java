@@ -29,6 +29,9 @@ public class HRJobTypeDetailService {
     public HRJobTypeDetail findById(Long id) {
         return repository.findById(id).orElseThrow(() -> new RuntimeException("Job Type Detail not found with ID: " + id));
     }
+    public List<HRJobTypeDetail> findByJobTitleAndClass(String jobTitle, String jobClass) {
+    return repository.findByJobTitleAndClass(jobTitle, jobClass);
+    }
 
     // Find all job type details
     public List<HRJobTypeDetail> findAll() {

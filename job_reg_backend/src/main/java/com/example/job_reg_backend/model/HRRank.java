@@ -6,6 +6,8 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 import java.util.Base64;
 
+
+
 @Entity
 @Table(name = "HR_RANK")
 public class HRRank {
@@ -52,11 +54,11 @@ public class HRRank {
         this.rankId = rankId;
     }
 
-    public String getBeginning() {
-        return beginningSalary;
-    }
+    public String getBeginningSalary() {
+    return beginningSalary;
+     }
 
-    public void setBeginning(String beginningSalary) {
+    public void setBeginningSalary(String beginningSalary) {
         this.beginningSalary = beginningSalary;
     }
 
@@ -86,6 +88,7 @@ public class HRRank {
 }
 
 // Encryptor for BEGINNING and MAX_SALARY
+
 @Converter
 class SalaryEncryptor implements AttributeConverter<String, String> {
 
@@ -95,6 +98,10 @@ class SalaryEncryptor implements AttributeConverter<String, String> {
     @Override
     public String convertToDatabaseColumn(String attribute) {
         try {
+            if (attribute == null || attribute.isEmpty()) {
+                return null; // Return null if the attribute is null or empty
+            }
+
             if (secretKey == null || secretKey.length() != 16) {
                 throw new IllegalArgumentException("Invalid encryption key. It must be 16 characters long.");
             }
@@ -111,6 +118,10 @@ class SalaryEncryptor implements AttributeConverter<String, String> {
     @Override
     public String convertToEntityAttribute(String dbData) {
         try {
+            if (dbData == null || dbData.isEmpty()) {
+                return null; // Return null if the database value is null or empty
+            }
+
             if (secretKey == null || secretKey.length() != 16) {
                 throw new IllegalArgumentException("Invalid encryption key. It must be 16 characters long.");
             }

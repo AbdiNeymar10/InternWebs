@@ -29,18 +29,15 @@ public class HRLuIcfController {
 
 @PostMapping
 public HRLuIcf create(@RequestBody HRLuIcf entity) {
-    System.out.println("Received entity: " + entity);
    
     try {
         HRLuIcf savedEntity = service.save(entity);
-        System.out.println("Saved entity: " + savedEntity);
         return savedEntity;
     } catch (Exception e) {
         e.printStackTrace();
         throw new RuntimeException("Error saving ICF: " + e.getMessage());
     }
 }
-
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
         service.deleteById(id);

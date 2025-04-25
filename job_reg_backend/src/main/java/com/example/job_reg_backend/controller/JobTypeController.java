@@ -40,7 +40,6 @@ public class JobTypeController {
 public ResponseEntity<?> createJobType(@RequestBody JobType jobType) {
     try {
         System.out.println("Received payload: " + jobType.toString());
-        // Ensure the ID is not manually set
         if (jobType.getId() != null) {
             return ResponseEntity.badRequest().body("ID should not be provided when creating a new job type.");
         }

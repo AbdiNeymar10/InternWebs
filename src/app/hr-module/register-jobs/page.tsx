@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import Header from "../../components/Header";
 import Sidebar from "../sidbar";
+import toast, { Toaster } from "react-hot-toast";
 import { fetchICFs, createICF } from "../../pages/api/icfService";
 import {
   fetchJobTypes,
@@ -55,7 +56,6 @@ const fetchJobTypeId = async (jobTitle: string): Promise<number | null> => {
       throw new Error(`Failed to fetch jobTypeId for jobTitle: ${jobTitle}`);
     }
     const jobTypeId = await response.json();
-    console.log(`Fetched jobTypeId for jobTitle "${jobTitle}":`, jobTypeId);
     return jobTypeId;
   } catch (error) {
     console.error("Error fetching jobTypeId:", error);
@@ -152,6 +152,7 @@ const JobRegisterModal = ({ type, onClose, onSave }: JobRegisterModalProps) => {
             </button>
             <button
               type="submit"
+              onClick={() => toast.success("Added successfully!")}
               className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition"
             >
               Save
@@ -236,22 +237,25 @@ const RegisterJob = () => {
 
     fetchJobGradesData();
   }, []);
+  useEffect(() => {
+    if (selectedJobTitle && selectedClass) {
+      fetchJobTypeDetails(selectedJobTitle, selectedClass);
+    }
+  }, [selectedJobTitle, selectedClass]);
 
   const handleAddICF = async (icf: string, description: string) => {
     if (!icf || !description) {
-      console.error("ICF and description are required.");
+      toast.error("ICF and description are required.");
       return;
     }
 
     try {
       const newICFData = { ICF: icf, description: description };
-      console.log("Sending data to backend:", newICFData);
       const createdICF = await createICF(newICFData);
-      console.log("Created ICF:", createdICF);
 
       // Dynamically update the dropdown
-      setIcfList((prev) => [...prev, createdICF]); // Add the new ICF to the list
-      setSelectedICF(createdICF.ICF); // Automatically select the newly created ICF
+      setIcfList((prev) => [...prev, createdICF]);
+      setSelectedICF(createdICF.ICF);
     } catch (error) {
       console.error("Error adding ICF:", error);
     }
@@ -259,6 +263,7 @@ const RegisterJob = () => {
 
   const handleDelete = (id: number) => {
     setPositions((prev) => prev.filter((position) => position.id !== id));
+    toast("Record removed.");
   };
 
   const addRecord = (data: Record) => {
@@ -322,21 +327,49 @@ const RegisterJob = () => {
   };
   const handleAddPosition = () => {
     if (!selectedICF || !selectedJobTitle || !selectedClass) {
-      alert("Please select Job Title, Class, and ICF before adding.");
+      toast.error("Please select Job Title, Class, and ICF before adding.");
       return;
     }
-
     const newPosition = {
       id: Date.now(),
       ICF: `${selectedJobTitle} - ${selectedClass} - ${selectedICF}`,
       description: "",
     };
-    alert("Job Types added.");
     setPositions((prev) => [...prev, newPosition]);
+    toast.success("Position added successfully.");
     setSelectedICF("");
     setSelectedJobTitle("");
     setSelectedClass("");
     setModalType(null);
+  };
+  const fetchJobTypeDetails = async (jobTitle: string, jobClass: string) => {
+    try {
+      const response = await fetch(
+        `http://localhost:8080/api/job-type-details/filter?jobTitle=${encodeURIComponent(
+          jobTitle
+        )}&jobClass=${encodeURIComponent(jobClass)}`
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch job type details");
+      }
+      const data = await response.json();
+
+      if (data.length === 0) {
+        return; // Do not clear the existing table data
+      }
+
+      setPositions((prev) => [
+        ...prev,
+        ...data.map((detail: any) => ({
+          id: detail.id,
+          ICF: detail.icf?.ICF || "",
+          description: detail.remark || "",
+        })),
+      ]);
+    } catch (error) {
+      console.error("Error fetching job type details:", error);
+      toast.error("Failed to fetch job type details.");
+    }
   };
   return (
     <div className="flex flex-col bg-white p-6 rounded-lg shadow-lg min-h-[80vh]">
@@ -574,6 +607,7 @@ const RegisterJob = () => {
                         setNewICF("");
                         setNewDescription("");
                         setShowAddICFModal(false);
+                        toast.success("icf added.");
                       }
                     }}
                     className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition"
@@ -639,7 +673,7 @@ const RegisterJob = () => {
             className="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600"
             onClick={async () => {
               if (positions.length === 0) {
-                alert("No records to save.");
+                toast.error("No positions to save.");
                 return;
               }
 
@@ -716,7 +750,7 @@ const RegisterJob = () => {
                     (item) => !item.jobType.id || !item.icf.id
                   )
                 ) {
-                  alert(
+                  toast(
                     "Some positions are missing required data. Please check your inputs."
                   );
                   return;
@@ -744,11 +778,11 @@ const RegisterJob = () => {
                   responseData
                 );
 
-                alert("Job Types and Details saved successfully.");
+                toast.success("Job Types and Details saved successfully.");
                 setPositions([]); // Clear the table after saving
               } catch (error) {
                 console.error("Error saving data:", error);
-                alert("Job Types saved and failed to save job detail.");
+                toast("Job Types saved and failed to save job detail.");
               }
             }}
           >
@@ -779,6 +813,7 @@ export default function RegisterJobsPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <Toaster />
       {/* Header */}
       <Header toggleSidebar={toggleSidebar} />
 
