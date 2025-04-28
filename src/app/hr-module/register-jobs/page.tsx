@@ -27,6 +27,7 @@ interface Record {
   description: string;
   status?: string;
   code?: string;
+  jobClass?: string;
 }
 interface ICFRecord {
   id: number;
@@ -179,6 +180,7 @@ const RegisterJob = () => {
   const [selectedJobTitle, setSelectedJobTitle] = useState("");
   const [selectedClass, setSelectedClass] = useState("");
   const [positions, setPositions] = useState<Record[]>([]);
+  const [newPositions, setNewPositions] = useState<Record[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showClassDropdown, setShowClassDropdown] = useState(false);
 
@@ -327,16 +329,23 @@ const RegisterJob = () => {
   };
   const handleAddPosition = () => {
     if (!selectedICF || !selectedJobTitle || !selectedClass) {
-      toast.error("Please select Job Title, Class, and ICF before adding.");
+      toast.error("Please select all fields.");
       return;
     }
+
     const newPosition = {
       id: Date.now(),
-      ICF: `${selectedJobTitle} - ${selectedClass} - ${selectedICF}`,
+      ICF: selectedICF, // Only set the ICF value for display
+      jobTitle: selectedJobTitle, // Keep jobTitle for saving
+      jobClass: selectedClass, // Keep jobClass for saving
       description: "",
     };
-    setPositions((prev) => [...prev, newPosition]);
+
+    setPositions((prev) => [...prev, newPosition]); // Add to the main table
+    setNewPositions((prev) => [...prev, newPosition]); // Track only new records
     toast.success("Position added successfully.");
+
+    // Reset the form fields
     setSelectedICF("");
     setSelectedJobTitle("");
     setSelectedClass("");
@@ -672,30 +681,26 @@ const RegisterJob = () => {
           <button
             className="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600"
             onClick={async () => {
-              if (positions.length === 0) {
-                toast.error("No positions to save.");
+              if (newPositions.length === 0) {
+                toast.error("No new positions to save.");
                 return;
               }
 
               try {
-                // Payload for HR_JOB_TYPE
-                const payloadForJobTypes = positions.map((position) => ({
+                // Prepare payload for HR_JOB_TYPE
+                const payloadForJobTypes = newPositions.map((position) => ({
                   jobTitle: {
                     id: jobTypes.find(
-                      (job) =>
-                        job.jobTitle === (position.ICF?.split(" - ")[0] || "")
+                      (job) => job.jobTitle === position.jobTitle
                     )?.id,
                   },
                   jobGrade: {
                     id: records.find(
-                      (record) =>
-                        record.grade === (position.ICF?.split(" - ")[1] || "")
+                      (record) => record.grade === position.jobClass
                     )?.id,
                   },
                   icf: {
-                    id: icfList.find(
-                      (icf) => icf.ICF === (position.ICF?.split(" - ")[2] || "")
-                    )?.id,
+                    id: icfList.find((icf) => icf.ICF === position.ICF)?.id,
                   },
                   jobCode: null,
                   remark: null,
@@ -720,44 +725,25 @@ const RegisterJob = () => {
                 const jobTypeIds = await jobTypeResponse.json(); // Get the saved jobTypeIds
                 console.log("Saved Job Type IDs:", jobTypeIds);
 
-                // Map jobTypeIds to positions
-                const payloadForDetails = positions.map((position, index) => {
-                  const icfValue = position.ICF?.split(" - ")[2] || ""; // Extract ICF value
-                  const icfId = icfList.find((icf) => icf.ICF === icfValue)?.id;
+                // Prepare payload for HR_JOB_TYPE_DETAIL
+                const payloadForDetails = newPositions.map(
+                  (position, index) => {
+                    const icfId = icfList.find(
+                      (icf) => icf.ICF === position.ICF
+                    )?.id;
 
-                  if (!jobTypeIds[index]) {
-                    console.error(
-                      `Job Type ID not found for position: ${position.ICF}`
-                    );
+                    return {
+                      jobType: { id: jobTypeIds[index] || null },
+                      icf: { id: icfId || null },
+                      positionCode: null,
+                      remark: null,
+                      status: null,
+                    };
                   }
-
-                  if (!icfId) {
-                    console.error(`ICF not found for ICF value: ${icfValue}`);
-                  }
-
-                  return {
-                    jobType: { id: jobTypeIds[index] || null },
-                    icf: { id: icfId || null },
-                    positionCode: null,
-                    remark: null,
-                    status: null,
-                  };
-                });
-
-                // Validate the payload for HR_JOB_TYPE_DETAIL
-                if (
-                  payloadForDetails.some(
-                    (item) => !item.jobType.id || !item.icf.id
-                  )
-                ) {
-                  toast(
-                    "Some positions are missing required data. Please check your inputs."
-                  );
-                  return;
-                }
+                );
 
                 // Save HR_JOB_TYPE_DETAIL
-                const response = await fetch(
+                const detailResponse = await fetch(
                   "http://localhost:8080/api/job-type-details/save",
                   {
                     method: "POST",
@@ -768,21 +754,34 @@ const RegisterJob = () => {
                   }
                 );
 
-                if (!response.ok) {
+                if (!detailResponse.ok) {
                   throw new Error("Failed to save job type details");
                 }
 
-                const responseData = await response.json();
+                const detailResponseData = await detailResponse.json();
                 console.log(
                   "Response from HR_JOB_TYPE_DETAIL save:",
-                  responseData
+                  detailResponseData
                 );
 
-                toast.success("Job Types and Details saved successfully.");
-                setPositions([]); // Clear the table after saving
+                // Clear newPositions from the table
+                setPositions((prev) =>
+                  prev.filter(
+                    (position) =>
+                      !newPositions.some(
+                        (newPosition) => newPosition.id === position.id
+                      )
+                  )
+                );
+
+                // Clear the newPositions state
+                setPositions([]);
+                setNewPositions([]);
+
+                toast.success("New Job Types and Details saved successfully.");
               } catch (error) {
                 console.error("Error saving data:", error);
-                toast("Job Types saved and failed to save job detail.");
+                toast.error("Failed to save job types and job details.");
               }
             }}
           >

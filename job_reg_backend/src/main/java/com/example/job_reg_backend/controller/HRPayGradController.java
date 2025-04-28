@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import com.example.job_reg_backend.model.HRRank;
 import org.springframework.web.bind.annotation.*;
+import java.util.ArrayList;
 
 import java.util.List;
 import java.util.Optional;
@@ -75,28 +76,42 @@ public ResponseEntity<List<HRPayGrad>> getPayGradesByClassAndIcf(
 
     // Save multiple pay grades (bulk save)
    @PostMapping("/bulk-save")
-       public ResponseEntity<?> savePayGrades(@RequestBody List<HRPayGrad> payGrades) {
+public ResponseEntity<?> savePayGrades(@RequestBody List<HRPayGrad> payGrades) {
     try {
         System.out.println("Received Pay Grades Payload: " + payGrades);
 
-        // Map rankId to HRRank entity for each pay grade
+        List<HRPayGrad> savedPayGrades = new ArrayList<>();
+
         for (HRPayGrad payGrad : payGrades) {
-            if (payGrad.getRank() != null && payGrad.getRank().getRankId() != null) {
-                HRRank rank = new HRRank();
-                rank.setRankId(payGrad.getRank().getRankId()); // Map rankId to HRRank
-                payGrad.setRank(rank);
-            } else {
+            if (payGrad.getRank() == null || payGrad.getRank().getRankId() == null) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body("Rank ID is missing for one or more pay grades.");
             }
+
+            if (payGrad.getPayGradeId() != null) {
+                // If payGradeId exists, update
+                Optional<HRPayGrad> existingPayGrad = payGradService.getPayGradeById(payGrad.getPayGradeId());
+                if (existingPayGrad.isPresent()) {
+                    HRPayGrad existing = existingPayGrad.get();
+                    existing.setSalary(payGrad.getSalary());
+                    existing.setStepNo(payGrad.getStepNo());
+                    existing.setRank(payGrad.getRank());
+                    savedPayGrades.add(payGradService.savePayGrade(existing));
+                    continue;
+                }
+            }
+            // Otherwise save as new
+            savedPayGrades.add(payGradService.savePayGrade(payGrad));
         }
-        payGradService.saveAll(payGrades);
-        return ResponseEntity.ok("Pay grades saved successfully.");
+
+        return ResponseEntity.ok(savedPayGrades);
     } catch (Exception e) {
         e.printStackTrace();
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error saving pay grades.");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body("{\"error\": \"Error saving pay grades: " + e.getMessage() + "\"}");
     }
 }
+
 
     // Delete a pay grade by ID
     @DeleteMapping("/{id}")

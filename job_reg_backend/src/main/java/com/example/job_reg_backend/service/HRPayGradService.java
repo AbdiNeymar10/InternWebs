@@ -32,8 +32,21 @@ public class HRPayGradService {
 
     // Save a single pay grade
     public HRPayGrad savePayGrade(HRPayGrad payGrad) {
+    try {
+        if (payGrad.getRank() != null && payGrad.getRank().getRankId() != null) {
+            HRRank rank = rankRepository.findById(payGrad.getRank().getRankId())
+                    .orElseThrow(() -> new IllegalArgumentException("Invalid Rank ID: " + payGrad.getRank().getRankId()));
+            payGrad.setRank(rank);
+        } else {
+            throw new IllegalArgumentException("Rank is required for saving a pay grade.");
+        }
+
         return payGradRepository.save(payGrad);
+    } catch (Exception e) {
+        e.printStackTrace();
+        throw new RuntimeException("Error saving pay grade: " + e.getMessage(), e);
     }
+}
 
     // Save multiple pay grades
     public void saveAll(List<HRPayGrad> payGrades) {

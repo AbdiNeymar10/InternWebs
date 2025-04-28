@@ -2,7 +2,8 @@ package com.example.job_reg_backend.model;
 
 import jakarta.persistence.*;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Entity
 @Table(name = "HR_LU_ICF")
 public class HRLuIcf {

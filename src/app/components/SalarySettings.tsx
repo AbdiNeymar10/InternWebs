@@ -14,6 +14,12 @@ interface Record {
   id: number;
   incrementStep: string;
   salary: string;
+  jobGrade: { id: number };
+  icf: { id: number };
+  beginningSalary: string;
+  maxSalary: string;
+  payGradeId?: number;
+  rankId?: number;
 }
 interface ClassOption {
   id: number;
@@ -37,6 +43,12 @@ const SalarySettings = () => {
   const [isPopupOpen, setIsPopupOpen] = useState<boolean>(false);
   const [editRecordId, setEditRecordId] = useState<number | null>(null);
   const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [existingPayGradeId, setExistingPayGradeId] = useState<
+    number | undefined
+  >(undefined);
+  const [existingRankId, setExistingRankId] = useState<number | undefined>(
+    undefined
+  );
 
   // Fetch job grades and ICFs for dropdowns
   useEffect(() => {
@@ -75,28 +87,35 @@ const SalarySettings = () => {
         }
 
         const data = await response.json();
+        console.log("Fetched Data:", data);
 
         if (data.length === 0) {
           return;
         }
 
-        // Append new data to the existing records
-        setRecords((prev) => [
-          ...prev,
-          ...data.map((item: any) => ({
-            id: item.payGradeId,
-            incrementStep: item.stepNo,
-            salary: item.salary,
-          })),
-        ]);
+        // Map backend response to include jobGrade and icf properties
+        const validRecords = data.map((item: any) => ({
+          payGradeId: item.payGradeId,
+          rankId: item.rank?.rankId || null,
+          incrementStep: item.stepNo,
+          salary: item.salary,
+          jobGrade: item.rank?.jobGrade || null,
+          icf: item.rank?.icf || null,
+          beginningSalary: item.rank?.beginningSalary || "",
+          maxSalary: item.rank?.maxSalary || "",
+        }));
+
+        console.log("Valid Records:", validRecords);
+
+        setRecords(validRecords); // Replace instead of appending to avoid duplicates
       } catch (error) {
         toast.error("Failed to fetch pay grades.");
         console.error("Error fetching pay grades:", error);
       }
     };
-
     loadPayGrades();
   }, [classDropdown, icfDropdown]); // Trigger fetch when classDropdown or icfDropdown changes
+
   const addDetail = () => {
     if (!classDropdown || !icfDropdown || !beginningSalary || !maxSalary) {
       toast.error("Please fill all fields before adding details.");
@@ -105,152 +124,190 @@ const SalarySettings = () => {
     setIsPopupOpen(true); // Open the pop-up form
   };
 
+  const editDetail = (record: Record) => {
+    console.log("Selected Record:", record);
+
+    if (
+      !record.jobGrade ||
+      !record.jobGrade.id ||
+      !record.icf ||
+      !record.icf.id
+    ) {
+      toast.error("Invalid record selected for editing.");
+      return;
+    }
+
+    setEditRecordId(record.id);
+    setExistingPayGradeId(record.payGradeId || undefined);
+    setExistingRankId(record.rankId || undefined);
+
+    setClassDropdown(record.jobGrade.id.toString());
+    setIcfDropdown(record.icf.id.toString());
+    setBeginningSalary(record.beginningSalary || "");
+    setMaxSalary(record.maxSalary || "");
+    setIncrementStep(record.incrementStep || "");
+    setSalary(record.salary || "");
+    setIsEditing(true);
+  };
+
   const addIncrementStepAndSalary = () => {
-    if (!incrementStep || !salary) {
+    if (!incrementStep || !salary || !beginningSalary || !maxSalary) {
       toast.error("Please fill all fields in the pop-up form.");
       return;
     }
 
-    const newRecord = {
-      id: editRecordId || Date.now(),
-      incrementStep,
-      salary,
+    const updatedRecord: Record = {
+      id: editRecordId || Date.now(), // If editing, keep the id, else create a new one
+      incrementStep: incrementStep.toString(),
+      salary: salary.toString(),
+      jobGrade: { id: parseInt(classDropdown) },
+      icf: { id: parseInt(icfDropdown) },
+      beginningSalary: beginningSalary.trim(),
+      maxSalary: maxSalary.trim(),
+      payGradeId: existingPayGradeId || undefined,
+      rankId: existingRankId || undefined,
     };
 
-    if (editRecordId) {
-      // Update the existing record in the table
+    if (editRecordId !== null) {
+      // Update existing record in the table
       setRecords((prev) =>
         prev.map((record) =>
-          record.id === editRecordId
-            ? { ...record, incrementStep, salary }
-            : record
+          record.id === editRecordId ? { ...record, ...updatedRecord } : record
         )
       );
-      toast.success("Record updated successfully.");
+      toast.success("Record updated.");
     } else {
-      // Add a new record to the table
-      setRecords((prev) => [...prev, newRecord]);
-      toast.success("Record added successfully.");
+      // Add a new record
+      setRecords((prev) => [...prev, updatedRecord]);
+      toast.success("Record added.");
     }
 
-    // Reset the pop-up form
+    // Reset form fields
     setIncrementStep("");
     setSalary("");
-    setEditRecordId(null);
-    setIsPopupOpen(false);
+    setBeginningSalary("");
+    setMaxSalary("");
+    setClassDropdown("");
+    setIcfDropdown("");
+    setEditRecordId(null); // Reset editRecordId to null after updating
+    setIsPopupOpen(false); // Close the pop-up form
   };
-  const editDetail = (record: Record) => {
-    setEditRecordId(record.id);
-    setIncrementStep(record.incrementStep);
-    setSalary(record.salary);
-    setIsPopupOpen(true);
-    setIsEditing(true);
-  };
-
   const deleteDetail = async (id: number) => {
     try {
       setRecords(records.filter((record) => record.id !== id));
-      toast.success("Record deleted successfully.");
+      toast.success("Record deleted.");
     } catch (error) {
       toast.error("Failed to delete record");
     }
   };
 
   const saveDetails = async () => {
-    if (!classDropdown || !icfDropdown || !beginningSalary || !maxSalary) {
-      toast.error("Please fill all fields before saving.");
-      return;
-    }
-
     if (records.length === 0) {
       toast.error("No records to save.");
       return;
     }
 
     try {
-      // Construct rankPayload dynamically based on records
-      const rankPayload = records.map(() => ({
-        beginningSalary: beginningSalary.trim(),
-        maxSalary: maxSalary.trim(),
-        jobGrade: {
-          id: parseInt(classDropdown),
-        },
-        icf: {
-          id: parseInt(icfDropdown),
-        },
+      const newRanks = records.filter((r) => !r.rankId);
+      const existingRanks = records.filter((r) => r.rankId);
+
+      const newRankPayload = newRanks.map((record) => ({
+        beginningSalary: record.beginningSalary.trim(),
+        maxSalary: record.maxSalary.trim(),
+        jobGrade: record.jobGrade,
+        icf: record.icf,
       }));
 
-      console.log("Rank Payload (Array):", rankPayload);
-      console.log("Rank Payload Sent:", JSON.stringify(rankPayload, null, 2));
+      const existingRankPayload = existingRanks.map((record) => ({
+        rankId: record.rankId,
+        beginningSalary: record.beginningSalary.trim(),
+        maxSalary: record.maxSalary.trim(),
+        jobGrade: record.jobGrade,
+        icf: record.icf,
+      }));
 
-      const rankResponse = await fetch(
-        "http://localhost:8080/api/hr-rank/bulk-save",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(rankPayload),
+      console.log("New Ranks Payload:", newRankPayload);
+      console.log("Existing Ranks Payload:", existingRankPayload);
+
+      let savedRanks = [];
+
+      // Save new ranks first
+      if (newRankPayload.length > 0) {
+        const response = await fetch(
+          "http://localhost:8080/api/hr-rank/bulk-save",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(newRankPayload),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(await response.text());
         }
-      );
 
-      if (!rankResponse.ok) {
-        const error = await rankResponse.text();
-        toast.error("Error saving rank. Check console for more details.");
-        console.error("Error saving rank: " + error);
-        return;
+        const result = await response.json();
+        savedRanks = result;
       }
 
-      const savedRank = await rankResponse.json();
-      const rankId = savedRank[0]?.rankId; // Assuming the response is an array
+      // Save existing ranks
+      if (existingRankPayload.length > 0) {
+        const response = await fetch(
+          "http://localhost:8080/api/hr-rank/bulk-save",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(existingRankPayload),
+          }
+        );
 
-      if (!rankId) {
-        toast.error("Failed to retrieve rankId from saved rank.");
-        return;
+        if (!response.ok) {
+          throw new Error(await response.text());
+        }
+
+        const result = await response.json();
+        savedRanks = [...savedRanks, ...result];
       }
 
-      // Save HR_PAY_GRAD data
-      const payGradPayload = records.map((record) => ({
-        rank: { rankId }, // Send rankId as part of the rank object
+      // Now Pay Grades
+      const payGradPayload = records.map((record, index) => ({
+        payGradeId: record.payGradeId, // important for updating
+        rank: { rankId: record.rankId || savedRanks[index]?.rankId }, // Use the correct ID
         stepNo: record.incrementStep,
         salary: record.salary,
       }));
 
       console.log("Pay Grade Payload:", payGradPayload);
 
-      try {
-        const response = await fetch(
-          "http://localhost:8080/api/hr-pay-grad/bulk-save",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payGradPayload),
-          }
-        );
-
-        if (!response.ok) {
-          const error = await response.text();
-          toast.error(
-            "Error saving pay grades. Check console for more details."
-          );
-          console.error("Error saving pay grades: " + error);
-          return;
+      const payGradeResponse = await fetch(
+        "http://localhost:8080/api/hr-pay-grad/bulk-save",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payGradPayload),
         }
-      } catch (error) {
-        console.error("Error saving pay grades:", error);
-        toast.error("Error saving pay grades. Check console for more details.");
+      );
+
+      if (!payGradeResponse.ok) {
+        throw new Error(await payGradeResponse.text());
       }
 
-      // Reset form
+      const payGradeResult = await payGradeResponse.json();
+      console.log("Saved PayGrades:", payGradeResult);
+
       setRecords([]);
       setClassDropdown("");
       setIcfDropdown("");
       setBeginningSalary("");
       setMaxSalary("");
       toast.success("Records saved successfully.");
+      setIsEditing(false);
     } catch (error) {
-      toast.error("An error occurred while saving.");
+      toast.error("Error saving details.");
       console.error(error);
     }
   };
+
   return (
     <div className="p-6">
       <Toaster />

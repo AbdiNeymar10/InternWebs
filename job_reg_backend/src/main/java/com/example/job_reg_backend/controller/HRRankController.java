@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/hr-rank")
@@ -51,16 +52,33 @@ public ResponseEntity<HRRank> saveRank(@RequestBody HRRank rank) {
 }
 
     // Save multiple ranks (bulk save)
-    @PostMapping("/bulk-save")
-    public ResponseEntity<?> saveRanks(@RequestBody List<HRRank> ranks) {
-        try {
-            System.out.println("Bulk save endpoint hit");
-            List<HRRank> savedRanks = service.saveAll(ranks);
-            return ResponseEntity.ok(savedRanks);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error saving ranks: " + e.getMessage());
-        }
+ @PostMapping("/bulk-save")
+public ResponseEntity<?> saveRanks(@RequestBody List<HRRank> ranks) {
+    try {
+        System.out.println("Bulk save endpoint hit");
+
+        List<HRRank> savedRanks = ranks.stream().map(rank -> {
+            if (rank.getRankId() != null) {
+                Optional<HRRank> existingRank = service.findById(rank.getRankId());
+                if (existingRank.isPresent()) {
+                    HRRank existing = existingRank.get();
+                    existing.setJobGrade(rank.getJobGrade());
+                    existing.setIcf(rank.getIcf());
+                    existing.setBeginningSalary(rank.getBeginningSalary());
+                    existing.setMaxSalary(rank.getMaxSalary());
+                    return service.save(existing); // Update existing record
+                }
+            }
+            return service.save(rank); // Save as a new record
+        }).toList();
+
+        return ResponseEntity.ok(savedRanks); // Return the saved ranks as JSON
+    } catch (Exception e) {
+        e.printStackTrace();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body("{\"error\": \"Error saving ranks: " + e.getMessage() + "\"}");
     }
+}
 
     // Delete a rank by ID
     @DeleteMapping("/{id}")
