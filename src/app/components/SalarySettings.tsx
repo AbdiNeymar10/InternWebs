@@ -4,11 +4,6 @@ import { useState, useEffect } from "react";
 import { fetchJobGrades } from "../pages/api/jobGradeService";
 import { fetchICFs } from "../pages/api/icfService";
 import toast, { Toaster } from "react-hot-toast";
-import {
-  fetchPayGrades,
-  savePayGrades,
-  deletePayGrade,
-} from "../pages/api/hrPayGradService";
 
 interface Record {
   id: number;
@@ -28,6 +23,13 @@ interface ClassOption {
 interface IcfOption {
   id: number;
   ICF: string;
+}
+interface SavedRank {
+  rankId: number;
+  beginningSalary: string;
+  maxSalary: string;
+  jobGrade: { id: number };
+  icf: { id: number };
 }
 
 const SalarySettings = () => {
@@ -70,51 +72,51 @@ const SalarySettings = () => {
   }, []);
 
   // Fetch pay grades from the backend
-  useEffect(() => {
-    const loadPayGrades = async () => {
-      if (!classDropdown || !icfDropdown) {
+  const loadPayGrades = async () => {
+    if (!classDropdown || !icfDropdown) {
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `http://localhost:8080/api/hr-pay-grad/filter?classId=${classDropdown}&icfId=${icfDropdown}`
+      );
+
+      if (!response.ok) {
+        toast.error("Failed to fetch pay grades.");
         return;
       }
 
-      try {
-        const response = await fetch(
-          `http://localhost:8080/api/hr-pay-grad/filter?classId=${classDropdown}&icfId=${icfDropdown}`
-        );
+      const data = await response.json();
+      console.log("Fetched Data:", data);
 
-        if (!response.ok) {
-          toast.error("Failed to fetch pay grades.");
-          return;
-        }
-
-        const data = await response.json();
-        console.log("Fetched Data:", data);
-
-        if (data.length === 0) {
-          return;
-        }
-
-        // Map backend response to include jobGrade and icf properties
-        const validRecords = data.map((item: any) => ({
-          payGradeId: item.payGradeId,
-          rankId: item.rank?.rankId || null,
-          incrementStep: item.stepNo,
-          salary: item.salary,
-          jobGrade: item.rank?.jobGrade || null,
-          icf: item.rank?.icf || null,
-          beginningSalary: item.rank?.beginningSalary || "",
-          maxSalary: item.rank?.maxSalary || "",
-        }));
-
-        console.log("Valid Records:", validRecords);
-
-        setRecords(validRecords); // Replace instead of appending to avoid duplicates
-      } catch (error) {
-        toast.error("Failed to fetch pay grades.");
-        console.error("Error fetching pay grades:", error);
+      if (data.length === 0) {
+        return;
       }
-    };
+
+      // Map backend response to include jobGrade and icf properties
+      const validRecords = data.map((item: any) => ({
+        payGradeId: item.payGradeId,
+        rankId: item.rank?.rankId || null,
+        incrementStep: item.stepNo,
+        salary: item.salary,
+        jobGrade: item.rank?.jobGrade || null,
+        icf: item.rank?.icf || null,
+        beginningSalary: item.rank?.beginningSalary || "",
+        maxSalary: item.rank?.maxSalary || "",
+      }));
+
+      console.log("Valid Records:", validRecords);
+
+      setRecords(validRecords); // Replace instead of appending to avoid duplicates
+    } catch (error) {
+      toast.error("Failed to fetch pay grades.");
+      console.error("Error fetching pay grades:", error);
+    }
+  };
+  useEffect(() => {
     loadPayGrades();
-  }, [classDropdown, icfDropdown]); // Trigger fetch when classDropdown or icfDropdown changes
+  }, [classDropdown, icfDropdown]);
 
   const addDetail = () => {
     if (!classDropdown || !icfDropdown || !beginningSalary || !maxSalary) {
@@ -201,6 +203,7 @@ const SalarySettings = () => {
     }
   };
 
+  // Update the saveDetails function
   const saveDetails = async () => {
     if (records.length === 0) {
       toast.error("No records to save.");
@@ -229,7 +232,7 @@ const SalarySettings = () => {
       console.log("New Ranks Payload:", newRankPayload);
       console.log("Existing Ranks Payload:", existingRankPayload);
 
-      let savedRanks = [];
+      let savedRanks: SavedRank[] = [];
 
       // Save new ranks first
       if (newRankPayload.length > 0) {
@@ -270,12 +273,24 @@ const SalarySettings = () => {
       }
 
       // Now Pay Grades
-      const payGradPayload = records.map((record, index) => ({
-        payGradeId: record.payGradeId, // important for updating
-        rank: { rankId: record.rankId || savedRanks[index]?.rankId }, // Use the correct ID
-        stepNo: record.incrementStep,
-        salary: record.salary,
-      }));
+      const payGradPayload = records.map((record) => {
+        const rankId =
+          record.rankId ||
+          savedRanks.find(
+            (savedRank: SavedRank) =>
+              savedRank.beginningSalary === record.beginningSalary &&
+              savedRank.maxSalary === record.maxSalary &&
+              savedRank.jobGrade.id === record.jobGrade.id &&
+              savedRank.icf.id === record.icf.id
+          )?.rankId;
+
+        return {
+          payGradeId: record.payGradeId, // important for updating
+          rank: { rankId }, // Use the correct ID
+          stepNo: record.incrementStep,
+          salary: record.salary,
+        };
+      });
 
       console.log("Pay Grade Payload:", payGradPayload);
 
@@ -295,6 +310,9 @@ const SalarySettings = () => {
       const payGradeResult = await payGradeResponse.json();
       console.log("Saved PayGrades:", payGradeResult);
 
+      // Fetch updated records to ensure the table reflects the latest data
+      await loadPayGrades();
+
       setRecords([]);
       setClassDropdown("");
       setIcfDropdown("");
@@ -307,7 +325,6 @@ const SalarySettings = () => {
       console.error(error);
     }
   };
-
   return (
     <div className="p-6">
       <Toaster />
