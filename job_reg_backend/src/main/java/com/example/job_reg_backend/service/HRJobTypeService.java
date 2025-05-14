@@ -27,6 +27,15 @@ public class HRJobTypeService {
         return repository.findById(id).orElseThrow(() -> new RuntimeException("Job Type not found with ID: " + id));
     }
 
+    // Fetch job type by job title
+    public HRJobType findByJobTitle(String jobTitle) {
+        return repository.findByJobTitle_JobTitle(jobTitle)
+                .orElseThrow(() -> new RuntimeException("Job Type not found with title: " + jobTitle));
+    }
+    public List<HRJobType> findByJobTitleIds(List<Long> jobTitleIds) {
+    return repository.findByJobTitleIds(jobTitleIds);
+}
+
     // Create or Update job type
     public HRJobType save(HRJobType jobType) {
         return repository.save(jobType);

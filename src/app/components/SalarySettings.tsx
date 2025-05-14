@@ -108,7 +108,7 @@ const SalarySettings = () => {
 
       console.log("Valid Records:", validRecords);
 
-      setRecords(validRecords); // Replace instead of appending to avoid duplicates
+      setRecords(validRecords);
     } catch (error) {
       toast.error("Failed to fetch pay grades.");
       console.error("Error fetching pay grades:", error);
@@ -482,7 +482,7 @@ const SalarySettings = () => {
                   value={incrementStep}
                   onChange={(e) => setIncrementStep(e.target.value)}
                   className="flex-1 p-2 border border-gray-300 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
-                  placeholder=" "
+                  placeholder="increment step"
                 />
               </div>
 
@@ -494,7 +494,7 @@ const SalarySettings = () => {
                   value={salary}
                   onChange={(e) => setSalary(e.target.value)}
                   className="flex-1 p-2 border border-gray-300 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
-                  placeholder=" "
+                  placeholder="salary"
                 />
               </div>
 

@@ -31,7 +31,7 @@ export default function Header({ toggleSidebar }) {
         <img
           alt="User profile picture"
           className="w-10 h-10 rounded-full"
-          src="/assets/images/user.PNG"
+          src="/user.PNG"
         />
       </div>
     </header>

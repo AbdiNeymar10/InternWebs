@@ -364,7 +364,7 @@ const RegisterJob = () => {
       const data = await response.json();
 
       if (data.length === 0) {
-        return; // Do not clear the existing table data
+        return;
       }
 
       setPositions((prev) => [
@@ -381,16 +381,17 @@ const RegisterJob = () => {
     }
   };
   return (
-    <div className="flex flex-col bg-white p-6 rounded-lg shadow-lg min-h-[80vh]">
+    <div className="p-6 font-sans bg-gray-100 min-h-screen">
       <div className="space-y-6">
         {/* Job Title  */}
+        <h3 className="text-xl font-bold text-gray-800 mb-4">Job Type</h3>
         <div className="flex items-center gap-4 relative">
           <label className="w-32 text-right font-semibold">Job Title:</label>
 
           <div className="flex-grow relative">
             <input
               type="text"
-              className="w-full p-2 border border-gray-300 rounded-md"
+              className="w-full p-2  border border-gray-300 rounded-md"
               placeholder="--Select One--"
               value={selectedJobTitle}
               onChange={(e) => {
@@ -441,7 +442,7 @@ const RegisterJob = () => {
 
           <button
             type="button"
-            className="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-blue-600 transition duration-300"
+            className="bg-gray-400 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-400 transition duration-300"
             onClick={() => setModalType("job")}
           >
             <span className="text-xl">+</span>
@@ -504,7 +505,7 @@ const RegisterJob = () => {
             )}
           </div>
           <button
-            className="bg-blue-500 text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-blue-600 transition duration-300"
+            className="bg-gray-400 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-500 transition duration-300"
             onClick={() => setModalType("class")}
           >
             <span className="text-xl">+</span>
@@ -549,7 +550,7 @@ const RegisterJob = () => {
                     </select>
                     <button
                       onClick={() => setShowAddICFModal(true)}
-                      className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-500 text-white hover:bg-blue-600 shadow-md transition transform hover:scale-110"
+                      className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-400 text-white hover:bg-gray-500 shadow-md transition transform hover:scale-110"
                     >
                       <span className="text-xl">+</span>
                     </button>
@@ -584,9 +585,7 @@ const RegisterJob = () => {
                   ✕
                 </button>
 
-                <h2 className="text-2xl font-bold mb-6 text-center">
-                  Add New ICF
-                </h2>
+                <h2 className="text-2xl font-bold mb-6 text-center">Add ICF</h2>
 
                 {/* Inputs */}
                 <div className="flex flex-col space-y-4">
@@ -629,6 +628,9 @@ const RegisterJob = () => {
           )}
 
           {/* Table */}
+          <h3 className="text-xl font-bold text-gray-800 mt-6">
+            Job Position Under Job Type
+          </h3>
           <div className="overflow-x-auto rounded-lg shadow mt-6">
             <table className="min-w-full bg-white border border-gray-200">
               <thead className="bg-gray-100">
@@ -636,7 +638,7 @@ const RegisterJob = () => {
                   <th colSpan={3} className="text-center px-6 py-4 border-b">
                     <button
                       onClick={() => setModalType("position")}
-                      className="bg-blue-500 text-white px-5 py-2 rounded-md hover:bg-blue-600 transition"
+                      className="bg-gray-400 text-white px-5 py-2 rounded-md hover:bg-gray-500 transition"
                     >
                       Add Job Position
                     </button>
@@ -679,7 +681,7 @@ const RegisterJob = () => {
         {/* Save Button */}
         <div className="flex justify-start pt-8">
           <button
-            className="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600"
+            className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
             onClick={async () => {
               if (newPositions.length === 0) {
                 toast.error("No new positions to save.");

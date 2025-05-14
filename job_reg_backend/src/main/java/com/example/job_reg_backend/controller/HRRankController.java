@@ -55,7 +55,6 @@ public ResponseEntity<HRRank> saveRank(@RequestBody HRRank rank) {
  @PostMapping("/bulk-save")
 public ResponseEntity<?> saveRanks(@RequestBody List<HRRank> ranks) {
     try {
-        System.out.println("Bulk save endpoint hit");
 
         List<HRRank> savedRanks = ranks.stream().map(rank -> {
             if (rank.getRankId() != null) {

@@ -8,6 +8,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.HashMap;
 
 @RestController
 @RequestMapping("/api/jobtypes")
@@ -36,6 +39,21 @@ public class JobTypeController {
     }
 
     // Create a new job type
+    @GetMapping("/job-titles")
+public ResponseEntity<List<Map<String, Object>>> getJobTitlesWithIds() {
+    try {
+        List<JobType> jobTypes = jobTypeService.getAllJobTypes(); // Fetch all job types from HR_LU_JOB_TYPE
+        List<Map<String, Object>> jobTitles = jobTypes.stream()
+            .map(jobType -> Map.<String, Object>of(
+                "id", jobType.getId(),
+                "jobTitle", jobType.getJobTitle() != null ? jobType.getJobTitle() : ""
+            ))
+            .collect(Collectors.toList());
+        return ResponseEntity.ok(jobTitles);
+    } catch (Exception e) {
+        return ResponseEntity.status(500).body(null);
+    }
+}
 @PostMapping
 public ResponseEntity<?> createJobType(@RequestBody JobType jobType) {
     try {
