@@ -231,7 +231,7 @@ const RegisterJob = () => {
     const fetchJobGradesData = async () => {
       try {
         const data = await fetchJobGrades();
-        setRecords(data); // Update the records state with the fetched data
+        setRecords(data);
       } catch (error) {
         console.error("Error fetching job grades:", error);
       }
@@ -284,7 +284,7 @@ const RegisterJob = () => {
         // Update existing job type
         const updatedJobType = await updateJobType(editingJobType.id, {
           ...data,
-          code: editingJobType.code, // Preserve the existing code during updates
+          code: editingJobType.code,
         });
         setJobTypes((prev) =>
           prev.map((jobType) =>
@@ -296,11 +296,11 @@ const RegisterJob = () => {
         // Create new job type
         const newJobType = await createJobType({
           ...data,
-          code: generateRandomCode(), // Add the generated code
+          code: generateRandomCode(),
         });
-        setJobTypes((prev) => [...prev, newJobType]); // Update state
+        setJobTypes((prev) => [...prev, newJobType]);
       }
-      setModalType(null); // Close modal
+      setModalType(null);
     } catch (error) {
       console.error("Error saving job type:", error);
     }
@@ -314,7 +314,7 @@ const RegisterJob = () => {
         console.error("Error saving job title:", error);
       }
     } else if (modalType === "class") {
-      // Save job grade (class) to the backend
+      // Save job grade to the backend
       try {
         const { id, ...jobGradeData } = data;
         const newJobGrade = await createJobGrade(jobGradeData);
@@ -323,7 +323,7 @@ const RegisterJob = () => {
         console.error("Error saving job grade:", error);
       }
     } else {
-      // Handle other types (e.g., position)
+      // Handle other types
       addRecord(data);
     }
   };
@@ -335,14 +335,14 @@ const RegisterJob = () => {
 
     const newPosition = {
       id: Date.now(),
-      ICF: selectedICF, // Only set the ICF value for display
-      jobTitle: selectedJobTitle, // Keep jobTitle for saving
-      jobClass: selectedClass, // Keep jobClass for saving
+      ICF: selectedICF,
+      jobTitle: selectedJobTitle,
+      jobClass: selectedClass,
       description: "",
     };
 
-    setPositions((prev) => [...prev, newPosition]); // Add to the main table
-    setNewPositions((prev) => [...prev, newPosition]); // Track only new records
+    setPositions((prev) => [...prev, newPosition]);
+    setNewPositions((prev) => [...prev, newPosition]);
     toast.success("Position added successfully.");
 
     // Reset the form fields
@@ -381,7 +381,7 @@ const RegisterJob = () => {
     }
   };
   return (
-    <div className="p-6 font-sans bg-gray-100 min-h-screen">
+    <div className="p-6 font-sans bg-white min-h-screen">
       <div className="space-y-6">
         {/* Job Title  */}
         <h3 className="text-xl font-bold text-gray-800 mb-4">Job Type</h3>
@@ -391,7 +391,7 @@ const RegisterJob = () => {
           <div className="flex-grow relative">
             <input
               type="text"
-              className="w-full p-2  border border-gray-300 rounded-md"
+              className="w-full p-2  border border-gray-300 rounded-md focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
               placeholder="--Select One--"
               value={selectedJobTitle}
               onChange={(e) => {
@@ -459,7 +459,7 @@ const RegisterJob = () => {
             <input
               type="text"
               placeholder="--Select One--"
-              className="w-full p-2 border border-gray-300 rounded-md"
+              className="w-full p-2 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
               value={selectedClass}
               onChange={(e) => {
                 setSelectedClass(e.target.value);
@@ -659,7 +659,7 @@ const RegisterJob = () => {
                     <td className="px-6 py-4 border-b space-x-2">
                       <button
                         onClick={() => handleDelete(position.id)}
-                        className="text-red-600 hover:underline"
+                        className="bg-gray-400 text-white px-2 py-1 rounded hover:bg-gray-500 transition"
                       >
                         Remove
                       </button>
@@ -804,31 +804,41 @@ const RegisterJob = () => {
   );
 };
 
-// === Full Page Component ===
 export default function RegisterJobsPage() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-
+  const [isMobile, setIsMobile] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
+    if (typeof window !== "undefined") {
+      return window.innerWidth >= 640;
+    }
+    return true;
+  });
   const toggleSidebar = () => {
     setIsSidebarOpen((prev) => !prev);
   };
 
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = typeof window !== "undefined" && window.innerWidth < 640;
+      setIsMobile(mobile);
+      if (mobile) setIsSidebarOpen(false);
+    };
+    handleResize();
+    if (typeof window !== "undefined") {
+      window.addEventListener("resize", handleResize);
+      return () => window.removeEventListener("resize", handleResize);
+    }
+  }, []);
+
   return (
     <div className="flex flex-col min-h-screen">
       <Toaster />
-      {/* Header */}
       <Header toggleSidebar={toggleSidebar} />
-
-      <div className="flex flex-1">
-        {/* Sidebar */}
-        <Sidebar hidden={!isSidebarOpen} />{" "}
-        {/* Pass hidden instead of isOpen */}
-        {/* Main Content - Salary Settings */}
-        <div className="flex-1 p-4 transition-all duration-300">
+      <div className="flex flex-1 flex-col sm:flex-row">
+        <Sidebar hidden={!isSidebarOpen} isMobile={isMobile} />
+        <div className="flex-1 p-4 transition-all duration-300 w-full">
           <RegisterJob />
         </div>
       </div>
-
-      {/* Footer */}
       <footer className="bg-gray-800 text-white p-4 text-center">
         © {new Date().getFullYear()} INSA ERP. All rights reserved.
       </footer>

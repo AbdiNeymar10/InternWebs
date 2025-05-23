@@ -29,4 +29,10 @@ public interface HRJobTypeRepository extends JpaRepository<HRJobType, Long> {
     // Add the missing findByJobTitle method
     @Query("SELECT h FROM HRJobType h WHERE h.jobTitle = :jobTitle")
     Optional<HRJobType> findByJobTitle(@Param("jobTitle") JobType jobTitle);
+
+    List<HRJobType> findByJobFamily(Long jobFamilyId);
+
+    List<HRJobType> findByJobFamilyAndJobTitle_Id(Long jobFamily, Long jobTitleId);
+    List<HRJobType> findByJobTitle_IdAndJobFamilyIsNull(Long jobTitleId);
+    List<HRJobType> findByJobTitle_Id(Long jobTitleId);
 }

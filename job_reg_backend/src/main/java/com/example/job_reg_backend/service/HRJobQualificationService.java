@@ -52,11 +52,11 @@ public class HRJobQualificationService {
             qualification.setJobType(jobType);
         }
         // Ensure the FieldOfStudy is properly set
-        if (qualification.getFieldOfStudy() != null && qualification.getFieldOfStudy().getId() != null) {
-            FieldOfStudy fieldOfStudy = fieldOfStudyRepository.findById(qualification.getFieldOfStudy().getId())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid FieldOfStudy ID: " + qualification.getFieldOfStudy().getId()));
-            qualification.setFieldOfStudy(fieldOfStudy);
-        }
+        // if (qualification.getFieldOfStudy() != null && qualification.getFieldOfStudy().getId() != null) {
+        //     FieldOfStudy fieldOfStudy = fieldOfStudyRepository.findById(qualification.getFieldOfStudy().getId())
+        //         .orElseThrow(() -> new IllegalArgumentException("Invalid FieldOfStudy ID: " + qualification.getFieldOfStudy().getId()));
+        //     qualification.setFieldOfStudy(fieldOfStudy);
+        // }
 
         return repository.save(qualification);
     }

@@ -30,6 +30,11 @@ public class HRDeptJobController {
         Optional<HRDeptJob> deptJob = hrDeptJobService.getDeptJobById(id);
         return deptJob.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
+    @GetMapping("/by-department/{departmentId}")
+public ResponseEntity<List<HRDeptJob>> getJobsByDepartment(@PathVariable Long departmentId) {
+    List<HRDeptJob> jobs = hrDeptJobService.getJobsByDepartmentId(departmentId);
+    return ResponseEntity.ok(jobs);
+}
 
     @PostMapping
     public HRDeptJob createDeptJob(@RequestBody HRDeptJob hrDeptJob) {

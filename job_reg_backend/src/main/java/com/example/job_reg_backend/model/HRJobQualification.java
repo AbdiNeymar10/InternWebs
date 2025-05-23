@@ -1,6 +1,8 @@
 package com.example.job_reg_backend.model;
 
 import jakarta.persistence.*;
+import java.util.List;
+import jakarta.persistence.Transient;
 
 @Entity
 @Table(name = "HR_JOB_QUALIFICATION")
@@ -95,13 +97,16 @@ public class HRJobQualification {
         this.educationLevel = educationLevel;
     }
 
-    public FieldOfStudy getFieldOfStudy() {
-        return fieldOfStudy;
-    }
+    @Transient
+    private List<String> fieldsOfStudy;
 
-    public void setFieldOfStudy(FieldOfStudy fieldOfStudy) {
-        this.fieldOfStudy = fieldOfStudy;
-    }
+    public List<String> getFieldsOfStudy() {
+    return fieldsOfStudy;
+}
+
+    public void setFieldsOfStudy(List<String> fieldsOfStudy) {
+    this.fieldsOfStudy = fieldsOfStudy;
+}
 
     public Integer getMinExperience() {
         return minExperience;

@@ -21,9 +21,10 @@ import { FaTachometerAlt } from "react-icons/fa";
 interface SidebarProps {
   className?: string;
   hidden?: boolean;
+  isMobile?: boolean;
 }
 
-export default function Sidebar({ className, hidden }: SidebarProps) {
+export default function Sidebar({ className, hidden, isMobile }: SidebarProps) {
   const [openMenus, setOpenMenus] = useState({
     dashboard: false,
     organization: false,
@@ -38,12 +39,13 @@ export default function Sidebar({ className, hidden }: SidebarProps) {
 
   return (
     <aside
-      className={`bg-gray-800 text-white w-64 p-4 pt-8 ${className || ""} ${
-        hidden ? "hidden" : "block"
+      className={`bg-gray-800 text-white w-64 h-screen p-4 pt-8 ${
+        className || ""
+      } ${hidden ? "hidden" : "block"} ${
+        !hidden && isMobile ? "fixed left-0 top-16 z-50" : ""
       }`}
       style={{
-        height: "100vh", // Full height of the viewport
-        overflowY: "auto", // Enable scrolling if content overflows
+        overflowY: "auto",
       }}
     >
       <nav className="space-y-4">

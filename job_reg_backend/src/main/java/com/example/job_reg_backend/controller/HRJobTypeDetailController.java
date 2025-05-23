@@ -4,9 +4,10 @@ import com.example.job_reg_backend.model.HRJobTypeDetail;
 import com.example.job_reg_backend.service.HRJobTypeDetailService;
 import com.example.job_reg_backend.service.HRJobTypeService;
 import com.example.job_reg_backend.service.HRLuIcfService;
-import org.springframework.http.HttpStatus; // Add this import
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.example.job_reg_backend.model.HRLuIcf;
 
 import java.util.List;
 
@@ -40,6 +41,22 @@ public class HRJobTypeDetailController {
             return ResponseEntity.status(404).body(e.getMessage());
         }
     }
+@GetMapping("/distinct-icf-values")
+public ResponseEntity<List<String>> getDistinctIcfValues() {
+    return ResponseEntity.ok(jobTypeDetailService.findDistinctIcfValues());
+}
+
+@GetMapping("/icfs-by-job-type-id")
+public ResponseEntity<List<String>> getIcfsByJobTypeId(@RequestParam Long jobTypeId) {
+    try {
+        List<String> icfs = jobTypeDetailService.findIcfValuesByJobTypeId(jobTypeId);
+        return ResponseEntity.ok(icfs);
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body(List.of("Error fetching ICF values: " + e.getMessage()));
+    }
+}
+
     @GetMapping("/filter")
 public ResponseEntity<?> getByJobTitleAndClass(
     @RequestParam String jobTitle,
@@ -82,7 +99,7 @@ public ResponseEntity<?> saveJobTypeDetails(@RequestBody List<HRJobTypeDetail> j
                     .body("Invalid ICF ID: " + detail.getIcf().getId());
             }
 
-            // ✅ Fetch and attach fully loaded jobType and ICF entities
+            //  Fetch and attach fully loaded jobType and ICF entities
             Long jobTypeId = detail.getJobType().getId();
             detail.setJobType(jobTypeService.findById(jobTypeId));
 
@@ -90,7 +107,7 @@ public ResponseEntity<?> saveJobTypeDetails(@RequestBody List<HRJobTypeDetail> j
             detail.setIcf(icfService.findById(icfId));
         }
 
-        // 🚀 Save after all validations
+        //  Save after all validations
         List<HRJobTypeDetail> savedDetails = jobTypeDetailService.saveAll(jobTypeDetails);
         return ResponseEntity.ok(savedDetails);
     } catch (Exception e) {

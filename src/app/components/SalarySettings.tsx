@@ -326,7 +326,7 @@ const SalarySettings = () => {
     }
   };
   return (
-    <div className="p-6">
+    <div className="p-6 bg-white">
       <Toaster />
       <h2 className="text-2xl font-bold mb-4">Pay Grade</h2>
       <div className="space-y-4">
@@ -336,7 +336,7 @@ const SalarySettings = () => {
           <select
             value={classDropdown}
             onChange={(e) => setClassDropdown(e.target.value)}
-            className="flex-1 p-2 border rounded-md w-full"
+            className="flex-1 p-2 border rounded-md w-full focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
           >
             <option value="">--Select One--</option>
             {classOptions.map((classOption) => (
@@ -353,7 +353,7 @@ const SalarySettings = () => {
           <select
             value={icfDropdown}
             onChange={(e) => setIcfDropdown(e.target.value)}
-            className="flex-1 p-2 border rounded-md w-full"
+            className="flex-1 p-2 border rounded-md w-full focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
           >
             <option value="">--Select One--</option>
             {icfOptions.map((icfOption) => (
@@ -371,7 +371,7 @@ const SalarySettings = () => {
             type="number"
             value={beginningSalary}
             onChange={(e) => setBeginningSalary(e.target.value)}
-            className="flex-1 p-2 border rounded-md w-full"
+            className="flex-1 p-2 border rounded-md w-full focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
             placeholder="Beginning Salary"
           />
         </div>
@@ -383,7 +383,7 @@ const SalarySettings = () => {
             type="number"
             value={maxSalary}
             onChange={(e) => setMaxSalary(e.target.value)}
-            className="flex-1 p-2 border rounded-md w-full"
+            className="flex-1 p-2 border rounded-md w-full focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
             placeholder="Max Salary"
           />
         </div>

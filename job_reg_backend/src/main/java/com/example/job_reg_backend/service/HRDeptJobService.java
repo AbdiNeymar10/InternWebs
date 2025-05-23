@@ -26,6 +26,10 @@ public class HRDeptJobService {
         return hrDeptJobRepository.save(hrDeptJob);
     }
 
+   public List<HRDeptJob> getJobsByDepartmentId(Long departmentId) {
+    return hrDeptJobRepository.findByDepartment_DeptId(departmentId);
+   }
+
     public void deleteDeptJob(Long id) {
         hrDeptJobRepository.deleteById(id);
     }

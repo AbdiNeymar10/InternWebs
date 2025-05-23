@@ -25,6 +25,7 @@ function JobQualification() {
   const [selectedJobTypeId, setSelectedJobTypeId] = useState<number | null>(
     null
   );
+  const [filteredIcfs, setFilteredIcfs] = useState<ICF[]>([]);
   const [fieldsOfStudy, setFieldsOfStudy] = useState<
     { id: number; name: string }[]
   >([]);
@@ -34,6 +35,8 @@ function JobQualification() {
   const [selectedFieldsOfStudy, setSelectedFieldsOfStudy] = useState<string[]>(
     []
   );
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [educationCategories, setEducationCategories] = useState<string[]>([]);
   const [educationLevel, setEducationLevel] = useState<
     { id: number; eduName: string }[]
@@ -47,6 +50,7 @@ function JobQualification() {
   const [selectedCompetency, setSelectedCompetency] = useState("");
   const [qualifications, setQualifications] = useState<
     {
+      id?: number;
       educationCategory: string;
       educationLevel: string;
       fieldsOfStudy: string[];
@@ -66,14 +70,53 @@ function JobQualification() {
       .catch((error) => {
         console.error("Error fetching job titles:", error);
       });
+  }, []);
 
-    // Fetch ICFs
+  useEffect(() => {
+    // Fetch distinct ICF values from the backend
     axios
-      .get("http://localhost:8080/api/qualifications/icfs")
+      .get<string[]>(
+        "http://localhost:8080/api/job-type-details/distinct-icf-values"
+      )
       .then((response) => {
-        setIcfs(response.data);
+        const uniqueIcfs = Array.from(new Set(response.data));
+        setIcfs(
+          uniqueIcfs.map((icf, index) => ({
+            id: index,
+            ICF: icf,
+            icf,
+          }))
+        );
+      })
+      .catch((error) => {
+        console.error("Error fetching ICF values:", error);
       });
   }, []);
+
+  useEffect(() => {
+    if (selectedJobTypeId) {
+      // Fetch filtered ICF values based on the selected jobTypeId
+      axios
+        .get<string[]>(
+          `http://localhost:8080/api/job-type-details/icfs-by-job-type-id?jobTypeId=${selectedJobTypeId}`
+        )
+        .then((response) => {
+          const uniqueIcfs = Array.from(new Set(response.data));
+          setFilteredIcfs(
+            uniqueIcfs.map((icf, index) => ({
+              id: index,
+              ICF: icf,
+              icf,
+            }))
+          );
+        })
+        .catch((error) => {
+          console.error("Error fetching filtered ICF values:", error);
+        });
+    } else {
+      setFilteredIcfs([]);
+    }
+  }, [selectedJobTypeId]);
 
   useEffect(() => {
     if (selectedJob) {
@@ -87,7 +130,7 @@ function JobQualification() {
           setJobFamily(jobFamily);
           setJobCode(jobCode);
           setJobClass(jobGrade);
-          setSelectedJobTypeId(jobTypeId); // Store the jobTypeId
+          setSelectedJobTypeId(jobTypeId);
         })
         .catch((error) => {
           console.error("Error fetching job details:", error);
@@ -99,8 +142,8 @@ function JobQualification() {
     axios
       .get("http://localhost:8080/api/fields-of-study")
       .then((response) => {
-        setFieldsOfStudy(response.data); // Set the fetched fields of study
-        setFilteredFieldsOfStudy(response.data); // Initialize filtered list with all fields
+        setFieldsOfStudy(response.data);
+        setFilteredFieldsOfStudy(response.data);
       })
       .catch((error) => {
         console.error("Error fetching fields of study:", error);
@@ -111,7 +154,7 @@ function JobQualification() {
     axios
       .get("http://localhost:8080/api/education-levels/education-categories")
       .then((response) => {
-        setEducationCategories(response.data); // Set the fetched categories
+        setEducationCategories(response.data);
       })
       .catch((error) => {
         console.error("Error fetching education categories:", error);
@@ -130,6 +173,36 @@ function JobQualification() {
       });
   }, []);
 
+  useEffect(() => {
+    if (selectedJobTypeId && selectedICF) {
+      fetchAndDisplayQualifications(Number(selectedJobTypeId), selectedICF);
+    }
+  }, [selectedJobTypeId, selectedICF]);
+
+  const fetchAndDisplayQualifications = async (
+    jobTypeId: number,
+    icfValue: string
+  ) => {
+    const response = await axios.get(
+      `http://localhost:8080/api/qualifications/by-job-title-and-icf-value?jobTypeId=${jobTypeId}&icfValue=${encodeURIComponent(
+        icfValue
+      )}`
+    );
+    const qualifications = response.data;
+    setQualifications(
+      qualifications.map((q: any) => ({
+        id: q.id,
+        educationCategory: q.qualification,
+        educationLevel: q.educationLevel?.id?.toString() || "",
+        fieldsOfStudy: q.fieldsOfStudy || [],
+        minExperience: q.minExperience,
+        skill: q.skill,
+        knowledge: q.knowledge,
+        competency: q.keyCompetency,
+      }))
+    );
+  };
+
   const handleFieldOfStudyChange = (fieldName: string) => {
     setSelectedFieldsOfStudy((prevSelected) =>
       prevSelected.includes(fieldName)
@@ -137,7 +210,36 @@ function JobQualification() {
         : [...prevSelected, fieldName]
     );
   };
-  const handleAddQualification = () => {
+
+  const handleDeleteQualification = (index: number) => {
+    setQualifications((prevQualifications) =>
+      prevQualifications.filter((_, i) => i !== index)
+    );
+  };
+
+  const handleEditQualification = (index: number) => {
+    const qualificationToEdit = qualifications[index];
+    setEditingIndex(index);
+    setEditingId(qualificationToEdit.id ?? null);
+    setSelectedEducationCategory(qualificationToEdit.educationCategory);
+    setSelectedEducationLevel(qualificationToEdit.educationLevel);
+    setSelectedFieldsOfStudy(qualificationToEdit.fieldsOfStudy);
+    setSelectedMinExperience(qualificationToEdit.minExperience);
+    setSelectedSkill(qualificationToEdit.skill);
+    setSelectedKnowledge(qualificationToEdit.knowledge);
+    setSelectedCompetency(qualificationToEdit.competency);
+    setShowModal(true);
+  };
+  const handleModalSaveQualification = () => {
+    if (
+      !selectedEducationCategory ||
+      !selectedEducationLevel ||
+      selectedFieldsOfStudy.length === 0
+    ) {
+      toast.error("Please fill all required fields.");
+      return;
+    }
+
     const newQualification = {
       educationCategory: selectedEducationCategory,
       educationLevel: selectedEducationLevel,
@@ -148,12 +250,23 @@ function JobQualification() {
       competency: selectedCompetency,
     };
 
-    setQualifications((prevQualifications) => [
-      ...prevQualifications,
-      newQualification,
-    ]);
+    if (editingId !== null) {
+      setQualifications((prev) =>
+        prev.map((q) =>
+          q.id === editingId ? { ...newQualification, id: editingId } : q
+        )
+      );
+      toast.success("Qualification updated!");
+    } else {
+      setQualifications((prev) => [
+        ...prev,
+        { ...newQualification, id: Date.now() },
+      ]);
+      toast.success("Qualification added!");
+    }
 
-    // Reset modal fields
+    setEditingIndex(null);
+    setEditingId(null);
     setSelectedEducationCategory("");
     setSelectedEducationLevel("");
     setSelectedFieldsOfStudy([]);
@@ -161,57 +274,32 @@ function JobQualification() {
     setSelectedSkill("");
     setSelectedKnowledge("");
     setSelectedCompetency("");
-
-    // Close the modal
     setShowModal(false);
-    toast.success("Qualification added!");
-  };
-  const handleDeleteQualification = (index: number) => {
-    setQualifications((prevQualifications) =>
-      prevQualifications.filter((_, i) => i !== index)
-    );
-  };
-  const handleEditQualification = (index: number) => {
-    const qualificationToEdit = qualifications[index];
-
-    // Populate the modal fields with the selected qualification's data
-    setSelectedEducationCategory(qualificationToEdit.educationCategory);
-    setSelectedEducationLevel(qualificationToEdit.educationLevel);
-    setSelectedFieldsOfStudy(qualificationToEdit.fieldsOfStudy);
-    setSelectedMinExperience(qualificationToEdit.minExperience);
-    setSelectedSkill(qualificationToEdit.skill);
-    setSelectedKnowledge(qualificationToEdit.knowledge);
-    setSelectedCompetency(qualificationToEdit.competency);
-
-    // Remove the qualification from the list temporarily
-    setQualifications((prevQualifications) =>
-      prevQualifications.filter((_, i) => i !== index)
-    );
-
-    // Open the modal for editing
-    setShowModal(true);
   };
   const handleSaveQualifications = async () => {
+    if (qualifications.length === 0) {
+      toast.error("No qualifications added.");
+      return;
+    }
     try {
-      const payload = qualifications.map((qualification) => ({
-        jobType: { id: selectedJobTypeId },
-        keyCompetency: qualification.competency,
-        knowledge: qualification.knowledge,
-        skill: qualification.skill,
-        minExperience: qualification.minExperience,
-        qualification: qualification.educationCategory,
-        educationLevel: { id: Number(qualification.educationLevel) },
-        fieldOfStudy:
-          qualification.fieldsOfStudy.length > 0
-            ? {
-                id: fieldsOfStudy.find(
-                  (field) => field.name === qualification.fieldsOfStudy[0]
-                )?.id,
-              }
-            : null,
-      }));
+      const payload = qualifications.map((qualification) => {
+        // Only send id if it's a valid DB id
+        const id =
+          typeof qualification.id === "number" && qualification.id < 1000000
+            ? qualification.id
+            : null;
 
-      console.log("Payload being sent:", payload); // Debugging payload
+        return {
+          ...(id !== null && { id }),
+          jobType: { id: selectedJobTypeId },
+          keyCompetency: qualification.competency,
+          knowledge: qualification.knowledge,
+          skill: qualification.skill,
+          minExperience: qualification.minExperience,
+          qualification: qualification.educationCategory,
+          educationLevel: { id: Number(qualification.educationLevel) },
+        };
+      });
 
       const response = await axios.post(
         "http://localhost:8080/api/qualifications/bulk",
@@ -221,6 +309,28 @@ function JobQualification() {
       if (response.status === 200 || response.status === 201) {
         toast.success("Qualifications saved successfully!");
         setQualifications([]);
+
+        // Save HRFieldOfStudy for each qualification and field of study
+        const savedQualifications = response.data;
+        let hrFieldOfStudyPayload: any[] = [];
+        savedQualifications.forEach((qualification: any, idx: number) => {
+          qualifications[idx].fieldsOfStudy.forEach((fieldName: string) => {
+            const field = fieldsOfStudy.find((f) => f.name === fieldName);
+            if (field) {
+              hrFieldOfStudyPayload.push({
+                jobQualification: { id: qualification.id },
+                fieldOfStudy: { id: field.id },
+              });
+            }
+          });
+        });
+
+        if (hrFieldOfStudyPayload.length > 0) {
+          await axios.post(
+            "http://localhost:8080/api/hr-field-of-study/bulk",
+            hrFieldOfStudyPayload
+          );
+        }
       } else {
         toast.error("Failed to save qualifications.");
       }
@@ -229,18 +339,19 @@ function JobQualification() {
       toast.error("An error occurred while saving qualifications.");
     }
   };
+
   return (
     <>
-      <div className="p-6 font-sans bg-gray-100 min-h-screen">
+      <div className="p-6 font-sans bg-white min-h-screen">
         <Toaster />
         {/* Search Job Position */}
         <h1 className="text-2xl font-bold mb-4">Search Job Position</h1>
         <div className="bg-white p-4 shadow rounded mb-6">
           <div className="space-y-4">
-            <div className="flex items-center gap-4">
-              <span className="text-gray-700">Jobs:</span>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+              <span className="text-gray-700 sm:w-16">Jobs:</span>
               <select
-                className="mt-1 bock w-full border rounded p-2"
+                className="w-full sm:flex-1 border rounded p-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
                 value={selectedJob}
                 onChange={(e) => {
                   const selectedId =
@@ -262,23 +373,17 @@ function JobQualification() {
                 ))}
               </select>
             </div>
-            <div className="flex items-center gap-4">
-              <span className="text-gray-700">ICF:</span>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+              <span className="text-gray-700 sm:w-16">ICF:</span>
               <select
-                className="mt-1 block w-full border rounded p-2 ml-2"
+                className="w-full sm:flex-1 border rounded p-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
                 value={selectedICF}
-                onChange={(e) => {
-                  const selectedId = e.target.value;
-                  const selectedICFObj = icfs.find(
-                    (icf) => icf.id === Number(selectedId)
-                  );
-                  setSelectedICF(selectedICFObj ? selectedICFObj.ICF : "");
-                }}
+                onChange={(e) => setSelectedICF(e.target.value)}
               >
                 <option value="">--Select One--</option>
                 {icfs.map((icf) => (
-                  <option key={icf.id} value={icf.id}>
-                    {icf.ICF}
+                  <option key={icf.id} value={icf.icf}>
+                    {icf.icf}
                   </option>
                 ))}
               </select>
@@ -289,7 +394,7 @@ function JobQualification() {
           Update Position Qualification
         </h2>
         <div className="bg-white p-4 shadow rounded mb-6 animate-fade-in">
-          <div className="grid grid-cols-2 gap-4 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
               <label>Job Title:</label> {selectedJobTitle || ""}
             </div>
@@ -303,12 +408,19 @@ function JobQualification() {
               <label>Class:</label> {jobClass || ""}
             </div>
             <div>
-              <label>ICF:</label> {selectedICF || ""}
+              <label>ICF:</label>
+              {filteredIcfs.some((icf) => icf.icf === selectedICF) ? (
+                <span>{selectedICF}</span>
+              ) : selectedICF ? (
+                <span className="text-gray-500"></span>
+              ) : (
+                <span className="text-gray-500"></span>
+              )}
             </div>
           </div>
           {/* Qualifications Table */}
           <div className="overflow-x-auto mt-6">
-            <table className="min-w-full border border-gray-300 bg-white">
+            <table className="w-full border border-gray-300 bg-white">
               <thead className="bg-gray-100">
                 <tr>
                   <th colSpan={9} className="text-center py-2">
@@ -369,7 +481,7 @@ function JobQualification() {
                       <td className="border px-2 py-2 text-center">
                         <button
                           onClick={() => handleEditQualification(index)}
-                          className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 mr-2"
+                          className="bg-blue-500 text-white px-2 py-1 mb-2 sm:mb-0 rounded hover:bg-blue-600 mr-2"
                         >
                           Edit
                         </button>
@@ -399,8 +511,8 @@ function JobQualification() {
 
         {/* Modal: Add Qualification */}
         {showModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center z-50">
-            <div className="bg-white rounded-2xl shadow-lg w-full max-w-4xl p-6 relative">
+          <div className="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-lg w-full max-w-4xl p-6 relative max-h-[90vh] overflow-y-auto">
               <button
                 onClick={() => setShowModal(false)}
                 className="absolute top-2 right-2 text-xl font-bold text-gray-600 hover:text-red-500"
@@ -408,12 +520,12 @@ function JobQualification() {
                 &times;
               </button>
               <h2 className="text-xl font-semibold mb-4">Qualification</h2>
-              <div className="grid grid-cols-2 gap-1">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Education Category */}
                 <div>
                   <label className="block mb-2">Education Category</label>
                   <select
-                    className="w-full border rounded p-2"
+                    className="w-full border rounded p-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
                     value={selectedEducationCategory}
                     onChange={(e) =>
                       setSelectedEducationCategory(e.target.value)
@@ -429,11 +541,11 @@ function JobQualification() {
                 </div>
                 <div>
                   <label className="block mb-2">Field of Study</label>
-                  <div className="w-full border-2 border-gray-200  rounded p-2 max-h-32 overflow-y-auto">
+                  <div className="w-full border-2 border-gray-200 rounded p-2 max-h-32 overflow-y-auto">
                     {/* Search Field */}
                     <input
                       type="text"
-                      className="w-full border-gray-300 border-b rounded p-0.5 mb-1"
+                      className="w-full border-gray-300 border-b rounded p-0.5 mb-1 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
                       onChange={(e) => {
                         const searchValue = e.target.value.toLowerCase();
                         setFilteredFieldsOfStudy(
@@ -470,7 +582,7 @@ function JobQualification() {
                 <div>
                   <label className="block mt-2">Education Level</label>
                   <select
-                    className="w-full border rounded p-2"
+                    className="w-full border rounded p-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
                     value={selectedEducationLevel}
                     onChange={(e) => setSelectedEducationLevel(e.target.value)}
                   >
@@ -491,43 +603,43 @@ function JobQualification() {
                     onChange={(e) =>
                       setSelectedMinExperience(Number(e.target.value))
                     }
-                    className="w-full border rounded p-2"
+                    className="w-full border rounded p-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
                   />
                 </div>
-                <div className="col-span-1">
+                <div className="md:col-span-1">
                   <label className="block mb-2">Skill</label>
                   <textarea
                     placeholder="Describe your skills here..."
                     value={selectedSkill}
                     onChange={(e) => setSelectedSkill(e.target.value)}
-                    className="w-full border-2 border-gray-300 rounded p-2 h-28"
+                    className="w-full border-2 border-gray-300 rounded p-2 h-28 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
                   />
                 </div>
-                <div className="col-span-1">
+                <div className="md:col-span-1">
                   <label className="block mb-2">Knowledge</label>
                   <textarea
                     placeholder="Enter your knowledge here..."
                     value={selectedKnowledge}
                     onChange={(e) => setSelectedKnowledge(e.target.value)}
-                    className="w-full border-2 border-gray-300 rounded p-2 h-28"
+                    className="w-full border-2 border-gray-300 rounded p-2 h-28 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
                   />
                 </div>
-                <div className="col-span-1">
+                <div className="md:col-span-1">
                   <label className="block mb-2">Competency</label>
                   <textarea
                     placeholder="List your competencies here..."
                     value={selectedCompetency}
                     onChange={(e) => setSelectedCompetency(e.target.value)}
-                    className="w-full border-2 border-gray-300 rounded p-2 h-28"
+                    className="w-full border-2 border-gray-300 rounded p-2 h-28 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
                   />
                 </div>
               </div>
-              <div className="col-span-1 flex justify-start items-end">
+              <div className="col-span-1 flex justify-start items-end mt-4">
                 <button
-                  onClick={handleAddQualification}
+                  onClick={handleModalSaveQualification}
                   className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
                 >
-                  Add
+                  {editingIndex !== null ? "Update" : "Add"}
                 </button>
               </div>
             </div>
@@ -539,18 +651,36 @@ function JobQualification() {
 }
 
 export default function QualificationPage() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-
+  const [isMobile, setIsMobile] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
+    if (typeof window !== "undefined") {
+      return window.innerWidth >= 640;
+    }
+    return true;
+  });
   const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
+    setIsSidebarOpen((prev) => !prev);
   };
+
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = typeof window !== "undefined" && window.innerWidth < 640;
+      setIsMobile(mobile);
+      if (mobile) setIsSidebarOpen(false);
+    };
+    handleResize();
+    if (typeof window !== "undefined") {
+      window.addEventListener("resize", handleResize);
+      return () => window.removeEventListener("resize", handleResize);
+    }
+  }, []);
 
   return (
     <div className="flex flex-col min-h-screen">
       <Header toggleSidebar={toggleSidebar} />
-      <div className="flex flex-1">
-        <Sidebar hidden={!isSidebarOpen} />
-        <div className="flex-1 p-4 transition-all duration-300">
+      <div className="flex flex-1 flex-col sm:flex-row">
+        <Sidebar hidden={!isSidebarOpen} isMobile={isMobile} />
+        <div className="flex-1 p-4 transition-all duration-300 w-full">
           <JobQualification />
         </div>
       </div>

@@ -3,13 +3,18 @@ package com.example.job_reg_backend.service;
 import com.example.job_reg_backend.model.HRJobType;
 import com.example.job_reg_backend.repository.HRJobTypeRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class HRJobTypeService {
 
     private final HRJobTypeRepository repository;
+
+    @Autowired
+    private HRJobTypeRepository hrJobTypeRepository;
 
     public HRJobTypeService(HRJobTypeRepository repository) {
         this.repository = repository;
@@ -40,6 +45,21 @@ public class HRJobTypeService {
     public HRJobType save(HRJobType jobType) {
         return repository.save(jobType);
     }
+    // Fetch job type by job family and job title
+public HRJobType findByJobFamilyAndJobTitle(Long jobFamilyId, Long jobTitleId) {
+    List<HRJobType> jtList = hrJobTypeRepository.findByJobFamilyAndJobTitle_Id(jobFamilyId, jobTitleId);
+    if (!jtList.isEmpty()) return jtList.get(0);
+    List<HRJobType> fallbackList = hrJobTypeRepository.findByJobTitle_IdAndJobFamilyIsNull(jobTitleId);
+    if (!fallbackList.isEmpty()) return fallbackList.get(0);
+    // Fallback: find any HRJobType with this jobTitleId
+    List<HRJobType> anyList = hrJobTypeRepository.findByJobTitle_Id(jobTitleId);
+    if (!anyList.isEmpty()) return anyList.get(0);
+    return null;
+}
+
+    public List<HRJobType> findByJobFamily(Long jobFamilyId) {
+    return hrJobTypeRepository.findByJobFamily(jobFamilyId);
+}
     // Delete job type by ID
     public void deleteById(Long id) {
         if (!repository.existsById(id)) {

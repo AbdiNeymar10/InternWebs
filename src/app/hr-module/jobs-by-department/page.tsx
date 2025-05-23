@@ -23,12 +23,8 @@ interface Job {
 function DepartmentSearch() {
   const [selectedDepartment, setSelectedDepartment] = useState<string>("");
 
-  const [availableJobs, setAvailableJobs] = useState<
-    { id: number; title: string }[]
-  >([]);
-  const [assignedJobs, setAssignedJobs] = useState<
-    { id: number; title: string }[]
-  >([]);
+  const [availableJobs, setAvailableJobs] = useState<Job[]>([]);
+  const [assignedJobs, setAssignedJobs] = useState<Job[]>([]);
   const [selectedAvailableJobs, setSelectedAvailableJobs] = useState<number[]>(
     []
   );
@@ -112,14 +108,11 @@ function DepartmentSearch() {
     if (selectedAvailableJobs.length === 0) return;
 
     try {
-      // Fetch job details for each selected job title ID
       const jobDetailsPromises = selectedAvailableJobs.map(
         async (jobTitleId) => {
           const response = await axios.get(
             "http://localhost:8080/api/hr-job-types/details-by-job-title-id",
-            {
-              params: { jobTitleId },
-            }
+            { params: { jobTitleId } }
           );
           return response.data;
         }
@@ -127,39 +120,61 @@ function DepartmentSearch() {
 
       const jobDetailsList = await Promise.all(jobDetailsPromises);
 
-      // Map the response data to the required format
       const newJobs = jobDetailsList.map((jobDetails) => ({
-        id: jobDetails.jobTypeId, // Correctly use the fetched jobTypeId
+        id: jobDetails.jobTypeId,
         title: jobDetails.jobTitle,
         code: jobDetails.jobCode,
         family: jobDetails.jobFamily,
         employees: 0,
       }));
 
-      // Update the departmentJobs state with the new jobs
-      setDepartmentJobs([...departmentJobs, ...newJobs]);
-
-      // Update the assignedJobs state with the correct jobTypeId
       setAssignedJobs([...assignedJobs, ...newJobs]);
-
-      // Remove the assigned jobs from availableJobs
       setAvailableJobs(
         availableJobs.filter((job) => !selectedAvailableJobs.includes(job.id))
       );
-
-      // Clear the selectedAvailableJobs state
       setSelectedAvailableJobs([]);
     } catch (error) {
       console.error("Error fetching job details:", error);
     }
   };
   // Handle assigning ALL jobs to department
-  const assignAllJobs = () => {
-    setAssignedJobs([...assignedJobs, ...availableJobs]);
-    setAvailableJobs([]);
-    setSelectedAvailableJobs([]);
-  };
+  const assignAllJobs = async () => {
+    if (availableJobs.length === 0) return;
 
+    try {
+      const jobDetailsPromises = availableJobs.map(async (job) => {
+        try {
+          const response = await axios.get(
+            "http://localhost:8080/api/hr-job-types/details-by-job-title-id",
+            { params: { jobTitleId: job.id } }
+          );
+          return response.data;
+        } catch (error) {
+          // If 404, skip this job
+          return null;
+        }
+      });
+
+      const jobDetailsList = await Promise.all(jobDetailsPromises);
+
+      // Filter out nulls (failed fetches)
+      const newJobs = jobDetailsList
+        .filter((jobDetails) => jobDetails !== null)
+        .map((jobDetails) => ({
+          id: jobDetails.jobTypeId,
+          title: jobDetails.jobTitle,
+          code: jobDetails.jobCode,
+          family: jobDetails.jobFamily,
+          employees: 0,
+        }));
+
+      setAssignedJobs([...assignedJobs, ...newJobs]);
+      setAvailableJobs([]);
+      setSelectedAvailableJobs([]);
+    } catch (error) {
+      console.error("Error fetching job details:", error);
+    }
+  };
   const removeSelectedJobs = () => {
     const jobsToRemove = assignedJobs.filter((job) =>
       selectedAssignedJobs.includes(job.id)
@@ -178,42 +193,83 @@ function DepartmentSearch() {
     setSelectedAssignedJobs([]);
   };
 
-  const handleDeleteJob = (jobId: number) => {
-    setDepartmentJobs(departmentJobs.filter((job) => job.id !== jobId));
-    toast.success("Job successfully removed.");
-  };
+  const handleDeleteJob = async (jobId: number) => {
+    const isInDepartmentJobs = departmentJobs.some((job) => job.id === jobId);
 
-  const handleSelectDepartment = (departmentId: number) => {
+    if (isInDepartmentJobs) {
+      if (!selectedDepartmentId) {
+        toast.error("No department selected.");
+        return;
+      }
+      try {
+        await axios.delete(`http://localhost:8080/api/hr-dept-jobs/${jobId}`);
+        setDepartmentJobs(departmentJobs.filter((job) => job.id !== jobId));
+        toast.success("Job removed.");
+      } catch (error) {
+        console.error("Failed to remove job:", error);
+        toast.error("Failed to remove job department.");
+      }
+    } else {
+      setAssignedJobs(assignedJobs.filter((job) => job.id !== jobId));
+      toast.success("Job removed.");
+    }
+  };
+  const handleSelectDepartment = async (departmentId: number) => {
     const selectedDept = departments.find((dept) => dept.id === departmentId);
     setSelectedDepartment(selectedDept ? selectedDept.name : "");
-    setSelectedDepartmentId(departmentId); // Store the department ID
+    setSelectedDepartmentId(departmentId);
     setShowDepartmentTreeModal(false);
+
+    // Fetch jobs for this department
+    try {
+      const response = await axios.get(
+        `http://localhost:8080/api/hr-dept-jobs/by-department/${departmentId}`
+      );
+      const jobs = response.data.map((job: any) => ({
+        id: job.id,
+        jobTypeId: job.jobType?.id ?? null,
+        title: job.jobType?.jobTitle?.jobTitle ?? job.title ?? "",
+        code: job.jobType?.jobCode ?? job.code ?? "",
+        family: job.jobType?.jobFamily ?? job.family ?? "",
+        employees: job.noOfEmployees ?? 0,
+      }));
+      setDepartmentJobs(jobs);
+      setAssignedJobs([]);
+    } catch (error) {
+      console.error("Error fetching department jobs:", error);
+      setDepartmentJobs([]);
+      setAssignedJobs([]);
+    }
   };
 
   const handleSave = async () => {
     if (!selectedDepartmentId || assignedJobs.length === 0) {
-      toast.error(
-        "Please select a valid department and assign at least one job."
-      );
+      toast.error("Please select a department and assign job.");
+      return;
+    }
+
+    // Only send jobs that are not already in departmentJobs
+    const existingJobIds = new Set(departmentJobs.map((job) => job.id));
+    const newJobs = assignedJobs.filter((job) => !existingJobIds.has(job.id));
+
+    if (newJobs.length === 0) {
+      toast("No new jobs to save.");
       return;
     }
 
     try {
       // Prepare the payload
-      const payload = assignedJobs.map((job) => ({
-        departmentId: selectedDepartmentId, // Use the department ID
+      const payload = newJobs.map((job) => ({
+        departmentId: selectedDepartmentId,
         jobTypeId: job.id,
         noOfEmployees: 0,
       }));
-      console.log("Payload being sent:", payload);
 
       // Send the payload to the backend
       await axios.post("http://localhost:8080/api/hr-dept-jobs/bulk", payload);
 
-      // Show success notification
       toast.success("Jobs successfully saved to the department.");
 
-      // Clear the assigned jobs and selected department
       setAssignedJobs([]);
       setDepartmentJobs([]);
       setSelectedDepartment("");
@@ -224,7 +280,7 @@ function DepartmentSearch() {
     }
   };
   return (
-    <div className="p-6 font-sans bg-gray-100 min-h-screen">
+    <div className="p-6 font-sans bg-white min-h-screen">
       <Toaster />
       {/* Department Search Header */}
       <h1 className="text-2xl font-bold text-gray-800 mb-6">
@@ -236,21 +292,24 @@ function DepartmentSearch() {
         <h2 className="text-xl font-semibold text-gray-700 mb-4">
           Select Department
         </h2>
-        <div className="flex items-center gap-4">
-          <input
-            type="text"
-            className="w-full p-2 border border-gray-300 rounded-md"
-            placeholder="Select Department"
-            value={selectedDepartment}
-            readOnly
-            onChange={(e) => setSelectedDepartment(e.target.value)}
-          />
-          <button
-            className="bg-gray-400 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-500 transition duration-300"
-            onClick={() => setShowDepartmentTreeModal(true)}
-          >
-            <span className="text-xl">+</span>
-          </button>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-8">
+          <div className="flex-1 flex">
+            <input
+              type="text"
+              className="w-full p-2 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+              placeholder="Select Department"
+              value={selectedDepartment}
+              readOnly
+            />
+            <button
+              className="bg-gray-400 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-500 transition duration-300 ml-2 mt-1"
+              onClick={() => setShowDepartmentTreeModal(true)}
+              type="button"
+              aria-label="Open department tree"
+            >
+              <span className="text-xl font-bold leading-none">+</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -260,7 +319,7 @@ function DepartmentSearch() {
           Add New Jobs To Department
         </h2>
 
-        <div className="flex items-stretch gap-4">
+        <div className="flex flex-col lg:flex-row items-stretch gap-4">
           {/* Available Jobs */}
           <div className="border border-gray-300 rounded-md p-4 flex-1">
             <h3 className="font-medium text-gray-700 mb-3">Available Jobs</h3>
@@ -289,7 +348,7 @@ function DepartmentSearch() {
             </div>
           </div>
           {/* Arrow Controls */}
-          <div className="flex flex-col justify-center gap-4">
+          <div className="flex lg:flex-col justify-center gap-4 py-2 lg:py-0">
             {/* Single right arrow for assigning selected */}
             <button
               onClick={assignSelectedJobs}
@@ -362,18 +421,16 @@ function DepartmentSearch() {
       </div>
 
       {/* Department Tree Modal */}
-
-      {/* Department Tree Modal */}
       {showDepartmentTreeModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96 max-h-[80vh] flex flex-col">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md max-h-[80vh] flex flex-col">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-semibold text-gray-700">
                 {departments.find((d) => d.id === 61)?.name ||
                   "All Departments"}
               </h2>
               <button
-                className="text-gray-700 hover:text-gray-800 text-2x"
+                className="text-gray-700 hover:text-gray-800 text-2xl"
                 onClick={() => setShowDepartmentTreeModal(false)}
               >
                 ✕
@@ -390,7 +447,7 @@ function DepartmentSearch() {
                   deptLevel: 0,
                   parentDeptId: null,
                 }}
-                onSelect={handleSelectDepartment} // Pass the function here
+                onSelect={handleSelectDepartment}
               />
             </div>
           </div>
@@ -406,60 +463,62 @@ function DepartmentSearch() {
           <table className="min-w-full border border-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   No
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Job Title
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Job Code
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Job Family
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   No of Emp
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Action
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {departmentJobs.length > 0 ? (
-                departmentJobs.map((job: Job, index: number) => (
-                  <tr key={job.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text text-gray-900">
-                      {index + 1}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text text-gray-900">
-                      {job.title}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text text-gray-900">
-                      {job.code}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text text-gray-900">
-                      {job.family}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text text-gray-900">
-                      {job.employees}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text text-gray-900">
-                      <button
-                        className="text-red-600 hover:text-red-900"
-                        onClick={() => handleDeleteJob(job.id)}
-                      >
-                        Remove
-                      </button>
-                    </td>
-                  </tr>
-                ))
+              {departmentJobs.length > 0 || assignedJobs.length > 0 ? (
+                [...departmentJobs, ...assignedJobs].map(
+                  (job: Job, index: number) => (
+                    <tr key={job.id}>
+                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap text text-gray-900">
+                        {index + 1}
+                      </td>
+                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap text text-gray-900">
+                        {job.title}
+                      </td>
+                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {job.code}
+                      </td>
+                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap text text-gray-900">
+                        {job.family}
+                      </td>
+                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap text text-gray-900">
+                        {job.employees}
+                      </td>
+                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap text text-gray-900">
+                        <button
+                          className="bg-gray-400 text-white px-2 py-1 rounded hover:bg-gray-500"
+                          onClick={() => handleDeleteJob(job.id)}
+                        >
+                          Remove
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                )
               ) : (
                 <tr>
                   <td
                     colSpan={6}
-                    className="px-6 py-4 text-center text-sm text-gray-500"
+                    className="px-4 sm:px-6 py-4 text-center text-sm text-gray-500"
                   >
                     No records found.
                   </td>
@@ -472,12 +531,7 @@ function DepartmentSearch() {
         <div className="mt-6 flex justify-start">
           <button
             onClick={handleSave}
-            disabled={!selectedDepartment || assignedJobs.length === 0}
-            className={`px-4 py-2 text-white font-semibold rounded-md ${
-              !selectedDepartment || assignedJobs.length === 0
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-blue-500 hover:bg-blue-600"
-            }`}
+            className="px-4 py-2 text-white font-semibold rounded-md bg-blue-500 hover:bg-blue-600"
           >
             Save
           </button>
@@ -486,20 +540,37 @@ function DepartmentSearch() {
     </div>
   );
 }
-
 export default function DepartmentJobsPage() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-
+  const [isMobile, setIsMobile] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
+    if (typeof window !== "undefined") {
+      return window.innerWidth >= 640;
+    }
+    return true;
+  });
   const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
+    setIsSidebarOpen((prev) => !prev);
   };
+
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = typeof window !== "undefined" && window.innerWidth < 640;
+      setIsMobile(mobile);
+      if (mobile) setIsSidebarOpen(false);
+    };
+    handleResize();
+    if (typeof window !== "undefined") {
+      window.addEventListener("resize", handleResize);
+      return () => window.removeEventListener("resize", handleResize);
+    }
+  }, []);
 
   return (
     <div className="flex flex-col min-h-screen">
       <Header toggleSidebar={toggleSidebar} />
-      <div className="flex flex-1">
-        <Sidebar hidden={!isSidebarOpen} />
-        <div className="flex-1 p-4 transition-all duration-300">
+      <div className="flex flex-1 flex-col sm:flex-row">
+        <Sidebar hidden={!isSidebarOpen} isMobile={isMobile} />
+        <div className="flex-1 p-4 transition-all duration-300 w-full">
           <DepartmentSearch />
         </div>
       </div>
