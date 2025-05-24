@@ -2,10 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import Header from "../../components/Header";
-import Sidebar from "../sidbar";
 import toast, { Toaster } from "react-hot-toast";
 import { fetchICFs, createICF } from "../../pages/api/icfService";
+import AppModuleLayout from "../../components/AppModuleLayout";
 import {
   fetchJobTypes,
   createJobType,
@@ -39,37 +38,13 @@ interface JobRegisterModalProps {
   onClose: () => void;
   onSave: (data: any) => void;
 }
-const generateRandomCode = (): string => {
-  return Math.random().toString(36).substring(2, 8).toUpperCase();
-};
-const fetchJobTypeId = async (jobTitle: string): Promise<number | null> => {
-  try {
-    const response = await fetch(
-      `http://localhost:8080/api/hr-job-types/job-type-id?jobTitle=${encodeURIComponent(
-        jobTitle
-      )}`
-    );
-    if (!response.ok) {
-      if (response.status === 404) {
-        console.error(`Job Type not found for jobTitle: ${jobTitle}`);
-        return null;
-      }
-      throw new Error(`Failed to fetch jobTypeId for jobTitle: ${jobTitle}`);
-    }
-    const jobTypeId = await response.json();
-    return jobTypeId;
-  } catch (error) {
-    console.error("Error fetching jobTypeId:", error);
-    return null;
-  }
-};
+
 const JobRegisterModal = ({ type, onClose, onSave }: JobRegisterModalProps) => {
   const { register, handleSubmit, reset } = useForm();
 
   const onSubmit = (data: any) => {
     const newRecord = {
       id: Date.now(),
-      code: generateRandomCode(),
       ...data,
     };
     onSave(newRecord);
@@ -104,7 +79,7 @@ const JobRegisterModal = ({ type, onClose, onSave }: JobRegisterModalProps) => {
                 className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
               />
               <input
-                {...register("jobTitleAmharic")}
+                {...register("jobTitleInAmharic")}
                 placeholder="Job Title (Amharic)"
                 className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
               />
@@ -296,7 +271,6 @@ const RegisterJob = () => {
         // Create new job type
         const newJobType = await createJobType({
           ...data,
-          code: generateRandomCode(),
         });
         setJobTypes((prev) => [...prev, newJobType]);
       }
@@ -654,8 +628,7 @@ const RegisterJob = () => {
                 {positions.map((position, index) => (
                   <tr key={position.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 border-b">{index + 1}</td>
-                    <td className="px-6 py-4 border-b">{position.ICF}</td>{" "}
-                    {/* Ensure this is a string */}
+                    <td className="px-6 py-4 border-b">{position.ICF}</td>
                     <td className="px-6 py-4 border-b space-x-2">
                       <button
                         onClick={() => handleDelete(position.id)}
@@ -805,43 +778,9 @@ const RegisterJob = () => {
 };
 
 export default function RegisterJobsPage() {
-  const [isMobile, setIsMobile] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
-    if (typeof window !== "undefined") {
-      return window.innerWidth >= 640;
-    }
-    return true;
-  });
-  const toggleSidebar = () => {
-    setIsSidebarOpen((prev) => !prev);
-  };
-
-  useEffect(() => {
-    const handleResize = () => {
-      const mobile = typeof window !== "undefined" && window.innerWidth < 640;
-      setIsMobile(mobile);
-      if (mobile) setIsSidebarOpen(false);
-    };
-    handleResize();
-    if (typeof window !== "undefined") {
-      window.addEventListener("resize", handleResize);
-      return () => window.removeEventListener("resize", handleResize);
-    }
-  }, []);
-
   return (
-    <div className="flex flex-col min-h-screen">
-      <Toaster />
-      <Header toggleSidebar={toggleSidebar} />
-      <div className="flex flex-1 flex-col sm:flex-row">
-        <Sidebar hidden={!isSidebarOpen} isMobile={isMobile} />
-        <div className="flex-1 p-4 transition-all duration-300 w-full">
-          <RegisterJob />
-        </div>
-      </div>
-      <footer className="bg-gray-800 text-white p-4 text-center">
-        © {new Date().getFullYear()} INSA ERP. All rights reserved.
-      </footer>
-    </div>
+    <AppModuleLayout>
+      <RegisterJob />
+    </AppModuleLayout>
   );
 }

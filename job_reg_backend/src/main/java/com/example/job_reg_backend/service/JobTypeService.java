@@ -5,6 +5,7 @@ import com.example.job_reg_backend.repository.JobTypeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Sort;
 
 import java.util.List;
 
@@ -19,12 +20,16 @@ public class JobTypeService {
         return jobTypeRepository.findAll();
     }
 
-    // Save a new job type
+    // Save a new job type (with sequential code generation)
     @Transactional
-    public JobType saveJobType(JobType jobType) {
-        // Save and flush the job type to ensure it is immediately persisted
-        return jobTypeRepository.saveAndFlush(jobType);
+public JobType saveJobType(JobType jobType) {
+    if (jobType.getCode() == null || jobType.getCode().isEmpty()) {
+        Integer maxCode = jobTypeRepository.findMaxCodeAsInt();
+        int nextCode = (maxCode != null) ? maxCode + 1 : 100;
+        jobType.setCode(String.valueOf(nextCode));
     }
+    return jobTypeRepository.saveAndFlush(jobType);
+}
 
     // Get a job type by its ID
     public JobType getJobTypeById(Long id) {

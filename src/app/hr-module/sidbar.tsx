@@ -15,6 +15,7 @@ import {
   FiChevronUp,
   FiLayers,
   FiArchive,
+  FiRepeat,
 } from "react-icons/fi";
 import { FaTachometerAlt } from "react-icons/fa";
 
@@ -28,9 +29,12 @@ export default function Sidebar({ className, hidden, isMobile }: SidebarProps) {
   const [openMenus, setOpenMenus] = useState({
     dashboard: false,
     organization: false,
+    transferRequest: false,
   });
 
-  const toggleMenu = (menu: "dashboard" | "organization") => {
+  const toggleMenu = (
+    menu: "dashboard" | "organization" | "transferRequest"
+  ) => {
     setOpenMenus((prev) => ({
       ...prev,
       [menu]: !prev[menu],
@@ -150,6 +154,41 @@ export default function Sidebar({ className, hidden, isMobile }: SidebarProps) {
               >
                 <FiArchive className="w-4 h-4" />
                 Jobs Under Department
+              </Link>
+            </div>
+          )}
+        </div>
+
+        {/* Transfer Request Dropdown */}
+        <div>
+          <button
+            onClick={() => toggleMenu("transferRequest")}
+            className="flex items-center justify-between w-full p-2 hover:bg-gray-700 rounded"
+          >
+            <div className="flex items-center gap-2">
+              <FiRepeat className="w-4 h-4" />
+              <span>Transfter Request</span>
+            </div>
+            {openMenus.transferRequest ? (
+              <FiChevronUp className="w-4 h-4" />
+            ) : (
+              <FiChevronDown className="w-4 h-4" />
+            )}
+          </button>
+          {openMenus.transferRequest && (
+            <div
+              className="ml-6 mt-1 space-y-2"
+              style={{
+                maxHeight: "calc(100vh - 64px)",
+                overflowY: "auto",
+              }}
+            >
+              <Link
+                href="/hr-module/transfer-requests"
+                className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
+              >
+                <FiFileText className="w-4 h-4" />
+                Transfer
               </Link>
             </div>
           )}
