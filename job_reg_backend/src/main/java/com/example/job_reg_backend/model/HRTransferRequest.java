@@ -63,8 +63,9 @@ public class HRTransferRequest {
 
     @Column(name = "SELECTIONSTATUS2")
     private Integer selectionStatus2;
-
-    @Column(name = "JOB_POSITION", referencedColumnName = "POSITION_CODE" )
+     
+    @ManyToOne
+    @JoinColumn(name = "JOB_POSITION", referencedColumnName = "POSITION_CODE" )
     private HRJobTypeDetail jobPosition;
 
     @ManyToOne
@@ -277,12 +278,12 @@ public class HRTransferRequest {
     }
 
     public HRJobTypeDetail getJobPosition() {
-        return jobPosition;
-    }
+    return jobPosition;
+   }
 
-    public void setJobPosition(Long jobPosition) {
-        this.jobPosition = jobPosition;
-    }
+    public void setJobPosition(HRJobTypeDetail jobPosition) {
+    this.jobPosition = jobPosition;
+   }
 
     public HRPayGrad getNewJobPayGrade() {
         return newJobPayGrade;
