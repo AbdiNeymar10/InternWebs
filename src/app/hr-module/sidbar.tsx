@@ -167,7 +167,7 @@ export default function Sidebar({ className, hidden, isMobile }: SidebarProps) {
           >
             <div className="flex items-center gap-2">
               <FiRepeat className="w-4 h-4" />
-              <span>Transfter Request</span>
+              <span>Transfer</span>
             </div>
             {openMenus.transferRequest ? (
               <FiChevronUp className="w-4 h-4" />
@@ -188,7 +188,7 @@ export default function Sidebar({ className, hidden, isMobile }: SidebarProps) {
                 className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
               >
                 <FiFileText className="w-4 h-4" />
-                Transfer
+                Transfer Request
               </Link>
             </div>
           )}

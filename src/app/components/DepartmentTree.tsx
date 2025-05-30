@@ -8,11 +8,13 @@ const DepartmentTree = ({
   level = 0,
   onEdit,
   onSelect, // Add onSelect prop
+  disableExpand = false, // New prop
 }: {
   dept: DepartmentDto;
   level?: number;
   onEdit?: (dept: DepartmentDto) => void;
   onSelect?: (deptId: number) => void; // Callback for selecting a department
+  disableExpand?: boolean; // New prop
 }) => {
   const [children, setChildren] = useState<DepartmentDto[]>([]);
   const [expanded, setExpanded] = useState(false);
@@ -33,22 +35,25 @@ const DepartmentTree = ({
 
   // 👇 Auto-expand root department (e.g., deptId === 61)
   useEffect(() => {
-    if (dept.deptId === 61) {
+    if (!disableExpand && dept.deptId === 61) {
       toggle();
     }
   }, [dept]);
 
   return (
     <div style={{ marginLeft: level * 20 }} className="mb-1">
-      <button onClick={toggle} className="mr-2">
-        <div>
-          {expanded ? (
-            <FaMinusSquare className="text-gray-400" />
-          ) : (
-            <FaPlusSquare className="text-gray-400" />
-          )}
-        </div>
-      </button>
+      {/* Only show expand/collapse if not disabled */}
+      {!disableExpand && (
+        <button onClick={toggle} className="mr-2">
+          <div>
+            {expanded ? (
+              <FaMinusSquare className="text-gray-400" />
+            ) : (
+              <FaPlusSquare className="text-gray-400" />
+            )}
+          </div>
+        </button>
+      )}
       {/* Call onSelect when the department name is clicked */}
       <span
         onClick={() => onSelect && onSelect(dept.deptId)} // Trigger onSelect callback
@@ -61,7 +66,9 @@ const DepartmentTree = ({
           <FaEdit />
         </button>
       )}
-      {expanded &&
+      {/* Only render children if not disabled */}
+      {!disableExpand &&
+        expanded &&
         children.map((child) => (
           <DepartmentTree
             key={child.deptId}

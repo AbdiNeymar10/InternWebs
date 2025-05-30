@@ -4,24 +4,23 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "HR_LU_BRANCH")
-public class HRLuBranch {
+public class HrLuBranch {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "hr_lu_branch_seq")
-    @SequenceGenerator(name = "hr_lu_branch_seq", sequenceName = "HR_LU_BRANCH_SEQ", allocationSize = 1)
     @Column(name = "ID")
     private Long id;
 
-    @Column(name = "BRANCH_NAME")
+    @Column(name = "BRANCH_NAME", length = 255)
     private String branchName;
 
-    @Column(name = "PERCENTAGE")
+    @Column(name = "PERCENTAGE", length = 100)
     private String percentage;
 
     // Constructors
-    public HRLuBranch() {}
+    public HrLuBranch() {
+    }
 
-    public HRLuBranch(Long id, String branchName, String percentage) {
+    public HrLuBranch(Long id, String branchName, String percentage) {
         this.id = id;
         this.branchName = branchName;
         this.percentage = percentage;
@@ -50,5 +49,15 @@ public class HRLuBranch {
 
     public void setPercentage(String percentage) {
         this.percentage = percentage;
+    }
+
+    // toString
+    @Override
+    public String toString() {
+        return "HrLuBranch{" +
+                "id=" + id +
+                ", branchName='" + branchName + '\'' +
+                ", percentage='" + percentage + '\'' +
+                '}';
     }
 }

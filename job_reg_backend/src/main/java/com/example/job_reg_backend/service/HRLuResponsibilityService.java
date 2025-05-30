@@ -1,6 +1,6 @@
 package com.example.job_reg_backend.service;
 
-import com.example.job_reg_backend.model.HRLuResponsibility;
+import com.example.job_reg_backend.model.HrLuResponsibility;
 import com.example.job_reg_backend.repository.HRLuResponsibilityRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,15 +14,15 @@ public class HRLuResponsibilityService {
     @Autowired
     private HRLuResponsibilityRepository repository;
 
-    public List<HRLuResponsibility> getAll() {
+    public List<HrLuResponsibility> getAll() {
         return repository.findAll();
     }
 
-    public Optional<HRLuResponsibility> getById(Long id) {
+    public Optional<HrLuResponsibility> getById(Long id) {
         return repository.findById(id);
     }
 
-    public HRLuResponsibility save(HRLuResponsibility responsibility) {
+    public HrLuResponsibility save(HrLuResponsibility responsibility) {
         return repository.save(responsibility);
     }
 

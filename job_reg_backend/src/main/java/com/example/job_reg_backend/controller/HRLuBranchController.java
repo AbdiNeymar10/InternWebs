@@ -1,6 +1,6 @@
 package com.example.job_reg_backend.controller;
 
-import com.example.job_reg_backend.model.HRLuBranch;
+import com.example.job_reg_backend.model.HrLuBranch;
 import com.example.job_reg_backend.service.HRLuBranchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -17,22 +17,22 @@ public class HRLuBranchController {
     private HRLuBranchService service;
 
     @GetMapping
-    public List<HRLuBranch> getAll() {
+    public List<HrLuBranch> getAll() {
         return service.getAll();
     }
 
     @GetMapping("/{id}")
-    public Optional<HRLuBranch> getById(@PathVariable Long id) {
+    public Optional<HrLuBranch> getById(@PathVariable Long id) {
         return service.getById(id);
     }
 
     @PostMapping
-    public HRLuBranch create(@RequestBody HRLuBranch branch) {
+    public HrLuBranch create(@RequestBody HrLuBranch branch) {
         return service.save(branch);
     }
 
     @PutMapping("/{id}")
-    public HRLuBranch update(@PathVariable Long id, @RequestBody HRLuBranch branch) {
+    public HrLuBranch update(@PathVariable Long id, @RequestBody HrLuBranch branch) {
         branch.setId(id);
         return service.save(branch);
     }

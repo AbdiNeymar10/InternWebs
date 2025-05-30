@@ -7,7 +7,7 @@ import com.example.job_reg_backend.service.HRLuIcfService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import com.example.job_reg_backend.model.HRLuIcf;
+//import com.example.job_reg_backend.model.HRLuIcf;
 
 import java.util.List;
 

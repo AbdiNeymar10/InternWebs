@@ -100,17 +100,16 @@ public String convertToEntityAttribute(String dbData) {
         if (dbData == null || dbData.isEmpty()) {
             return null; // Return null if the database value is null or empty
         }
-
-        Cipher cipher = Cipher.getInstance("AES");
+        Cipher cipherLocal = Cipher.getInstance("AES");
         SecretKeySpec keySpec = new SecretKeySpec(SECRET_KEY.getBytes(), "AES");
-        cipher.init(Cipher.DECRYPT_MODE, keySpec);
-        String decryptedValue = new String(cipher.doFinal(Base64.getDecoder().decode(dbData)));
+        cipherLocal.init(Cipher.DECRYPT_MODE, keySpec);
+        String decryptedValue = new String(cipherLocal.doFinal(Base64.getDecoder().decode(dbData)));
         System.out.println("Decrypting salary: " + dbData + " -> " + decryptedValue); // Log decryption
         return decryptedValue;
     } catch (Exception e) {
         System.err.println("Error decrypting salary: " + dbData); // Log the problematic data
-        e.printStackTrace(); 
-        return " "; 
+        e.printStackTrace();
+        return null; // Return null instead of a blank or throwing
     }
 }
 }

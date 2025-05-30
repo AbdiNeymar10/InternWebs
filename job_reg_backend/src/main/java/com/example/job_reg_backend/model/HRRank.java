@@ -131,7 +131,9 @@ class SalaryEncryptor implements AttributeConverter<String, String> {
             cipher.init(Cipher.DECRYPT_MODE, keySpec);
             return new String(cipher.doFinal(Base64.getDecoder().decode(dbData)));
         } catch (Exception e) {
-            throw new RuntimeException("Error decrypting salary", e);
+            System.err.println("Error decrypting salary: " + dbData); // Log the problematic data
+            e.printStackTrace();
+            return null; // Return null instead of throwing
         }
     }
 }

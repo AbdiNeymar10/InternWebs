@@ -1,6 +1,6 @@
 package com.example.job_reg_backend.controller;
 
-import com.example.job_reg_backend.model.HRLuResponsibility;
+import com.example.job_reg_backend.model.HrLuResponsibility;
 import com.example.job_reg_backend.service.HRLuResponsibilityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -17,22 +17,22 @@ public class HRLuResponsibilityController {
     private HRLuResponsibilityService service;
 
     @GetMapping
-    public List<HRLuResponsibility> getAll() {
+    public List<HrLuResponsibility> getAll() {
         return service.getAll();
     }
 
     @GetMapping("/{id}")
-    public Optional<HRLuResponsibility> getById(@PathVariable Long id) {
+    public Optional<HrLuResponsibility> getById(@PathVariable Long id) {
         return service.getById(id);
     }
 
     @PostMapping
-    public HRLuResponsibility create(@RequestBody HRLuResponsibility responsibility) {
+    public HrLuResponsibility create(@RequestBody HrLuResponsibility responsibility) {
         return service.save(responsibility);
     }
 
     @PutMapping("/{id}")
-    public HRLuResponsibility update(@PathVariable Long id, @RequestBody HRLuResponsibility responsibility) {
+    public HrLuResponsibility update(@PathVariable Long id, @RequestBody HrLuResponsibility responsibility) {
         responsibility.setId(id);
         return service.save(responsibility);
     }

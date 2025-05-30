@@ -6,8 +6,8 @@ import com.example.job_reg_backend.model.HRJobType;
 import com.example.job_reg_backend.repository.HRJobQualificationRepository;
 import com.example.job_reg_backend.repository.EducationLevelRepository;
 import com.example.job_reg_backend.repository.HRJobTypeRepository;
-import com.example.job_reg_backend.model.FieldOfStudy;
-import com.example.job_reg_backend.repository.FieldOfStudyRepository;
+//import com.example.job_reg_backend.model.FieldOfStudy;
+//import com.example.job_reg_backend.repository.FieldOfStudyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -26,8 +26,8 @@ public class HRJobQualificationService {
     @Autowired
     private HRJobTypeRepository jobTypeRepository;
 
-    @Autowired
-    private FieldOfStudyRepository fieldOfStudyRepository;
+    //@Autowired
+    //private FieldOfStudyRepository fieldOfStudyRepository;
 
     public List<HRJobQualification> getAllQualifications() {
         return repository.findAll();

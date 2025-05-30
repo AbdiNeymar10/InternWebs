@@ -1,7 +1,7 @@
 package com.example.job_reg_backend.controller;
 
 import com.example.job_reg_backend.dto.DepartmentDto;
-import com.example.job_reg_backend.model.Department;
+//import com.example.job_reg_backend.model.Department;
 import com.example.job_reg_backend.service.DepartmentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

@@ -3,7 +3,7 @@ package com.example.job_reg_backend.service;
 import com.example.job_reg_backend.model.HRJobTypeDetail;
 import com.example.job_reg_backend.repository.HRJobTypeDetailRepository;
 import org.springframework.stereotype.Service;
-import com.example.job_reg_backend.model.HRLuIcf;
+//import com.example.job_reg_backend.model.HRLuIcf;
 
 import java.util.List;
 

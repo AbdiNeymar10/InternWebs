@@ -5,7 +5,7 @@ import com.example.job_reg_backend.repository.JobTypeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.data.domain.Sort;
+//import org.springframework.data.domain.Sort;
 
 import java.util.List;
 

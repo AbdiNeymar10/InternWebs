@@ -32,8 +32,9 @@ public class HRTransferRequest {
     @Column(name = "STATUS")
     private String status;
 
-    @Column(name = "EMP_ID", nullable = false)
-    private String empId;
+    @ManyToOne
+    @JoinColumn(name = "EMP_ID", referencedColumnName = "EMP_ID", nullable = false)
+    private HrEmployee employee;
 
     @Column(name = "APPROVED_BY")
     private String approvedBy;
@@ -50,7 +51,7 @@ public class HRTransferRequest {
 
     @ManyToOne
     @JoinColumn(name = "REQUIRED_EMPS", referencedColumnName = "ID")
-    private HRLuBranch requiredEmps;
+    private HrLuBranch requiredEmps;
 
     @Column(name = "APPROVER2")
     private String approver2;
@@ -65,7 +66,7 @@ public class HRTransferRequest {
     private Integer selectionStatus2;
      
     @ManyToOne
-    @JoinColumn(name = "JOB_POSITION", referencedColumnName = "POSITION_CODE" )
+    @JoinColumn(name = "JOB_POSITION", referencedColumnName = "ID" )
     private HRJobTypeDetail jobPosition;
 
     @ManyToOne
@@ -75,13 +76,22 @@ public class HRTransferRequest {
     @Column(name = "STATUS2")
     private String status2;
 
+    @Column(name = "GENDER")
+    private String gender;
+
+    @Column(name = "EMPLOYEE_NAME")
+    private String employeeName;
+
+    @Column(name = "ICF")
+    private String Icf;
+
     @ManyToOne
     @JoinColumn(name = "RESPONSIBILITY", referencedColumnName = "ID")
-    private HRLuResponsibility responsibility;
+    private HrLuResponsibility responsibility;
 
     @ManyToOne
     @JoinColumn(name = "BIRANCH_ID", referencedColumnName = "ID")
-    private HRLuBranch biranchId;
+    private HrLuBranch biranchId;
 
     @Column(name = "BRANCH_FROM")
     private String branchFrom;
@@ -97,12 +107,12 @@ public class HRTransferRequest {
             Department transferTo,
             String description,
             String status,
-            String empId,
+            HrEmployee employee,
             String approvedBy,
             String approveDate,
             String commentGiven,
             HRJobType jobCode,
-            HRLuBranch requiredEmps,
+            HrLuBranch requiredEmps,
             String approver2,
             String remark,
             Integer selectionStatus,
@@ -110,8 +120,11 @@ public class HRTransferRequest {
             HRJobTypeDetail jobPosition,
             HRPayGrad newJobPayGrade,
             String status2,
-            HRLuResponsibility responsibility,
-            HRLuBranch biranchId,
+            String gender,
+            String employeeName,
+            String Icf,
+            HrLuResponsibility responsibility,
+            HrLuBranch biranchId,
             String branchFrom
     ) {
         this.transferRequesterId = transferRequesterId;
@@ -121,7 +134,7 @@ public class HRTransferRequest {
         this.transferTo = transferTo;
         this.description = description;
         this.status = status;
-        this.empId = empId;
+        this.employee = employee;
         this.approvedBy = approvedBy;
         this.approveDate = approveDate;
         this.commentGiven = commentGiven;
@@ -134,6 +147,9 @@ public class HRTransferRequest {
         this.jobPosition = jobPosition;
         this.newJobPayGrade = newJobPayGrade;
         this.status2 = status2;
+        this.gender = gender;
+        this.employeeName = employeeName;
+        this.Icf = Icf;
         this.responsibility = responsibility;
         this.biranchId = biranchId;
         this.branchFrom = branchFrom;
@@ -197,12 +213,12 @@ public class HRTransferRequest {
         this.status = status;
     }
 
-    public String getEmpId() {
-        return empId;
+    public HrEmployee getEmployee() {
+        return employee;
     }
 
-    public void setEmpId(String empId) {
-        this.empId = empId;
+    public void setEmployee(HrEmployee employee) {
+        this.employee = employee;
     }
 
     public String getApprovedBy() {
@@ -237,11 +253,11 @@ public class HRTransferRequest {
         this.jobCode = jobCode;
     }
 
-    public HRLuBranch getRequiredEmps() {
+    public HrLuBranch getRequiredEmps() {
         return requiredEmps;
     }
 
-    public void setRequiredEmps(HRLuBranch requiredEmps) {
+    public void setRequiredEmps(HrLuBranch requiredEmps) {
         this.requiredEmps = requiredEmps;
     }
 
@@ -276,7 +292,6 @@ public class HRTransferRequest {
     public void setSelectionStatus2(Integer selectionStatus2) {
         this.selectionStatus2 = selectionStatus2;
     }
-
     public HRJobTypeDetail getJobPosition() {
     return jobPosition;
    }
@@ -301,19 +316,44 @@ public class HRTransferRequest {
         this.status2 = status2;
     }
 
-    public HRLuResponsibility getResponsibility() {
+    
+    public String getGender() {
+        return gender;
+    }
+
+    public void setGender(String gender){
+        this.gender = gender;
+    }
+
+    public String getEmployeeName() {
+        return employeeName;
+    }
+
+    public void setEmployeeName(String employeeName) {
+        this.employeeName = employeeName;
+    }
+
+    public String getIcf (){
+        return Icf;
+    }
+
+    public void setIcf(String icf) {
+        this.Icf = icf;
+    }
+
+    public HrLuResponsibility getResponsibility() {
         return responsibility;
     }
 
-    public void setResponsibility(HRLuResponsibility responsibility) {
+    public void setResponsibility(HrLuResponsibility responsibility) {
         this.responsibility = responsibility;
     }
 
-    public HRLuBranch getBiranchId() {
+    public HrLuBranch getBiranchId() {
         return biranchId;
     }
 
-    public void setBiranchId(HRLuBranch biranchId) {
+    public void setBiranchId(HrLuBranch biranchId) {
         this.biranchId = biranchId;
     }
 

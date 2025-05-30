@@ -1,27 +1,28 @@
 package com.example.job_reg_backend.model;
+
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "HR_LU_RESPONSIBILITY")
-public class HrLuResponsibility {
+@Table(name = "HR_LU_RELIGION")
+public class HrLuReligion {
 
     @Id
     @Column(name = "ID")
     private Long id;
 
-    @Column(name = "RESPONSIBILITY", length = 255)
-    private String responsibility;
+    @Column(name = "NAME", length = 255)
+    private String name;
 
-    @Column(name = "DESCRIPTION", length = 255)
+    @Column(name = "DESCRIPTION", length = 20)
     private String description;
 
     // Constructors
-    public HrLuResponsibility() {
+    public HrLuReligion() {
     }
 
-    public HrLuResponsibility(Long id, String responsibility, String description) {
+    public HrLuReligion(Long id, String name, String description) {
         this.id = id;
-        this.responsibility = responsibility;
+        this.name = name;
         this.description = description;
     }
 
@@ -34,12 +35,12 @@ public class HrLuResponsibility {
         this.id = id;
     }
 
-    public String getResponsibility() {
-        return responsibility;
+    public String getName() {
+        return name;
     }
 
-    public void setResponsibility(String responsibility) {
-        this.responsibility = responsibility;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getDescription() {
@@ -50,12 +51,12 @@ public class HrLuResponsibility {
         this.description = description;
     }
 
-    // toString
+    // toString() for logging/debugging
     @Override
     public String toString() {
-        return "HrLuResponsibility{" +
+        return "HrLuReligion{" +
                 "id=" + id +
-                ", responsibility='" + responsibility + '\'' +
+                ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 '}';
     }

@@ -6,7 +6,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List; 
 import org.springframework.data.jpa.repository.Query; 
 import org.springframework.data.repository.query.Param; 
-import com.example.job_reg_backend.model.HRLuIcf;
+//import com.example.job_reg_backend.model.HRLuIcf;
 
 @Repository
 public interface HRJobTypeDetailRepository extends JpaRepository<HRJobTypeDetail, Long> {
