@@ -65,9 +65,9 @@ public class HRTransferRequestController {
             HrEmployee employee = hrEmployeeRepository.findById(dto.getEmpId()).orElseThrow(() -> new RuntimeException("Employee not found"));
             request.setEmployee(employee);
         }
-        request.setEmployeeName(dto.getEmployeeName());
-        request.setGender(dto.getGender());
-        request.setIcf(dto.getIcf());
+        // request.setEmployeeName(dto.getEmployeeName());
+        // request.setGender(dto.getGender());
+        // request.setIcf(dto.getIcf());
         request.setDescription(dto.getDescription());
         request.setDateRequest(dto.getDateRequest());
         request.setTransferType(dto.getTransferType());
@@ -102,8 +102,45 @@ public class HRTransferRequestController {
     }
 
     @PutMapping("/{id}")
-    public HRTransferRequest update(@PathVariable Long id, @RequestBody HRTransferRequest request) {
-        request.setTransferRequesterId(id);
+    public HRTransferRequest update(@PathVariable Long id, @RequestBody TransferRequestDto dto) {
+        HRTransferRequest request = service.getById(id)
+            .orElseThrow(() -> new RuntimeException("Transfer request not found"));
+
+        if (dto.getEmpId() != null) {
+            HrEmployee employee = hrEmployeeRepository.findById(dto.getEmpId())
+                .orElseThrow(() -> new RuntimeException("Employee not found"));
+            request.setEmployee(employee);
+        }
+        request.setDescription(dto.getDescription());
+        request.setDateRequest(dto.getDateRequest());
+        request.setTransferType(dto.getTransferType());
+        if (dto.getTransferFromId() != null) {
+            request.setTransferFrom(departmentRepository.findById(dto.getTransferFromId()).orElse(null));
+        }
+        if (dto.getTransferToId() != null) {
+            request.setTransferTo(departmentRepository.findById(dto.getTransferToId()).orElse(null));
+        }
+        if (dto.getJobPositionId() != null) {
+            HRJobTypeDetail jobTypeDetail = hrJobTypeDetailRepository.findById(dto.getJobPositionId()).orElse(null);
+            if (jobTypeDetail != null) {
+                request.setJobPosition(jobTypeDetail);
+            }
+        }
+        if (dto.getPayGradeId() != null) {
+            request.setNewJobPayGrade(hrPayGradRepository.findById(dto.getPayGradeId()).orElse(null));
+        }
+        if (dto.getJobResponsibilityId() != null) {
+            request.setResponsibility(hrLuResponsibilityRepository.findById(dto.getJobResponsibilityId()).orElse(null));
+        }
+        if (dto.getBranchId() != null) {
+            request.setBiranchId(hrLuBranchRepository.findById(dto.getBranchId()).orElse(null));
+        }
+        if (dto.getJobCodeId() != null) {
+            HRJobType jobType = hrJobTypeRepository.findById(dto.getJobCodeId()).orElse(null);
+            if (jobType != null) {
+                request.setJobCode(jobType);
+            }
+        }
         return service.save(request);
     }
 

@@ -60,10 +60,10 @@ public class HRTransferRequest {
     private String remark;
 
     @Column(name = "SELECTIONSTATUS")
-    private Integer selectionStatus;
+    private Integer selectionStatus = 0;
 
     @Column(name = "SELECTIONSTATUS2")
-    private Integer selectionStatus2;
+    private Integer selectionStatus2 = 0;
      
     @ManyToOne
     @JoinColumn(name = "JOB_POSITION", referencedColumnName = "ID" )
@@ -76,14 +76,14 @@ public class HRTransferRequest {
     @Column(name = "STATUS2")
     private String status2;
 
-    @Column(name = "GENDER")
-    private String gender;
+    // @Column(name = "GENDER")
+    // private String gender;
 
-    @Column(name = "EMPLOYEE_NAME")
-    private String employeeName;
+    // @Column(name = "EMPLOYEE_NAME")
+    // private String employeeName;
 
-    @Column(name = "ICF")
-    private String Icf;
+    // @Column(name = "ICF")
+    // private String Icf;
 
     @ManyToOne
     @JoinColumn(name = "RESPONSIBILITY", referencedColumnName = "ID")
@@ -120,9 +120,6 @@ public class HRTransferRequest {
             HRJobTypeDetail jobPosition,
             HRPayGrad newJobPayGrade,
             String status2,
-            String gender,
-            String employeeName,
-            String Icf,
             HrLuResponsibility responsibility,
             HrLuBranch biranchId,
             String branchFrom
@@ -147,9 +144,6 @@ public class HRTransferRequest {
         this.jobPosition = jobPosition;
         this.newJobPayGrade = newJobPayGrade;
         this.status2 = status2;
-        this.gender = gender;
-        this.employeeName = employeeName;
-        this.Icf = Icf;
         this.responsibility = responsibility;
         this.biranchId = biranchId;
         this.branchFrom = branchFrom;
@@ -317,29 +311,29 @@ public class HRTransferRequest {
     }
 
     
-    public String getGender() {
-        return gender;
-    }
+    // public String getGender() {
+    //     return gender;
+    // }
 
-    public void setGender(String gender){
-        this.gender = gender;
-    }
+    // public void setGender(String gender){
+    //     this.gender = gender;
+    // }
 
-    public String getEmployeeName() {
-        return employeeName;
-    }
+    // public String getEmployeeName() {
+    //     return employeeName;
+    // }
 
-    public void setEmployeeName(String employeeName) {
-        this.employeeName = employeeName;
-    }
+    // public void setEmployeeName(String employeeName) {
+    //     this.employeeName = employeeName;
+    // }
 
-    public String getIcf (){
-        return Icf;
-    }
+    // public String getIcf (){
+    //     return Icf;
+    // }
 
-    public void setIcf(String icf) {
-        this.Icf = icf;
-    }
+    // public void setIcf(String icf) {
+    //     this.Icf = icf;
+    // }
 
     public HrLuResponsibility getResponsibility() {
         return responsibility;

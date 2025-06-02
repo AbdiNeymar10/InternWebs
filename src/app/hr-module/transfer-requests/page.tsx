@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Head from "next/head";
 import toast, { Toaster } from "react-hot-toast";
 import AppModuleLayout from "../../components/AppModuleLayout";
@@ -28,9 +28,6 @@ function TransferRequest() {
   const [departments, setDepartments] = useState<
     { deptId: number; deptName: string }[]
   >([]);
-  const [branch, setBranch] = useState<{ id: number; branchName: string }[]>(
-    []
-  );
   const [departmentFieldBeingEdited, setDepartmentFieldBeingEdited] = useState<
     "to" | "from" | "main" | null
   >(null);
@@ -41,16 +38,19 @@ function TransferRequest() {
   const [jobResponsibilityId, setJobResponsibilityId] = useState("");
   const [branchId, setBranchId] = useState("");
   const [jobCodeId, setJobCodeId] = useState("");
+  const [transferRequests, setTransferRequests] = useState<any[]>([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
+
+  const inputRef = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     const payload: any = {
-      employeeName,
-      gender,
       hiredDate,
       empId: employeeId,
-      icf,
       description: transferReason,
       dateRequest: requestDate,
       transferType,
@@ -63,19 +63,45 @@ function TransferRequest() {
     if (branchId) payload.branchId = branchId;
     if (jobCodeId) payload.jobCodeId = jobCodeId;
 
-    console.log("Submitting payload:", payload); 
+    console.log("Submitting payload:", payload);
 
-    fetch("http://localhost:8080/api/hr-transfer-requests", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to save transfer request");
-        return res.json();
+    // If updating an existing request
+    if (selectedRequest) {
+      fetch(
+        `http://localhost:8080/api/hr-transfer-requests/${selectedRequest}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...payload,
+            transferRequesterId: selectedRequest,
+            transferType,
+            dateRequest: requestDate,
+            description: transferReason,
+            transferTo: { deptId: toDepartmentId },
+          }),
+        }
+      )
+        .then((res) => {
+          if (!res.ok) throw new Error("Failed to update transfer request");
+          return res.json();
+        })
+        .then(() => toast.success("Transfer request updated successfully!"))
+        .catch(() => toast.error("Failed to update transfer request"));
+    } else {
+      // Create new request
+      fetch("http://localhost:8080/api/hr-transfer-requests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       })
-      .then(() => toast.success("Transfer request submitted successfully!"))
-      .catch(() => toast.error("Failed to submit transfer request"));
+        .then((res) => {
+          if (!res.ok) throw new Error("Failed to save transfer request");
+          return res.json();
+        })
+        .then(() => toast.success("Transfer request submitted successfully!"))
+        .catch(() => toast.error("Failed to submit transfer request"));
+    }
   };
   useEffect(() => {
     fetch("http://localhost:8080/api/departments")
@@ -103,12 +129,12 @@ function TransferRequest() {
           setFromDepartment(data.departmentName || "");
           setJobPosition(data.jobPosition || "");
           setDirectorate(data.directorateName || "");
-          setJobPositionId(data.jobPositionId || ""); 
-          setFromDepartmentId(data.fromDepartmentId || ""); 
+          setJobPositionId(data.jobPositionId || "");
+          setFromDepartmentId(data.fromDepartmentId || "");
           setPayGradeId(data.payGradeId || "");
           setJobResponsibilityId(data.jobResponsibilityId || "");
           setBranchId(data.branchId || "");
-          setJobCodeId(data.jobCode || ""); 
+          setJobCodeId(data.jobCode || "");
 
           console.log("Fetched employee info:", {
             employeeName: data.employeeName,
@@ -119,7 +145,7 @@ function TransferRequest() {
             departmentName: data.departmentName,
             jobPosition: data.jobPosition,
             directorateName: data.directorateName,
-            fromDepartmentId: data.fromDepartmentId, 
+            fromDepartmentId: data.fromDepartmentId,
           });
         })
         .catch(() => {
@@ -156,6 +182,56 @@ function TransferRequest() {
     }
   }, [employeeId]);
 
+  useEffect(() => {
+    fetch("http://localhost:8080/api/hr-transfer-requests")
+      .then((res) => res.json())
+      .then((data) => setTransferRequests(data))
+      .catch((err) => console.error("Failed to fetch transfer requests", err));
+  }, []);
+
+  // Add useEffect to load employee info when a request is selected
+  useEffect(() => {
+    if (selectedRequest) {
+      const req = transferRequests.find(
+        (r) => r.transferRequesterId.toString() === selectedRequest
+      );
+      if (req && req.employee) {
+        setEmployeeId(req.employee.empId || "");
+        setEmployeeName(
+          [
+            req.employee.firstName,
+            req.employee.middleName,
+            req.employee.lastName,
+          ]
+            .filter(Boolean)
+            .join(" ")
+        );
+        setGender(req.employee.sex || "");
+        setHiredDate(req.employee.hiredDate || "");
+        seticf(req.employee.icf?.icfName || "");
+        setDepartment(req.employee.department?.depName || "");
+        setFromDepartment(req.employee.department?.depName || "");
+        setJobPosition(
+          req.employee.jobTypeDetail?.jobType?.jobTitle?.jobTitle || ""
+        );
+        setDirectorate(req.employee.department?.directorateName || "");
+        setJobPositionId(req.employee.jobTypeDetail?.id?.toString() || "");
+        setFromDepartmentId(req.employee.department?.deptId?.toString() || "");
+        setPayGradeId(req.employee.payGrade?.payGradeId?.toString() || "");
+        setJobResponsibilityId(
+          req.employee.jobResponsibility?.id?.toString() || ""
+        );
+        setBranchId(req.employee.branch?.id?.toString() || "");
+        setJobCodeId(req.employee.jobTypeDetail?.jobType?.id?.toString() || "");
+        setTransferType(req.transferType || "");
+        setToDepartment(req.transferTo?.depName || "");
+        setToDepartmentId(req.transferTo?.deptId?.toString() || "");
+      } else if (req) {
+        setTransferType(req.transferType || "");
+      }
+    }
+  }, [selectedRequest, transferRequests]);
+
   const handleSelectDepartment = (deptId: number) => {
     if (departmentFieldBeingEdited === "to") {
       const dept = departments.find((d) => d.deptId === deptId);
@@ -165,6 +241,28 @@ function TransferRequest() {
       setDepartmentFieldBeingEdited(null);
     }
   };
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node) &&
+        inputRef.current &&
+        !inputRef.current.contains(event.target as Node)
+      ) {
+        setShowDropdown(false);
+      }
+    }
+    if (showDropdown) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showDropdown]);
+
   return (
     <div className="min-h-screen bg-gray-100">
       <Head>
@@ -180,20 +278,101 @@ function TransferRequest() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div>
-              <div className="flex flex-row items-center gap-2">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap">
+              <div className="flex flex-row items-center gap-2 justify-start">
+                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Update Request
                 </label>
-                <select
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
-                  value={selectedRequest}
-                  onChange={(e) => setSelectedRequest(e.target.value)}
-                >
-                  <option value="">--Select One--</option>
-                  <option value="request1">Request 1</option>
-                  <option value="request2">Request 2</option>
-                  <option value="request3">Request 3</option>
-                </select>
+                <div className="flex-1 relative" ref={dropdownRef}>
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                    placeholder="--Select One--"
+                    value={searchValue}
+                    onChange={(e) => {
+                      setSearchValue(e.target.value);
+                      setShowDropdown(true);
+                    }}
+                    onFocus={() => setShowDropdown(true)}
+                  />
+                  {showDropdown && (
+                    <ul className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md max-h-48 overflow-y-auto">
+                      {transferRequests
+                        .filter((req) => {
+                          const empId = req.employee?.empId?.toString() || "";
+                          const empName = [
+                            req.employee?.firstName,
+                            req.employee?.middleName,
+                            req.employee?.lastName,
+                          ]
+                            .filter(Boolean)
+                            .join(" ")
+                            .toLowerCase();
+                          return (
+                            searchValue.trim() === "" ||
+                            empId.includes(searchValue.trim()) ||
+                            empName.includes(searchValue.trim().toLowerCase())
+                          );
+                        })
+                        .map((req) => (
+                          <li
+                            key={req.transferRequesterId}
+                            className={`p-2 hover:bg-gray-200 cursor-pointer ${
+                              selectedRequest ===
+                              req.transferRequesterId.toString()
+                                ? "bg-blue-100"
+                                : ""
+                            }`}
+                            onClick={() => {
+                              setSelectedRequest(
+                                req.transferRequesterId.toString()
+                              );
+                              setShowDropdown(false);
+                              setSearchValue(
+                                req.employee?.empId
+                                  ? `${req.employee.empId} - ${[
+                                      req.employee.firstName,
+                                      req.employee.middleName,
+                                      req.employee.lastName,
+                                    ]
+                                      .filter(Boolean)
+                                      .join(" ")}`
+                                  : `Request #${req.transferRequesterId}`
+                              );
+                            }}
+                          >
+                            {req.employee?.empId
+                              ? `${req.employee.empId} - ${[
+                                  req.employee.firstName,
+                                  req.employee.middleName,
+                                  req.employee.lastName,
+                                ]
+                                  .filter(Boolean)
+                                  .join(" ")}`
+                              : `Request #${req.transferRequesterId}`}
+                          </li>
+                        ))}
+                      {transferRequests.filter((req) => {
+                        const empId = req.employee?.empId?.toString() || "";
+                        const empName = [
+                          req.employee?.firstName,
+                          req.employee?.middleName,
+                          req.employee?.lastName,
+                        ]
+                          .filter(Boolean)
+                          .join(" ")
+                          .toLowerCase();
+                        return (
+                          searchValue.trim() === "" ||
+                          empId.includes(searchValue.trim()) ||
+                          empName.includes(searchValue.trim().toLowerCase())
+                        );
+                      }).length === 0 && (
+                        <li className="p-2 text-gray-400">No results found</li>
+                      )}
+                    </ul>
+                  )}
+                </div>
               </div>
             </div>
             <div>
@@ -455,7 +634,8 @@ function TransferRequest() {
                   parentDeptId: null,
                 }}
                 onSelect={handleSelectDepartment}
-              />`
+              />
+              `
             </div>
           </div>
         </div>
