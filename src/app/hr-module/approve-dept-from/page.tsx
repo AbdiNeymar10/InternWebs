@@ -8,7 +8,7 @@ import DepartmentTree from "../../components/DepartmentTree";
 
 type TransferType = "To Department" | "From Department" | "";
 
-function TransferRequest() {
+function ApprovedDeptFrom() {
   const [employeeName, setEmployeeName] = useState("");
   const [gender, setGender] = useState("");
   const [jobPosition, setJobPosition] = useState("");
@@ -38,10 +38,12 @@ function TransferRequest() {
   const [jobResponsibilityId, setJobResponsibilityId] = useState("");
   const [branchId, setBranchId] = useState("");
   const [jobCodeId, setJobCodeId] = useState("");
-  const [branchFromId, setBranchFromId] = useState("");
   const [transferRequests, setTransferRequests] = useState<any[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [searchValue, setSearchValue] = useState("");
+  const [decision, setDecision] = useState("");
+  const [remark, setRemark] = useState("");
+  const [progressBy, setProgressBy] = useState("");
   const [loading, setLoading] = useState(true);
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -71,18 +73,21 @@ function TransferRequest() {
     setBranchId("");
     setJobCodeId("");
     setSearchValue("");
-    setBranchFromId("");
+    setDecision("");
+    setRemark("");
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
     const payload: any = {
       hiredDate,
       empId: employeeId,
       description: transferReason,
       dateRequest: requestDate,
       transferType,
+      decision,
+      remark,
+      progressBy,
     };
     if (jobPositionId) payload.jobPositionId = jobPositionId;
     if (fromDepartmentId) payload.transferFromId = fromDepartmentId;
@@ -91,9 +96,6 @@ function TransferRequest() {
     if (jobResponsibilityId) payload.jobResponsibilityId = jobResponsibilityId;
     if (branchId) payload.branchId = branchId;
     if (jobCodeId) payload.jobCodeId = jobCodeId;
-    if (branchFromId) payload.branchFromId = branchFromId;
-
-    console.log("Submitting payload:", payload);
 
     // If updating an existing request
     if (selectedRequest) {
@@ -109,6 +111,8 @@ function TransferRequest() {
             dateRequest: requestDate,
             description: transferReason,
             transferTo: { deptId: toDepartmentId },
+            status: decision,
+            approvedBy: "Abdi Neymar",
           }),
         }
       )
@@ -139,6 +143,7 @@ function TransferRequest() {
         .catch(() => toast.error("Failed to submit transfer request"));
     }
   };
+
   useEffect(() => {
     fetch("http://localhost:8080/api/departments")
       .then((res) => res.json())
@@ -168,9 +173,8 @@ function TransferRequest() {
           setFromDepartmentId(data.fromDepartmentId || "");
           setPayGradeId(data.payGradeId || "");
           setJobResponsibilityId(data.jobResponsibilityId || "");
-          setBranchId(data.branchId ? data.branchId.toString() : "");
+          setBranchId(data.branchId || "");
           setJobCodeId(data.jobCode || "");
-          setBranchFromId(data.branchId ? data.branchId.toString() : "");
 
           if (data.jobPositionId) {
             fetch(
@@ -241,15 +245,17 @@ function TransferRequest() {
   }, [employeeId]);
 
   useEffect(() => {
-    console.log("Fetching transfer requests...");
     const fetchRequests = async () => {
       try {
         const response = await fetch(
           "http://localhost:8080/api/hr-transfer-requests"
         );
         const data = await response.json();
-        console.log("Fetched data:", data);
-        setTransferRequests(data);
+        const filtered = data.filter((req: any) => {
+          if (req.status === undefined || req.status === null) return false;
+          return req.status === "0" || req.status === 0;
+        });
+        setTransferRequests(filtered);
       } catch (error) {
         console.error("Fetch error:", error);
       } finally {
@@ -259,7 +265,6 @@ function TransferRequest() {
 
     fetchRequests();
   }, []);
-
   useEffect(() => {
     if (selectedRequest) {
       const req = transferRequests.find(
@@ -298,7 +303,6 @@ function TransferRequest() {
         setToDepartmentId(req.transferTo?.deptId?.toString() || "");
         setTransferReason(req.description || "");
         setRequestDate(req.dateRequest || "");
-        setBranchFromId(req.employee.branch?.id?.toString() || "");
       } else if (req) {
         setTransferType(req.transferType || "");
       }
@@ -339,8 +343,8 @@ function TransferRequest() {
   return (
     <div className="min-h-screen bg-gray-100">
       <Head>
-        <title>Employee Transfer Request</title>
-        <meta name="description" content="Employee transfer request form" />
+        <title>Approve Dept From</title>
+        <meta name="description" content="Approve dept from form" />
       </Head>
       <Toaster />
       <div className="w-full p-0 ">
@@ -465,20 +469,6 @@ function TransferRequest() {
                 </div>
               </div>
             </div>
-            <div>
-              <div className="flex flex-row items-center gap-2">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap">
-                  View Request Status
-                </label>
-                <select
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
-                  value={selectedStatus}
-                  onChange={(e) => setSelectedStatus(e.target.value)}
-                >
-                  <option value="">--Select One--</option>
-                </select>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -487,8 +477,9 @@ function TransferRequest() {
           className="bg-white shadow rounded-lg p-6 w-full"
         >
           <h2 className="text-lg font-semibold text-gray-700 mb-4">
-            Transfer Request:
+            Approve Dept From:
           </h2>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             {/* Left Column */}
             <div className="space-y-4">
@@ -644,7 +635,7 @@ function TransferRequest() {
                   Transfer Reason
                 </label>
                 <textarea
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300 resize-y min-h-[40px] max-h-[200px]"
+                  className="flex-1 border border-gray-300 rounded-md p-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300 resize-y min-h-[40px] max-h-[200px]"
                   value={transferReason}
                   onChange={(e) => setTransferReason(e.target.value)}
                   rows={2}
@@ -683,6 +674,50 @@ function TransferRequest() {
             </div>
           </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div className="space-y-4">
+              <div className="flex flex-row items-center gap-2 justify-start">
+                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+                  Decision
+                </label>
+                <select
+                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  value={decision}
+                  onChange={(e) => setDecision(e.target.value)}
+                  required
+                >
+                  <option value="">--Select One--</option>
+                  <option value="DirectChanged">Direct Changed</option>
+                  <option value="rejectFromDept">Reject From Dept</option>
+                  <option value="approvedFromDept">Approved From Dept</option>
+                  <option value="Changed">Changed</option>
+                  <option value="1">1</option>
+                </select>
+              </div>
+              <div className="h-4" />
+              {/* Progress by  */}
+              <div className="flex flex-row items-center gap-2 justify-start mt-2">
+                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+                  Progress by:
+                </label>
+                <span className="text-gray-800 font-semibold">Abdi Neymar</span>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <div className="flex flex-row items-center gap-2 justify-end">
+                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+                  Remark
+                </label>
+                <textarea
+                  className="flex-1 border border-gray-300 rounded-md p-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300 resize-y min-h-[40px] max-h-[200px]"
+                  value={remark}
+                  onChange={(e) => setRemark(e.target.value)}
+                  rows={2}
+                />
+              </div>
+            </div>
+          </div>
+
           <div className="flex justify-start">
             {selectedRequest ? (
               <button
@@ -696,7 +731,7 @@ function TransferRequest() {
                 type="submit"
                 className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
               >
-                Create
+                Save
               </button>
             )}
           </div>
@@ -733,7 +768,6 @@ function TransferRequest() {
                 }}
                 onSelect={handleSelectDepartment}
               />
-              `
             </div>
           </div>
         </div>
@@ -742,10 +776,10 @@ function TransferRequest() {
   );
 }
 
-export default function TransferRequestPage() {
+export default function ApprovedDeptFromPage() {
   return (
     <AppModuleLayout>
-      <TransferRequest />
+      <ApprovedDeptFrom />
     </AppModuleLayout>
   );
 }

@@ -238,6 +238,50 @@ public class HrEmployeeServiceImpl implements HrEmployeeService {
 
         String fromDepartmentId = employee.getDepartment() != null && employee.getDepartment().getDeptId() != null ? employee.getDepartment().getDeptId().toString() : null;
 
+        // Fetch toDepartmentId from latest approved transfer request (join to get DEPT_ID)
+        String toDepartmentId = "";
+        try {
+            Object result = entityManager.createNativeQuery(
+                "SELECT d.DEPT_ID FROM HR_TRANSFER_REQUEST t JOIN HR_DEPARTMENT d ON t.TRANSFER_TO = d.DEPT_ID WHERE t.EMP_ID = :empId AND t.STATUS = '2' ORDER BY t.APPROVE_DATE DESC FETCH FIRST 1 ROWS ONLY")
+                .setParameter("empId", empId)
+                .getSingleResult();
+            if (result != null) {
+                toDepartmentId = result.toString();
+            }
+        } catch (jakarta.persistence.NoResultException e) {
+            toDepartmentId = "";
+        } catch (Exception e) {
+            toDepartmentId = "";
+        }
+        String approvedBy = null;
+        try {
+            Object result = entityManager.createNativeQuery(
+                "SELECT APPROVED_BY FROM HR_TRANSFER_REQUEST WHERE EMP_ID = :empId AND STATUS = '2' ORDER BY APPROVE_DATE DESC FETCH FIRST 1 ROWS ONLY")
+                .setParameter("empId", empId)
+                .getSingleResult();
+            if (result != null) {
+                approvedBy = result.toString();
+            }
+        } catch (Exception e) {
+           
+        }
+
+        // Fetch current salary from pay grade (fetch encrypted value directly from DB)
+        String currentSalary = null;
+        if (employee.getPayGrade() != null && employee.getPayGrade().getPayGradeId() != null) {
+            try {
+                Object result = entityManager.createNativeQuery(
+                    "SELECT SALARY FROM HR_PAY_GRAD WHERE PAY_GRADE_ID = :id")
+                    .setParameter("id", employee.getPayGrade().getPayGradeId())
+                    .getSingleResult();
+                if (result != null) {
+                    currentSalary = result.toString(); // This is the ENCRYPTED value from DB
+                }
+            } catch (Exception e) {
+                currentSalary = null;
+            }
+        }
+
         return new EmployeeInfoDto(
                 employee.getEmpId(),
                 employeeName.trim(),
@@ -254,7 +298,10 @@ public class HrEmployeeServiceImpl implements HrEmployeeService {
                 jobResponsibilityId,
                 payGradeId,
                 directorateName,
-                fromDepartmentId
+                fromDepartmentId,
+                approvedBy,
+                currentSalary,
+                toDepartmentId // <-- add toDepartmentId as the last argument
         );
     }
 }

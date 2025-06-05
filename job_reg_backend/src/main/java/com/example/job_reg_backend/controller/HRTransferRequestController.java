@@ -65,12 +65,10 @@ public class HRTransferRequestController {
             HrEmployee employee = hrEmployeeRepository.findById(dto.getEmpId()).orElseThrow(() -> new RuntimeException("Employee not found"));
             request.setEmployee(employee);
         }
-        // request.setEmployeeName(dto.getEmployeeName());
-        // request.setGender(dto.getGender());
-        // request.setIcf(dto.getIcf());
         request.setDescription(dto.getDescription());
         request.setDateRequest(dto.getDateRequest());
         request.setTransferType(dto.getTransferType());
+         request.setStatus("0");
         if (dto.getTransferFromId() != null) {
             request.setTransferFrom(departmentRepository.findById(dto.getTransferFromId()).orElse(null));
         }
@@ -97,6 +95,9 @@ public class HRTransferRequestController {
             if (jobType != null) {
                 request.setJobCode(jobType);
             }
+        }
+        if (dto.getBranchFromId() != null) {
+            request.setBranchFrom(dto.getBranchFromId().toString());
         }
         return service.save(request);
     }
@@ -140,6 +141,19 @@ public class HRTransferRequestController {
             if (jobType != null) {
                 request.setJobCode(jobType);
             }
+        }
+        // Set status, remark, and approvedBy if present
+        if (dto.getStatus() != null) {
+            request.setStatus(dto.getStatus());
+        }
+        if (dto.getRemark() != null) {
+            request.setRemark(dto.getRemark());
+        }
+        if (dto.getApprovedBy() != null) {
+            request.setApprovedBy(dto.getApprovedBy());
+        }
+        if (dto.getBranchFromId() != null) {
+            request.setBranchFrom(dto.getBranchFromId().toString());
         }
         return service.save(request);
     }

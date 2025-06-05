@@ -17,10 +17,13 @@ public class EmployeeInfoDto {
     private String payGradeId;
     private String directorateName;
     private String fromDepartmentId;
+    private String approvedBy;
+    private String currentSalary;
+    private String toDepartmentId;
 
     public EmployeeInfoDto() {}
 
-    public EmployeeInfoDto(String employeeId, String employeeName, String gender, String hiredDate, String icf, String departmentName, String jobPosition, String jobPositionId, String jobCode, String branch, String branchId, String jobResponsibility, String jobResponsibilityId, String payGradeId, String directorateName, String fromDepartmentId) {
+    public EmployeeInfoDto(String employeeId, String employeeName, String gender, String hiredDate, String icf, String departmentName, String jobPosition, String jobPositionId, String jobCode, String branch, String branchId, String jobResponsibility, String jobResponsibilityId, String payGradeId, String directorateName, String fromDepartmentId, String approvedBy, String currentSalary, String toDepartmentId) {
         this.employeeId = employeeId;
         this.employeeName = employeeName;
         this.gender = gender;
@@ -37,6 +40,9 @@ public class EmployeeInfoDto {
         this.payGradeId = payGradeId;
         this.directorateName = directorateName;
         this.fromDepartmentId = fromDepartmentId;
+        this.approvedBy = approvedBy;
+        this.currentSalary = currentSalary;
+        this.toDepartmentId = toDepartmentId;
     }
 
     public String getEmployeeId() { return employeeId; }
@@ -81,4 +87,12 @@ public class EmployeeInfoDto {
 
     public String getFromDepartmentId() { return fromDepartmentId; }
     public void setFromDepartmentId(String fromDepartmentId) { this.fromDepartmentId = fromDepartmentId; }
+
+    public String getApprovedBy() { return approvedBy; }
+    public void setApprovedBy(String approvedBy) { this.approvedBy = approvedBy; }
+    public String getCurrentSalary() { return currentSalary; }
+    public void setCurrentSalary(String currentSalary) { this.currentSalary = currentSalary; }
+
+    public String getToDepartmentId() { return toDepartmentId; }
+    public void setToDepartmentId(String toDepartmentId) { this.toDepartmentId = toDepartmentId; }
 }

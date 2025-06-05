@@ -16,7 +16,10 @@ public class TransferRequestDto {
     private Long jobResponsibilityId;
     private Long branchId;
     private Long jobCodeId; 
-    // private String jobCode; 
+    private String status;
+    private String remark;
+    private String approvedBy;
+    private Long branchFromId; 
 
     // Getters and Setters
     public String getEmployeeName() { return employeeName; }
@@ -64,6 +67,15 @@ public class TransferRequestDto {
     public Long getJobCodeId() { return jobCodeId; } 
     public void setJobCodeId(Long jobCodeId) { this.jobCodeId = jobCodeId; } 
 
-    // public String getJobCode() { return jobCode; }
-    // public void setJobCode(String jobCode) { this.jobCode = jobCode; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+
+    public String getRemark() { return remark; }
+    public void setRemark(String remark) { this.remark = remark; }
+
+    public String getApprovedBy() { return approvedBy; }
+    public void setApprovedBy(String approvedBy) { this.approvedBy = approvedBy; }
+
+    public Long getBranchFromId() { return branchFromId; } 
+    public void setBranchFromId(Long branchFromId) { this.branchFromId = branchFromId; } 
 }

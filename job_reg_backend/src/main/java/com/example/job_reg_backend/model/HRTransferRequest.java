@@ -22,6 +22,12 @@ public class HRTransferRequest {
     @Column(name = "DATE_REQUEST")
     private String dateRequest;
 
+    @Column(name = "CHECKED_DATE")
+    private String checkedDate;
+
+    @Column(name = "AUTHORIZED_DATE")
+    private String authorizedDate;
+
     @ManyToOne
     @JoinColumn(name = "TRANSFER_TO", referencedColumnName = "DEPT_ID")
     private Department transferTo;
@@ -30,7 +36,7 @@ public class HRTransferRequest {
     private String description;
 
     @Column(name = "STATUS")
-    private String status;
+    private String status = "0" ;
 
     @ManyToOne
     @JoinColumn(name = "EMP_ID", referencedColumnName = "EMP_ID", nullable = false)
@@ -76,15 +82,6 @@ public class HRTransferRequest {
     @Column(name = "STATUS2")
     private String status2;
 
-    // @Column(name = "GENDER")
-    // private String gender;
-
-    // @Column(name = "EMPLOYEE_NAME")
-    // private String employeeName;
-
-    // @Column(name = "ICF")
-    // private String Icf;
-
     @ManyToOne
     @JoinColumn(name = "RESPONSIBILITY", referencedColumnName = "ID")
     private HrLuResponsibility responsibility;
@@ -104,6 +101,8 @@ public class HRTransferRequest {
             String transferType,
             Department transferFrom,
             String dateRequest,
+            String checkedDate,
+            String authorizedDate,
             Department transferTo,
             String description,
             String status,
@@ -128,6 +127,8 @@ public class HRTransferRequest {
         this.transferType = transferType;
         this.transferFrom = transferFrom;
         this.dateRequest = dateRequest;
+        this.checkedDate = checkedDate;
+        this.authorizedDate = authorizedDate;
         this.transferTo = transferTo;
         this.description = description;
         this.status = status;
@@ -181,6 +182,22 @@ public class HRTransferRequest {
 
     public void setDateRequest(String dateRequest) {
         this.dateRequest = dateRequest;
+    }
+
+    public String getCheckedDate() {
+        return checkedDate;
+    }
+
+    public void setCheckedDate(String checkedDate) {
+        this.checkedDate = checkedDate;
+    }
+
+    public String getAuthorizedDate() {
+        return authorizedDate;
+    }
+
+    public void setAuthorizedDate(String authorizedDate) {
+        this.authorizedDate = authorizedDate;
     }
 
     public Department getTransferTo() {
@@ -309,31 +326,6 @@ public class HRTransferRequest {
     public void setStatus2(String status2) {
         this.status2 = status2;
     }
-
-    
-    // public String getGender() {
-    //     return gender;
-    // }
-
-    // public void setGender(String gender){
-    //     this.gender = gender;
-    // }
-
-    // public String getEmployeeName() {
-    //     return employeeName;
-    // }
-
-    // public void setEmployeeName(String employeeName) {
-    //     this.employeeName = employeeName;
-    // }
-
-    // public String getIcf (){
-    //     return Icf;
-    // }
-
-    // public void setIcf(String icf) {
-    //     this.Icf = icf;
-    // }
 
     public HrLuResponsibility getResponsibility() {
         return responsibility;

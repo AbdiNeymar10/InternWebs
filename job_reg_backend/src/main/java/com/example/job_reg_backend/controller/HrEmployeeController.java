@@ -4,6 +4,7 @@ import com.example.job_reg_backend.dto.EmployeeInfoDto;
 import com.example.job_reg_backend.dto.EmployeeWithPayGradeDto;
 import com.example.job_reg_backend.model.HrEmployee;
 import com.example.job_reg_backend.service.HrEmployeeService;
+import com.example.job_reg_backend.repository.DepartmentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,10 +16,12 @@ import java.util.List;
 public class HrEmployeeController {
 
     private final HrEmployeeService hrEmployeeService;
+    private final DepartmentRepository departmentRepository;
 
     @Autowired
-    public HrEmployeeController(HrEmployeeService hrEmployeeService) {
+    public HrEmployeeController(HrEmployeeService hrEmployeeService, DepartmentRepository departmentRepository) {
         this.hrEmployeeService = hrEmployeeService;
+        this.departmentRepository = departmentRepository;
     }
 
 
@@ -72,5 +75,21 @@ public class HrEmployeeController {
     public ResponseEntity<Void> deleteEmployee(@PathVariable String empId) {
         hrEmployeeService.deleteEmployee(empId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{empId}/department")
+    public ResponseEntity<?> updateEmployeeDepartment(@PathVariable String empId, @RequestBody java.util.Map<String, String> body) {
+        String toDepartmentId = body.get("toDepartmentId");
+        if (toDepartmentId == null || toDepartmentId.isEmpty()) {
+            return ResponseEntity.badRequest().body("toDepartmentId is required");
+        }
+        HrEmployee employee = hrEmployeeService.getEmployeeById(empId);
+        com.example.job_reg_backend.model.Department department = departmentRepository.findById(Long.valueOf(toDepartmentId)).orElse(null);
+        if (department == null) {
+            return ResponseEntity.badRequest().body("Department not found with id: " + toDepartmentId);
+        }
+        employee.setDepartment(department);
+        hrEmployeeService.updateEmployee(empId, employee);
+        return ResponseEntity.ok().build();
     }
 }

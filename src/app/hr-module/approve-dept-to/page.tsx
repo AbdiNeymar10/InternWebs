@@ -8,7 +8,7 @@ import DepartmentTree from "../../components/DepartmentTree";
 
 type TransferType = "To Department" | "From Department" | "";
 
-function TransferRequest() {
+function ApprovedDeptFrom() {
   const [employeeName, setEmployeeName] = useState("");
   const [gender, setGender] = useState("");
   const [jobPosition, setJobPosition] = useState("");
@@ -23,7 +23,8 @@ function TransferRequest() {
   const [transferReason, setTransferReason] = useState("");
   const [requestDate, setRequestDate] = useState("2017-09-15");
   const [selectedRequest, setSelectedRequest] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState("");
+  const [approvedLists, setApprovedLists] = useState("");
+  const [approvedDate, setApprovedDate] = useState("");
   const [showDepartmentTreeModal, setShowDepartmentTreeModal] = useState(false);
   const [departments, setDepartments] = useState<
     { deptId: number; deptName: string }[]
@@ -38,10 +39,17 @@ function TransferRequest() {
   const [jobResponsibilityId, setJobResponsibilityId] = useState("");
   const [branchId, setBranchId] = useState("");
   const [jobCodeId, setJobCodeId] = useState("");
-  const [branchFromId, setBranchFromId] = useState("");
   const [transferRequests, setTransferRequests] = useState<any[]>([]);
+  const [approvedRequests, setApprovedRequests] = useState<any[]>([]);
+  const [approvedLoading, setApprovedLoading] = useState(false);
+  const [approvedDropdownFocused, setApprovedDropdownFocused] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [searchValue, setSearchValue] = useState("");
+  const [approverDecision, setApproverDecision] = useState("");
+  const [decision, setDecision] = useState("");
+
+  const [remark, setRemark] = useState("");
+  const [progressBy, setProgressBy] = useState("");
   const [loading, setLoading] = useState(true);
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -62,7 +70,6 @@ function TransferRequest() {
     setTransferReason("");
     setRequestDate("2017-09-15");
     setSelectedRequest("");
-    setSelectedStatus("");
     setJobPositionId("");
     setFromDepartmentId("");
     setToDepartmentId("");
@@ -71,18 +78,22 @@ function TransferRequest() {
     setBranchId("");
     setJobCodeId("");
     setSearchValue("");
-    setBranchFromId("");
+    setApproverDecision("");
+    setRemark("");
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
     const payload: any = {
       hiredDate,
       empId: employeeId,
       description: transferReason,
       dateRequest: requestDate,
       transferType,
+      approverDecision,
+      decision,
+      remark,
+      progressBy,
     };
     if (jobPositionId) payload.jobPositionId = jobPositionId;
     if (fromDepartmentId) payload.transferFromId = fromDepartmentId;
@@ -91,9 +102,6 @@ function TransferRequest() {
     if (jobResponsibilityId) payload.jobResponsibilityId = jobResponsibilityId;
     if (branchId) payload.branchId = branchId;
     if (jobCodeId) payload.jobCodeId = jobCodeId;
-    if (branchFromId) payload.branchFromId = branchFromId;
-
-    console.log("Submitting payload:", payload);
 
     // If updating an existing request
     if (selectedRequest) {
@@ -109,6 +117,8 @@ function TransferRequest() {
             dateRequest: requestDate,
             description: transferReason,
             transferTo: { deptId: toDepartmentId },
+            status: decision,
+            approvedBy: "Abdi Tolesa",
           }),
         }
       )
@@ -139,6 +149,7 @@ function TransferRequest() {
         .catch(() => toast.error("Failed to submit transfer request"));
     }
   };
+
   useEffect(() => {
     fetch("http://localhost:8080/api/departments")
       .then((res) => res.json())
@@ -168,9 +179,8 @@ function TransferRequest() {
           setFromDepartmentId(data.fromDepartmentId || "");
           setPayGradeId(data.payGradeId || "");
           setJobResponsibilityId(data.jobResponsibilityId || "");
-          setBranchId(data.branchId ? data.branchId.toString() : "");
+          setBranchId(data.branchId || "");
           setJobCodeId(data.jobCode || "");
-          setBranchFromId(data.branchId ? data.branchId.toString() : "");
 
           if (data.jobPositionId) {
             fetch(
@@ -241,15 +251,17 @@ function TransferRequest() {
   }, [employeeId]);
 
   useEffect(() => {
-    console.log("Fetching transfer requests...");
     const fetchRequests = async () => {
       try {
         const response = await fetch(
           "http://localhost:8080/api/hr-transfer-requests"
         );
         const data = await response.json();
-        console.log("Fetched data:", data);
-        setTransferRequests(data);
+        const filtered = data.filter((req: any) => {
+          if (req.status === undefined || req.status === null) return false;
+          return req.status === "1" || req.status === 1;
+        });
+        setTransferRequests(filtered);
       } catch (error) {
         console.error("Fetch error:", error);
       } finally {
@@ -259,7 +271,6 @@ function TransferRequest() {
 
     fetchRequests();
   }, []);
-
   useEffect(() => {
     if (selectedRequest) {
       const req = transferRequests.find(
@@ -298,12 +309,64 @@ function TransferRequest() {
         setToDepartmentId(req.transferTo?.deptId?.toString() || "");
         setTransferReason(req.description || "");
         setRequestDate(req.dateRequest || "");
-        setBranchFromId(req.employee.branch?.id?.toString() || "");
+        setRemark(req.remark || "");
+        setApproverDecision(req.status || "");
+        setApprovedDate(req.approveDate || "");
       } else if (req) {
         setTransferType(req.transferType || "");
+        setRemark(req.remark || "");
+        setApproverDecision(req.status || "");
+        setApprovedDate(req.approveDate || "");
       }
     }
   }, [selectedRequest, transferRequests]);
+
+  // Handle selecting an approved request
+  useEffect(() => {
+    if (approvedLists) {
+      const req = approvedRequests.find(
+        (r) => r.transferRequesterId.toString() === approvedLists
+      );
+      if (req && req.employee) {
+        setEmployeeId(req.employee.empId || "");
+        setEmployeeName(
+          [
+            req.employee.firstName,
+            req.employee.middleName,
+            req.employee.lastName,
+          ]
+            .filter(Boolean)
+            .join(" ")
+        );
+        setGender(req.employee.sex || "");
+        setHiredDate(req.employee.hiredDate || "");
+        seticf(req.employee.icf?.icfName || "");
+        setDepartment(req.employee.department?.depName || "");
+        setFromDepartment(req.employee.department?.depName || "");
+        setJobPosition(
+          req.employee.jobTypeDetail?.jobType?.jobTitle?.jobTitle || ""
+        );
+        setDirectorate(req.employee.department?.directorateName || "");
+        setJobPositionId(req.employee.jobTypeDetail?.id?.toString() || "");
+        setFromDepartmentId(req.employee.department?.deptId?.toString() || "");
+        setPayGradeId(req.employee.payGrade?.payGradeId?.toString() || "");
+        setJobResponsibilityId(
+          req.employee.jobResponsibility?.id?.toString() || ""
+        );
+        setBranchId(req.employee.branch?.id?.toString() || "");
+        setJobCodeId(req.employee.jobTypeDetail?.jobType?.id?.toString() || "");
+        setTransferType(req.transferType || "");
+        setToDepartment(req.transferTo?.depName || "");
+        setToDepartmentId(req.transferTo?.deptId?.toString() || "");
+        setTransferReason(req.description || "");
+        setRequestDate(req.dateRequest || "");
+        setRemark(req.remark || "");
+        setApproverDecision(req.status || "");
+        setApprovedDate(req.approveDate || "");
+        setSelectedRequest("");
+      }
+    }
+  }, [approvedLists, approvedRequests]);
 
   const handleSelectDepartment = (deptId: number) => {
     if (departmentFieldBeingEdited === "to") {
@@ -336,11 +399,31 @@ function TransferRequest() {
     };
   }, [showDropdown]);
 
+  // Fetch approved requests (status 2) only when Approved Lists dropdown is focused
+  useEffect(() => {
+    if (approvedDropdownFocused) {
+      setApprovedLoading(true);
+      fetch("http://localhost:8080/api/hr-transfer-requests")
+        .then((res) => res.json())
+        .then((data) => {
+          const filtered = data.filter(
+            (req: any) => req.status === "2" || req.status === 2
+          );
+          setApprovedRequests(filtered);
+        })
+        .catch((err) => {
+          setApprovedRequests([]);
+          console.error("Failed to fetch approved requests", err);
+        })
+        .finally(() => setApprovedLoading(false));
+    }
+  }, [approvedDropdownFocused]);
+
   return (
     <div className="min-h-screen bg-gray-100">
       <Head>
-        <title>Employee Transfer Request</title>
-        <meta name="description" content="Employee transfer request form" />
+        <title>Approve Dept From</title>
+        <meta name="description" content="Approve dept from form" />
       </Head>
       <Toaster />
       <div className="w-full p-0 ">
@@ -465,19 +548,45 @@ function TransferRequest() {
                 </div>
               </div>
             </div>
-            <div>
-              <div className="flex flex-row items-center gap-2">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap">
-                  View Request Status
-                </label>
-                <select
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
-                  value={selectedStatus}
-                  onChange={(e) => setSelectedStatus(e.target.value)}
-                >
-                  <option value="">--Select One--</option>
-                </select>
-              </div>
+            <div className="flex flex-row items-center gap-2">
+              <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap">
+                Approved Lists
+              </label>
+              <select
+                className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                value={approvedLists}
+                onChange={(e) => setApprovedLists(e.target.value)}
+                onFocus={() => setApprovedDropdownFocused(true)}
+                onBlur={() => setApprovedDropdownFocused(false)}
+                style={{ minWidth: 0 }}
+              >
+                <option value="">--Select One--</option>
+                {approvedLoading && (
+                  <option disabled value="loading">
+                    Loading...
+                  </option>
+                )}
+                {!approvedLoading &&
+                  approvedRequests.map((req) => {
+                    const empId = req.employee?.empId || "N/A";
+                    const fullName =
+                      [
+                        req.employee?.firstName,
+                        req.employee?.middleName,
+                        req.employee?.lastName,
+                      ]
+                        .filter(Boolean)
+                        .join(" ") || "";
+                    return (
+                      <option
+                        key={req.transferRequesterId}
+                        value={req.transferRequesterId}
+                      >
+                        {empId} - {fullName}
+                      </option>
+                    );
+                  })}
+              </select>
             </div>
           </div>
         </div>
@@ -487,8 +596,9 @@ function TransferRequest() {
           className="bg-white shadow rounded-lg p-6 w-full"
         >
           <h2 className="text-lg font-semibold text-gray-700 mb-4">
-            Transfer Request:
+            Approve Dept From:
           </h2>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             {/* Left Column */}
             <div className="space-y-4">
@@ -644,11 +754,39 @@ function TransferRequest() {
                   Transfer Reason
                 </label>
                 <textarea
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300 resize-y min-h-[40px] max-h-[200px]"
+                  className="flex-1 border border-gray-300 rounded-md p-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300 resize-y min-h-[40px] max-h-[200px]"
                   value={transferReason}
                   onChange={(e) => setTransferReason(e.target.value)}
                   rows={2}
                 />
+              </div>
+              <div className="space-y-4">
+                <div className="flex flex-row items-center gap-2 justify-end">
+                  <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+                    Approver Remark
+                  </label>
+                  <textarea
+                    className="flex-1 border border-gray-300 rounded-md p-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300 resize-y min-h-[40px] max-h-[200px]"
+                    value={remark}
+                    onChange={(e) => setRemark(e.target.value)}
+                    rows={2}
+                  />
+                </div>
+              </div>
+              <div className="flex flex-row items-center gap-2 justify-start">
+                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+                  Decision
+                </label>
+                <select
+                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  value={decision}
+                  onChange={(e) => setDecision(e.target.value)}
+                  required
+                >
+                  <option value="">--Select One--</option>
+                  <option value="2">Approved</option>
+                  <option value="1">Rejected</option>
+                </select>
               </div>
             </div>
 
@@ -680,6 +818,44 @@ function TransferRequest() {
                   onChange={(e) => setRequestDate(e.target.value)}
                 />
               </div>
+              <div className="flex flex-row items-center gap-2 justify-end">
+                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+                  Approved Date
+                </label>
+                <input
+                  type="date"
+                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  value={approvedDate}
+                  onChange={(e) => setApprovedDate(e.target.value)}
+                />
+              </div>
+              <div className="h-2" />
+              <div className="flex flex-row items-center gap-2 justify-start">
+                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+                  Approver Decision
+                </label>
+                <input
+                  type="text"
+                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  value={approverDecision}
+                  onChange={(e) => setApproverDecision(e.target.value)}
+                  required
+                  readOnly
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div className="space-y-4">
+              <div className="h-4" />
+              {/* Progress by  */}
+              <div className="flex flex-row items-center gap-2 justify-start mt-2">
+                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+                  Progress by:
+                </label>
+                <span className="text-gray-800 font-semibold">Abdi Tolesa</span>
+              </div>
             </div>
           </div>
 
@@ -696,7 +872,7 @@ function TransferRequest() {
                 type="submit"
                 className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
               >
-                Create
+                Save
               </button>
             )}
           </div>
@@ -733,7 +909,6 @@ function TransferRequest() {
                 }}
                 onSelect={handleSelectDepartment}
               />
-              `
             </div>
           </div>
         </div>
@@ -742,10 +917,10 @@ function TransferRequest() {
   );
 }
 
-export default function TransferRequestPage() {
+export default function ApprovedDeptFromPage() {
   return (
     <AppModuleLayout>
-      <TransferRequest />
+      <ApprovedDeptFrom />
     </AppModuleLayout>
   );
 }
