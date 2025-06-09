@@ -20,6 +20,11 @@ public class TransferRequestDto {
     private String remark;
     private String approvedBy;
     private Long branchFromId; 
+    private String preparedDate;
+    private String checkedDate;
+    private String authorizedDate;
+    private String stepNo;
+
 
     // Getters and Setters
     public String getEmployeeName() { return employeeName; }
@@ -78,4 +83,17 @@ public class TransferRequestDto {
 
     public Long getBranchFromId() { return branchFromId; } 
     public void setBranchFromId(Long branchFromId) { this.branchFromId = branchFromId; } 
+
+    public String getPreparedDate() {return preparedDate; }
+    public void setPreparedDate(String preparedDate) {this.preparedDate = preparedDate; }
+
+    public String getCheckedDate() {return checkedDate; }
+    public void setCheckedDate(String checkedDate) {this.checkedDate = checkedDate; }
+
+    public String getAuthorizedDate() {return authorizedDate;}
+    public void setAuthorizedDate(String authorizedDate) {this.authorizedDate = authorizedDate; }
+
+    public String getStepNo() { return stepNo; }
+    public void setStepNo(String stepNo) { this.stepNo = stepNo; }
+
 }

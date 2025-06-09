@@ -8,7 +8,7 @@ import DepartmentTree from "../../components/DepartmentTree";
 
 type TransferType = "To Department" | "From Department" | "";
 
-function ApprovedDeptFrom() {
+function ApproveDeptTo() {
   const [employeeName, setEmployeeName] = useState("");
   const [gender, setGender] = useState("");
   const [jobPosition, setJobPosition] = useState("");
@@ -47,7 +47,7 @@ function ApprovedDeptFrom() {
   const [searchValue, setSearchValue] = useState("");
   const [approverDecision, setApproverDecision] = useState("");
   const [decision, setDecision] = useState("");
-
+  const [checkedDate, setCheckedDate] = useState("");
   const [remark, setRemark] = useState("");
   const [progressBy, setProgressBy] = useState("");
   const [loading, setLoading] = useState(true);
@@ -89,6 +89,7 @@ function ApprovedDeptFrom() {
       empId: employeeId,
       description: transferReason,
       dateRequest: requestDate,
+      checkedDate,
       transferType,
       approverDecision,
       decision,
@@ -816,6 +817,7 @@ function ApprovedDeptFrom() {
                   className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
                   value={requestDate}
                   onChange={(e) => setRequestDate(e.target.value)}
+                  readOnly
                 />
               </div>
               <div className="flex flex-row items-center gap-2 justify-end">
@@ -843,6 +845,17 @@ function ApprovedDeptFrom() {
                   readOnly
                 />
               </div>
+              <div className="flex flex-row items-center gap-2 justify-end">
+                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+                  Checked Date
+                </label>
+                <input
+                  type="date"
+                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  value={checkedDate}
+                  onChange={(e) => setCheckedDate(e.target.value)}
+                />
+              </div>
             </div>
           </div>
 
@@ -852,7 +865,7 @@ function ApprovedDeptFrom() {
               {/* Progress by  */}
               <div className="flex flex-row items-center gap-2 justify-start mt-2">
                 <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
-                  Progress by:
+                  Processed by:
                 </label>
                 <span className="text-gray-800 font-semibold">Abdi Tolesa</span>
               </div>
@@ -917,10 +930,10 @@ function ApprovedDeptFrom() {
   );
 }
 
-export default function ApprovedDeptFromPage() {
+export default function ApproveDeptToPage() {
   return (
     <AppModuleLayout>
-      <ApprovedDeptFrom />
+      <ApproveDeptTo />
     </AppModuleLayout>
   );
 }

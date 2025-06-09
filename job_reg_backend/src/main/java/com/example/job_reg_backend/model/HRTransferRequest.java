@@ -25,6 +25,9 @@ public class HRTransferRequest {
     @Column(name = "CHECKED_DATE")
     private String checkedDate;
 
+    @Column(name = "PREPARED_DATE")
+    private String preparedDate;
+
     @Column(name = "AUTHORIZED_DATE")
     private String authorizedDate;
 
@@ -103,6 +106,7 @@ public class HRTransferRequest {
             String dateRequest,
             String checkedDate,
             String authorizedDate,
+            String preparedDate,
             Department transferTo,
             String description,
             String status,
@@ -129,6 +133,7 @@ public class HRTransferRequest {
         this.dateRequest = dateRequest;
         this.checkedDate = checkedDate;
         this.authorizedDate = authorizedDate;
+        this.preparedDate = preparedDate;
         this.transferTo = transferTo;
         this.description = description;
         this.status = status;
@@ -198,6 +203,14 @@ public class HRTransferRequest {
 
     public void setAuthorizedDate(String authorizedDate) {
         this.authorizedDate = authorizedDate;
+    }
+
+    public String getPreparedDate() {
+        return preparedDate;
+    }
+
+    public void setPreparedDate(String preparedDate) {
+        this.preparedDate = preparedDate;
     }
 
     public Department getTransferTo() {

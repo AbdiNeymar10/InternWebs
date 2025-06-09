@@ -142,7 +142,6 @@ public class HRTransferRequestController {
                 request.setJobCode(jobType);
             }
         }
-        // Set status, remark, and approvedBy if present
         if (dto.getStatus() != null) {
             request.setStatus(dto.getStatus());
         }
@@ -151,6 +150,15 @@ public class HRTransferRequestController {
         }
         if (dto.getApprovedBy() != null) {
             request.setApprovedBy(dto.getApprovedBy());
+        }
+        if (dto.getPreparedDate() != null) {
+            request.setPreparedDate(dto.getPreparedDate());
+        }
+        if (dto.getCheckedDate() != null) {
+            request.setCheckedDate(dto.getCheckedDate());
+        }
+        if (dto.getAuthorizedDate() != null) {
+            request.setAuthorizedDate(dto.getAuthorizedDate());
         }
         if (dto.getBranchFromId() != null) {
             request.setBranchFrom(dto.getBranchFromId().toString());

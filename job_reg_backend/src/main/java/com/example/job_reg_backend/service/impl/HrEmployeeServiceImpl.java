@@ -164,14 +164,12 @@ public class HrEmployeeServiceImpl implements HrEmployeeService {
         }
         String departmentName = employee.getDepartment() != null ? employee.getDepartment().getDepName() : null;
         String jobPosition = null;
-        // Traverse: HrEmployee -> HRJobTypeDetail -> HRJobType -> JobType -> jobTitle
         if (employee.getJobTypeDetail() != null &&
             employee.getJobTypeDetail().getJobType() != null &&
             employee.getJobTypeDetail().getJobType().getJobTitle() != null &&
             employee.getJobTypeDetail().getJobType().getJobTitle().getJobTitle() != null) {
             jobPosition = employee.getJobTypeDetail().getJobType().getJobTitle().getJobTitle();
         }
-        // Fallback: try to fetch job title via native query if still null
         if (jobPosition == null && employee.getJobTypeDetail() != null && employee.getJobTypeDetail().getJobType() != null && employee.getJobTypeDetail().getJobType().getJobTitle() != null) {
             try {
                 Object result = entityManager.createNativeQuery(
@@ -182,7 +180,6 @@ public class HrEmployeeServiceImpl implements HrEmployeeService {
                     jobPosition = result.toString();
                 }
             } catch (Exception e) {
-                // Optionally log the error
             }
         }
 
@@ -196,7 +193,6 @@ public class HrEmployeeServiceImpl implements HrEmployeeService {
         }
 
         String jobCode = null;
-        // Use jobTypeDetail for jobCode as well
         if (employee.getJobTypeDetail() != null && employee.getJobTypeDetail().getJobType() != null) {
             jobCode = employee.getJobTypeDetail().getJobType().getId() != null ? employee.getJobTypeDetail().getJobType().getId().toString() : null;
         }
@@ -238,7 +234,6 @@ public class HrEmployeeServiceImpl implements HrEmployeeService {
 
         String fromDepartmentId = employee.getDepartment() != null && employee.getDepartment().getDeptId() != null ? employee.getDepartment().getDeptId().toString() : null;
 
-        // Fetch toDepartmentId from latest approved transfer request (join to get DEPT_ID)
         String toDepartmentId = "";
         try {
             Object result = entityManager.createNativeQuery(
@@ -266,7 +261,6 @@ public class HrEmployeeServiceImpl implements HrEmployeeService {
            
         }
 
-        // Fetch current salary from pay grade (fetch encrypted value directly from DB)
         String currentSalary = null;
         if (employee.getPayGrade() != null && employee.getPayGrade().getPayGradeId() != null) {
             try {
@@ -275,7 +269,7 @@ public class HrEmployeeServiceImpl implements HrEmployeeService {
                     .setParameter("id", employee.getPayGrade().getPayGradeId())
                     .getSingleResult();
                 if (result != null) {
-                    currentSalary = result.toString(); // This is the ENCRYPTED value from DB
+                    currentSalary = result.toString(); 
                 }
             } catch (Exception e) {
                 currentSalary = null;
@@ -301,7 +295,7 @@ public class HrEmployeeServiceImpl implements HrEmployeeService {
                 fromDepartmentId,
                 approvedBy,
                 currentSalary,
-                toDepartmentId // <-- add toDepartmentId as the last argument
+                toDepartmentId 
         );
     }
 }

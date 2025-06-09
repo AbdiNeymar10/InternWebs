@@ -8,7 +8,7 @@ import DepartmentTree from "../../components/DepartmentTree";
 
 type TransferType = "To Department" | "From Department" | "";
 
-function ApprovedDeptFrom() {
+function ApproveDeptFrom() {
   const [employeeName, setEmployeeName] = useState("");
   const [gender, setGender] = useState("");
   const [jobPosition, setJobPosition] = useState("");
@@ -22,6 +22,7 @@ function ApprovedDeptFrom() {
   const [fromDepartment, setFromDepartment] = useState("");
   const [transferReason, setTransferReason] = useState("");
   const [requestDate, setRequestDate] = useState("2017-09-15");
+  const [preparedDate, setPreparedDate] = useState("");
   const [selectedRequest, setSelectedRequest] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
   const [showDepartmentTreeModal, setShowDepartmentTreeModal] = useState(false);
@@ -84,6 +85,7 @@ function ApprovedDeptFrom() {
       empId: employeeId,
       description: transferReason,
       dateRequest: requestDate,
+      preparedDate,
       transferType,
       decision,
       remark,
@@ -669,6 +671,18 @@ function ApprovedDeptFrom() {
                   className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
                   value={requestDate}
                   onChange={(e) => setRequestDate(e.target.value)}
+                  readOnly
+                />
+              </div>
+              <div className="flex flex-row items-center gap-2 justify-end">
+                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+                  Prepared Date
+                </label>
+                <input
+                  type="date"
+                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  value={preparedDate}
+                  onChange={(e) => setPreparedDate(e.target.value)}
                 />
               </div>
             </div>
@@ -687,10 +701,10 @@ function ApprovedDeptFrom() {
                   required
                 >
                   <option value="">--Select One--</option>
-                  <option value="DirectChanged">Direct Changed</option>
+                  {/* <option value="DirectChanged">Direct Changed</option>
                   <option value="rejectFromDept">Reject From Dept</option>
                   <option value="approvedFromDept">Approved From Dept</option>
-                  <option value="Changed">Changed</option>
+                  <option value="Changed">Changed</option> */}
                   <option value="1">1</option>
                 </select>
               </div>
@@ -698,7 +712,7 @@ function ApprovedDeptFrom() {
               {/* Progress by  */}
               <div className="flex flex-row items-center gap-2 justify-start mt-2">
                 <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
-                  Progress by:
+                  Processed by:
                 </label>
                 <span className="text-gray-800 font-semibold">Abdi Neymar</span>
               </div>
@@ -776,10 +790,10 @@ function ApprovedDeptFrom() {
   );
 }
 
-export default function ApprovedDeptFromPage() {
+export default function ApproveDeptFromPage() {
   return (
     <AppModuleLayout>
-      <ApprovedDeptFrom />
+      <ApproveDeptFrom />
     </AppModuleLayout>
   );
 }

@@ -18,6 +18,10 @@ import {
   FiRepeat,
   FiSend,
   FiCheckCircle,
+  FiArrowLeftCircle,
+  FiArrowRightCircle,
+  FiThumbsUp,
+  FiTrendingUp,
 } from "react-icons/fi";
 import { FaTachometerAlt } from "react-icons/fa";
 
@@ -192,56 +196,40 @@ export default function Sidebar({ className, hidden, isMobile }: SidebarProps) {
                 <FiSend className="w-4 h-4" />
                 Transfer Request
               </Link>
-            </div>
-          )}
-          {openMenus.transferRequest && (
-            <div
-              className="ml-6 mt-1 space-y-2"
-              style={{
-                maxHeight: "calc(100vh - 64px)",
-                overflowY: "auto",
-              }}
-            >
               <Link
                 href="/hr-module/approve-dept-from"
                 className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
               >
-                <FiCheckCircle className="w-4 h-4" />
+                <FiArrowLeftCircle className="w-4 h-4" />
                 Approve Dept From
               </Link>
-            </div>
-          )}
-          {openMenus.transferRequest && (
-            <div
-              className="ml-6 mt-1 space-y-2"
-              style={{
-                maxHeight: "calc(100vh - 64px)",
-                overflowY: "auto",
-              }}
-            >
               <Link
                 href="/hr-module/approve-dept-to"
                 className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
               >
-                <FiCheckCircle className="w-4 h-4" />
+                <FiArrowRightCircle className="w-4 h-4" />
                 Approve Dept To
               </Link>
-            </div>
-          )}
-          {openMenus.transferRequest && (
-            <div
-              className="ml-6 mt-1 space-y-2"
-              style={{
-                maxHeight: "calc(100vh - 64px)",
-                overflowY: "auto",
-              }}
-            >
               <Link
                 href="/hr-module/hr-approve"
                 className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
               >
-                <FiCheckCircle className="w-4 h-4" />
+                <FiThumbsUp className="w-4 h-4" />
                 Hr Approve
+              </Link>
+              <Link
+                href="/hr-module/hr-promotion"
+                className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
+              >
+                <FiTrendingUp className="w-4 h-4" />
+                Hr Promotion
+              </Link>
+              <Link
+                href="/hr-module/hr-promotion-approve"
+                className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
+              >
+                <FiTrendingUp className="w-4 h-4" />
+                Promotion Approve
               </Link>
             </div>
           )}
