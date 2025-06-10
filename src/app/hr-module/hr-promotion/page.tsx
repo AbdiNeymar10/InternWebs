@@ -52,10 +52,18 @@ function HrPromotion() {
   const [branchNameTo, setBranchNameTo] = useState("");
   const [currentSalary, setCurrentSalary] = useState("");
   const [jobClass, setJobClass] = useState("");
-  const [changeToPermanent, setChangeToPermanent] = useState("");
+  const [changeTo, setChangeTo] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
+  const [jobResponsibilities, setJobResponsibilities] = useState<
+    {
+      id: string;
+      responsibility: string;
+    }[]
+  >([]);
+  const [branches, setBranches] = useState<
+    { id: number; branchName: string }[]
+  >([]);
   const clearForm = () => {
     setEmployeeName("");
     setGender("");
@@ -171,17 +179,18 @@ function HrPromotion() {
           setGender(data.gender || "");
           setHiredDate(data.hiredDate || "");
           setDepartment(data.departmentName || "");
+          setDivision(data.departmentName || "");
           setFromDepartment(data.departmentName || "");
           setJobPosition(data.jobPosition || "");
           setDirectorate(data.directorateName || "");
           setJobPositionId(data.jobPositionId || "");
           setFromDepartmentId(data.fromDepartmentId || "");
+          setToDepartmentId(data.toDepartmentId ?? "");
           setPayGradeId(data.payGradeId || "");
           setJobResponsibilityId(data.jobResponsibilityId || "");
           setBranchId(data.branchId || "");
           setJobCodeId(data.jobCode || "");
           setCurrentSalary(data.currentSalary || "");
-
           if (data.jobPositionId) {
             fetch(
               `http://localhost:8080/api/job-type-details/${data.jobPositionId}`
@@ -193,26 +202,53 @@ function HrPromotion() {
                     ? jobTypeDetail.icf.ICF
                     : "";
                 seticf(icfValue);
-                // Log all fetched employee info
-                console.log("Fetched employee info:", {
-                  employeeName: data.employeeName,
-                  gender: data.gender,
-                  hiredDate: data.hiredDate,
-                  departmentName: data.departmentName,
-                  jobPosition: data.jobPosition,
-                  directorateName: data.directorateName,
-                  jobPositionId: data.jobPositionId,
-                  fromDepartmentId: data.fromDepartmentId,
-                  payGradeId: data.payGradeId,
-                  jobResponsibilityId: data.jobResponsibilityId,
-                  branchId: data.branchId,
-                  jobCode: data.jobCode,
-                  icf: icfValue,
-                });
-              })
-              .catch((err) => {
-                seticf("");
-                console.log("Error fetching ICF ", data.jobPositionId, err);
+                let jobClassValue = "";
+                let jobGradeId = "";
+                if (
+                  jobTypeDetail &&
+                  jobTypeDetail.jobType &&
+                  jobTypeDetail.jobType.jobGrade
+                ) {
+                  jobClassValue = jobTypeDetail.jobType.jobGrade.grade;
+                  jobGradeId = jobTypeDetail.jobType.jobGrade.id || "";
+                }
+                setJobClass(jobClassValue);
+
+                if (data.payGradeId) {
+                  fetch(
+                    `http://localhost:8080/api/hr-pay-grad/${data.payGradeId}`
+                  )
+                    .then((res) => (res.ok ? res.json() : null))
+                    .then((payGradeData) => {
+                      const stepNo =
+                        payGradeData && payGradeData.stepNo
+                          ? payGradeData.stepNo
+                          : "";
+                      setIncrementStep(stepNo);
+                      // Log all fetched employee info
+                      console.log("Fetched employee info:", {
+                        employeeName: data.employeeName,
+                        gender: data.gender,
+                        hiredDate: data.hiredDate,
+                        departmentName: data.departmentName,
+                        jobPosition: data.jobPosition,
+                        directorateName: data.directorateName,
+                        jobPositionId: data.jobPositionId,
+                        fromDepartmentId: data.fromDepartmentId,
+                        toDepartmentId: data.toDepartmentId ?? "",
+                        payGradeId: data.payGradeId,
+                        jobResponsibilityId: data.jobResponsibilityId,
+                        branchId: data.branchId,
+                        jobCode: data.jobCode,
+                        icf: icfValue,
+                        incrementStep: stepNo,
+                        jobClass: jobClassValue,
+                        jobGradeId: jobGradeId,
+                      });
+                    });
+                } else {
+                  setIncrementStep("");
+                }
               });
           }
         })
@@ -302,7 +338,14 @@ function HrPromotion() {
         setJobResponsibilityId(
           req.employee.jobResponsibility?.id?.toString() || ""
         );
+        const foundResp = jobResponsibilities.find(
+          (j) =>
+            j.id.toString() ===
+            (req.employee.jobResponsibility?.id?.toString() || "")
+        );
+        setJobResponsibility(foundResp ? foundResp.responsibility : "");
         setBranchId(req.employee.branch?.id?.toString() || "");
+        setBranch(req.employee.branch?.branchName || "");
         setJobCodeId(req.employee.jobTypeDetail?.jobType?.id?.toString() || "");
         setTransferType(req.transferType || "");
         setToDepartment(req.transferTo?.depName || "");
@@ -311,6 +354,20 @@ function HrPromotion() {
         setRequestDate(req.dateRequest || "");
         setRemark(req.remark || "");
         setApproverDecision(req.status || "");
+        if (req.employee.payGrade?.payGradeId) {
+          fetch(
+            `http://localhost:8080/api/hr-pay-grad/${req.employee.payGrade.payGradeId}`
+          )
+            .then((res) => (res.ok ? res.json() : null))
+            .then((payGradeData) => {
+              setIncrementStep(
+                payGradeData && payGradeData.stepNo ? payGradeData.stepNo : ""
+              );
+            })
+            .catch(() => setIncrementStep(""));
+        } else {
+          setIncrementStep("");
+        }
       } else if (req) {
         setTransferType(req.transferType || "");
         setRemark(req.remark || "");
@@ -318,7 +375,7 @@ function HrPromotion() {
         setCurrentSalary(req.currentSalary || "");
       }
     }
-  }, [selectedRequest, transferRequests]);
+  }, [selectedRequest, transferRequests, jobResponsibilities]);
 
   const handleSelectDepartment = (deptId: number) => {
     if (departmentFieldBeingEdited === "to") {
@@ -350,6 +407,27 @@ function HrPromotion() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [showDropdown]);
+
+  useEffect(() => {
+    fetch("http://localhost:8080/api/hr-lu-responsibility")
+      .then((res) => res.json())
+      .then((data) => {
+        setJobResponsibilities(data);
+      })
+      .catch((err) =>
+        console.error("Failed to fetch job responsibilities", err)
+      );
+  }, []);
+  useEffect(() => {
+    fetch("http://localhost:8080/api/hr-lu-branch")
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch branches");
+        return res.json();
+      })
+      .then((data) => {
+        setBranches(data);
+      });
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -591,7 +669,6 @@ function HrPromotion() {
                     className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
                     value={department}
                     onChange={(e) => setDepartment(e.target.value)}
-                    placeholder=""
                     readOnly
                   />
                 </div>
@@ -666,11 +743,10 @@ function HrPromotion() {
                   required
                 >
                   <option value="">--Select one--</option>
-                  <option value="Transfer">Transfer</option>
-                  <option value="Direct Transfer">Direct Transfer</option>
+                  <option value="direct transfer">direct transfer</option>
+                  <option value="transfer">transfer</option>
                 </select>
               </div>
-
               <div className="flex flex-row items-center gap-2 justify-start">
                 <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   To Department
@@ -737,6 +813,11 @@ function HrPromotion() {
                   required
                 >
                   <option value="">--Select One--</option>
+                  {branches.map((branch) => (
+                    <option key={branch.id} value={branch.branchName}>
+                      {branch.branchName}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div className="flex flex-row items-center gap-2 justify-start mt-2">
@@ -821,24 +902,56 @@ function HrPromotion() {
                 <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Job Responsibility
                 </label>
-                <select
-                  className="flex-1 border border-gray-300 rounded-md focus:outline-none p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
-                  value={jobResponsibility}
-                  onChange={(e) => setJobResponsibility(e.target.value)}
-                >
-                  <option value="">--Select One--</option>
-                </select>
+                <div className="flex-1">
+                  <select
+                    className="flex-1 w-full border border-gray-300 rounded-md focus:outline-none p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-300 truncate"
+                    style={{
+                      minWidth: "120px",
+                      overflowX: "auto",
+                      whiteSpace: "nowrap",
+                    }}
+                    value={jobResponsibilityId}
+                    onChange={(e) => {
+                      setJobResponsibilityId(e.target.value);
+                      const selected = jobResponsibilities.find(
+                        (j) => j.id.toString() === e.target.value
+                      );
+                      setJobResponsibility(
+                        selected ? selected.responsibility : ""
+                      );
+                    }}
+                  >
+                    <option value="">--Select One--</option>
+                    {jobResponsibilities.map((resp) => (
+                      <option
+                        key={resp.id}
+                        value={resp.id}
+                        style={{
+                          maxWidth: "220px",
+                          overflowX: "auto",
+                          whiteSpace: "nowrap",
+                          textOverflow: "ellipsis",
+                          display: "block",
+                        }}
+                      >
+                        {resp.responsibility}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
               <div className="flex flex-row items-center gap-2 justify-end">
                 <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
-                  Change to Permanent/Project
+                  Change To:
                 </label>
                 <select
                   className="flex-1 border border-gray-300 rounded-md focus:outline-none p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
-                  value={changeToPermanent}
-                  onChange={(e) => setChangeToPermanent(e.target.value)}
+                  value={changeTo}
+                  onChange={(e) => setChangeTo(e.target.value)}
                 >
                   <option value="">--Select One--</option>
+                  <option value="permanent">Permanent</option>
+                  <option value="project">Project</option>
                 </select>
               </div>
             </div>

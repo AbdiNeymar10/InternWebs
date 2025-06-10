@@ -72,6 +72,9 @@ function HrApprove() {
     setSearchValue("");
     setApproverDecision("");
     setRemark("");
+    setApprovedBy("");
+    setAuthorizedDate("");
+    setCurrentSalary("");
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -118,7 +121,6 @@ function HrApprove() {
           return res.json();
         })
         .then(() => {
-          // After updating the transfer request, update the employee's department
           if (employeeId && toDepartmentId) {
             fetch(
               `http://localhost:8080/api/employees/${employeeId}/department`,
@@ -131,7 +133,7 @@ function HrApprove() {
               .then((res) => {
                 if (!res.ok)
                   throw new Error("Failed to update employee department");
-                toast.success("Employee department updated successfully!");
+                toast.success("Hr request updated successfully!");
                 clearForm();
               })
               .catch(() => toast.error("Failed to update employee department"));
@@ -647,7 +649,6 @@ function HrApprove() {
                     type="text"
                     className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
                     value={toDepartment}
-                    placeholder=""
                     onChange={(e) => setToDepartment(e.target.value)}
                     readOnly
                   />

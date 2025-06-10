@@ -237,7 +237,7 @@ public class HrEmployeeServiceImpl implements HrEmployeeService {
         String toDepartmentId = "";
         try {
             Object result = entityManager.createNativeQuery(
-                "SELECT d.DEPT_ID FROM HR_TRANSFER_REQUEST t JOIN HR_DEPARTMENT d ON t.TRANSFER_TO = d.DEPT_ID WHERE t.EMP_ID = :empId AND t.STATUS = '2' ORDER BY t.APPROVE_DATE DESC FETCH FIRST 1 ROWS ONLY")
+                "SELECT d.DEPT_ID FROM HR_TRANSFER_REQUEST t JOIN HR_DEPARTMENT d ON t.TRANSFER_TO = d.DEPT_ID WHERE t.EMP_ID = :empId AND (t.STATUS = '1' OR t.STATUS = '2') ORDER BY t.APPROVE_DATE DESC FETCH FIRST 1 ROWS ONLY")
                 .setParameter("empId", empId)
                 .getSingleResult();
             if (result != null) {

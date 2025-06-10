@@ -79,6 +79,8 @@ function ApproveDeptTo() {
     setJobCodeId("");
     setSearchValue("");
     setApproverDecision("");
+    setDecision("");
+    setCheckedDate("");
     setRemark("");
   };
 
@@ -400,7 +402,6 @@ function ApproveDeptTo() {
     };
   }, [showDropdown]);
 
-  // Fetch approved requests (status 2) only when Approved Lists dropdown is focused
   useEffect(() => {
     if (approvedDropdownFocused) {
       setApprovedLoading(true);
@@ -597,7 +598,7 @@ function ApproveDeptTo() {
           className="bg-white shadow rounded-lg p-6 w-full"
         >
           <h2 className="text-lg font-semibold text-gray-700 mb-4">
-            Approve Dept From:
+            Approve Dept To:
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -727,8 +728,8 @@ function ApproveDeptTo() {
                   required
                 >
                   <option value="">--Select one--</option>
-                  <option value="Transfer">Transfer</option>
-                  <option value="Direct Transfer">Direct Transfer</option>
+                  <option value="direct transfer">direct transfer</option>
+                  <option value="transfer">transfer</option>
                 </select>
               </div>
 
