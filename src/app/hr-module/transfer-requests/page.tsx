@@ -616,8 +616,8 @@ function TransferRequest() {
                   required
                 >
                   <option value="">--Select one--</option>
-                  <option value="Transfer">Transfer</option>
-                  <option value="Direct Transfer">Direct Transfer</option>
+                  <option value="direct transfer">direct transfer</option>
+                  <option value="transfer">transfer</option>
                 </select>
               </div>
 

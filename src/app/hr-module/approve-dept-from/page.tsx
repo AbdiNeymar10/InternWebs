@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from "react";
 import Head from "next/head";
 import toast, { Toaster } from "react-hot-toast";
 import AppModuleLayout from "../../components/AppModuleLayout";
-import DepartmentTree from "../../components/DepartmentTree";
 
 type TransferType = "To Department" | "From Department" | "";
 
@@ -24,14 +23,9 @@ function ApproveDeptFrom() {
   const [requestDate, setRequestDate] = useState("2017-09-15");
   const [preparedDate, setPreparedDate] = useState("");
   const [selectedRequest, setSelectedRequest] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState("");
-  const [showDepartmentTreeModal, setShowDepartmentTreeModal] = useState(false);
   const [departments, setDepartments] = useState<
     { deptId: number; deptName: string }[]
   >([]);
-  const [departmentFieldBeingEdited, setDepartmentFieldBeingEdited] = useState<
-    "to" | "from" | "main" | null
-  >(null);
   const [jobPositionId, setJobPositionId] = useState("");
   const [fromDepartmentId, setFromDepartmentId] = useState("");
   const [toDepartmentId, setToDepartmentId] = useState("");
@@ -65,7 +59,6 @@ function ApproveDeptFrom() {
     setTransferReason("");
     setRequestDate("2017-09-15");
     setSelectedRequest("");
-    setSelectedStatus("");
     setJobPositionId("");
     setFromDepartmentId("");
     setToDepartmentId("");
@@ -312,16 +305,6 @@ function ApproveDeptFrom() {
     }
   }, [selectedRequest, transferRequests]);
 
-  const handleSelectDepartment = (deptId: number) => {
-    if (departmentFieldBeingEdited === "to") {
-      const dept = departments.find((d) => d.deptId === deptId);
-      setToDepartment(dept ? dept.deptName : "");
-      setToDepartmentId(dept ? dept.deptId.toString() : "");
-      setShowDepartmentTreeModal(false);
-      setDepartmentFieldBeingEdited(null);
-    }
-  };
-
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -496,6 +479,7 @@ function ApproveDeptFrom() {
                   value={employeeName}
                   onChange={(e) => setEmployeeName(e.target.value)}
                   required
+                  readOnly
                 />
               </div>
               <div className="flex flex-row items-center gap-2 justify-start">
@@ -547,6 +531,7 @@ function ApproveDeptFrom() {
                   value={employeeId}
                   onChange={(e) => setEmployeeId(e.target.value)}
                   required
+                  readOnly
                 />
               </div>
               <div className="flex flex-row items-center gap-2 justify-end">
@@ -624,12 +609,8 @@ function ApproveDeptFrom() {
                     type="text"
                     className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
                     value={toDepartment}
+                    onChange={(e) => setToDepartment(e.target.value)}
                     readOnly
-                    placeholder=""
-                    onClick={() => {
-                      setDepartmentFieldBeingEdited("to");
-                      setShowDepartmentTreeModal(true);
-                    }}
                   />
                 </div>
               </div>
@@ -752,41 +733,6 @@ function ApproveDeptFrom() {
           </div>
         </form>
       </div>
-      {/* To Department modal*/}
-      {showDepartmentTreeModal && departmentFieldBeingEdited === "to" && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md max-h-[80vh] flex flex-col">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold text-gray-700">
-                {departments.find((d) => d.deptId === 61)?.deptName ||
-                  "All Departments"}
-              </h2>
-              <button
-                className="text-gray-700 hover:text-gray-800 text-2xl"
-                onClick={() => {
-                  setShowDepartmentTreeModal(false);
-                  setDepartmentFieldBeingEdited(null);
-                }}
-              >
-                ✕
-              </button>
-            </div>
-            <div className="flex-grow overflow-y-auto">
-              <DepartmentTree
-                dept={{
-                  deptId: 61,
-                  deptName:
-                    departments.find((d) => d.deptId === 61)?.deptName ||
-                    "All Departments",
-                  deptLevel: 0,
-                  parentDeptId: null,
-                }}
-                onSelect={handleSelectDepartment}
-              />
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

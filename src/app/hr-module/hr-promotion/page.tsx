@@ -582,6 +582,7 @@ function HrPromotion() {
                   value={employeeName}
                   onChange={(e) => setEmployeeName(e.target.value)}
                   required
+                  readOnly
                 />
               </div>
               <div className="flex flex-row items-center gap-2 justify-start">
@@ -657,6 +658,7 @@ function HrPromotion() {
                   value={employeeId}
                   onChange={(e) => setEmployeeId(e.target.value)}
                   required
+                  readOnly
                 />
               </div>
               <div className="flex flex-row items-center gap-2 justify-end">

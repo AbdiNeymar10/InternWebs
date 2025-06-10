@@ -4,13 +4,11 @@ import { useState, useEffect, useRef } from "react";
 import Head from "next/head";
 import toast, { Toaster } from "react-hot-toast";
 import AppModuleLayout from "../../components/AppModuleLayout";
-import DepartmentTree from "../../components/DepartmentTree";
 
 type TransferType = "To Department" | "From Department" | "";
 
 function HrApprove() {
   const [employeeName, setEmployeeName] = useState("");
-  const [gender, setGender] = useState("");
   const [jobPosition, setJobPosition] = useState("");
   const [hiredDate, setHiredDate] = useState("");
   const [employeeId, setEmployeeId] = useState("");
@@ -22,13 +20,9 @@ function HrApprove() {
   const [requestDate, setRequestDate] = useState("2017-09-15");
   const [selectedRequest, setSelectedRequest] = useState("");
   const [approvedDate, setApprovedDate] = useState("");
-  const [showDepartmentTreeModal, setShowDepartmentTreeModal] = useState(false);
   const [departments, setDepartments] = useState<
     { deptId: number; deptName: string }[]
   >([]);
-  const [departmentFieldBeingEdited, setDepartmentFieldBeingEdited] = useState<
-    "to" | "from" | "main" | null
-  >(null);
   const [jobPositionId, setJobPositionId] = useState("");
   const [fromDepartmentId, setFromDepartmentId] = useState("");
   const [toDepartmentId, setToDepartmentId] = useState("");
@@ -51,7 +45,6 @@ function HrApprove() {
 
   const clearForm = () => {
     setEmployeeName("");
-    setGender("");
     setJobPosition("");
     setHiredDate("");
     setEmployeeId("");
@@ -180,7 +173,6 @@ function HrApprove() {
         })
         .then((data) => {
           setEmployeeName(data.employeeName || "");
-          setGender(data.gender || "");
           setHiredDate(data.hiredDate || "");
           setFromDepartment(data.departmentName || "");
           setJobPosition(data.jobPosition || "");
@@ -233,7 +225,6 @@ function HrApprove() {
         })
         .catch(() => {
           setEmployeeName("");
-          setGender("");
           setHiredDate("");
           seticf("");
           setFromDepartment("");
@@ -248,7 +239,6 @@ function HrApprove() {
         });
     } else {
       setEmployeeName("");
-      setGender("");
       setHiredDate("");
       seticf("");
       setFromDepartment("");
@@ -300,7 +290,6 @@ function HrApprove() {
             .filter(Boolean)
             .join(" ")
         );
-        setGender(req.employee.sex || "");
         setHiredDate(req.employee.hiredDate || "");
         seticf(req.employee.icf?.icfName || "");
         setFromDepartment(req.employee.department?.depName || "");
@@ -336,16 +325,6 @@ function HrApprove() {
       }
     }
   }, [selectedRequest, transferRequests]);
-
-  const handleSelectDepartment = (deptId: number) => {
-    if (departmentFieldBeingEdited === "to") {
-      const dept = departments.find((d) => d.deptId === deptId);
-      setToDepartment(dept ? dept.deptName : "");
-      setToDepartmentId(dept ? dept.deptId.toString() : "");
-      setShowDepartmentTreeModal(false);
-      setDepartmentFieldBeingEdited(null);
-    }
-  };
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -521,6 +500,7 @@ function HrApprove() {
                   value={employeeName}
                   onChange={(e) => setEmployeeName(e.target.value)}
                   required
+                  readOnly
                 />
               </div>
               <div className="flex flex-row items-center gap-2 justify-start">
@@ -698,41 +678,6 @@ function HrApprove() {
           </div>
         </form>
       </div>
-      {/* To Department modal*/}
-      {showDepartmentTreeModal && departmentFieldBeingEdited === "to" && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md max-h-[80vh] flex flex-col">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold text-gray-700">
-                {departments.find((d) => d.deptId === 61)?.deptName ||
-                  "All Departments"}
-              </h2>
-              <button
-                className="text-gray-700 hover:text-gray-800 text-2xl"
-                onClick={() => {
-                  setShowDepartmentTreeModal(false);
-                  setDepartmentFieldBeingEdited(null);
-                }}
-              >
-                ✕
-              </button>
-            </div>
-            <div className="flex-grow overflow-y-auto">
-              <DepartmentTree
-                dept={{
-                  deptId: 61,
-                  deptName:
-                    departments.find((d) => d.deptId === 61)?.deptName ||
-                    "All Departments",
-                  deptLevel: 0,
-                  parentDeptId: null,
-                }}
-                onSelect={handleSelectDepartment}
-              />
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
