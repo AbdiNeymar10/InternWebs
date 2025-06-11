@@ -29,7 +29,7 @@ public ResponseEntity<List<HRPayGrad>> getAllPayGrades() {
         List<HRPayGrad> payGrades = payGradService.getAllPayGrades();
         return ResponseEntity.ok(payGrades);
     } catch (Exception e) {
-        e.printStackTrace(); // Log the exception
+        e.printStackTrace(); 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
     }
 }
@@ -49,7 +49,7 @@ public ResponseEntity<List<HRPayGrad>> getPayGradesByClassAndIcf(
         List<HRRank> ranks = payGradService.getRanksByClassAndIcf(classId, icfId);
 
         if (ranks.isEmpty()) {
-            return ResponseEntity.ok(List.of()); // Return an empty list if no rank is found
+            return ResponseEntity.ok(List.of()); 
         }
 
         // Fetch pay grades for all matching rankIds
@@ -100,7 +100,6 @@ public ResponseEntity<?> savePayGrades(@RequestBody List<HRPayGrad> payGrades) {
                     continue;
                 }
             }
-            // Otherwise save as new
             savedPayGrades.add(payGradService.savePayGrade(payGrad));
         }
 
@@ -121,6 +120,18 @@ public ResponseEntity<?> savePayGrades(@RequestBody List<HRPayGrad> payGrades) {
             return ResponseEntity.noContent().build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    // Get all unique increment steps (STEP_NO)
+    @GetMapping("/steps")
+    public ResponseEntity<List<String>> getAllStepNos() {
+        try {
+            List<String> steps = payGradService.getAllStepNos();
+            return ResponseEntity.ok(steps);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 }

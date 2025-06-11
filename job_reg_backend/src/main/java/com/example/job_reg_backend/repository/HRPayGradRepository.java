@@ -9,4 +9,5 @@ import java.util.List;
 public interface HRPayGradRepository extends JpaRepository<HRPayGrad, Long> {
    List<HRPayGrad> findByRankRankId(Long rankId);  
    List<HRPayGrad> findByRankRankIdIn(List<Long> rankIds);
+   List<String> findDistinctStepNoBy();
 }

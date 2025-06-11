@@ -12,6 +12,7 @@ function HrPromotion() {
   const [employeeName, setEmployeeName] = useState("");
   const [gender, setGender] = useState("");
   const [jobPosition, setJobPosition] = useState("");
+  const [jobTitle, setJobTitle] = useState("");
   const [hiredDate, setHiredDate] = useState("");
   const [employeeId, setEmployeeId] = useState("");
   const [department, setDepartment] = useState("");
@@ -42,6 +43,7 @@ function HrPromotion() {
   const [searchValue, setSearchValue] = useState("");
   const [approverDecision, setApproverDecision] = useState("");
   const [incrementStep, setIncrementStep] = useState("");
+  const [selectedIncrementStep, setSelectedIncrementStep] = useState("");
   const [division, setDivision] = useState("");
   const [branch, setBranch] = useState("");
   const [jobResponsibility, setJobResponsibility] = useState("");
@@ -64,6 +66,13 @@ function HrPromotion() {
   const [branches, setBranches] = useState<
     { id: number; branchName: string }[]
   >([]);
+  const [jobTitles, setJobTitles] = useState<
+    { id: number; jobTitle: string }[]
+  >([]);
+  const [incrementSteps, setIncrementSteps] = useState<string[]>([]);
+  const [status, setStatus] = useState("");
+  const [empId, setEmpId] = useState("");
+
   const clearForm = () => {
     setEmployeeName("");
     setGender("");
@@ -188,9 +197,12 @@ function HrPromotion() {
           setToDepartmentId(data.toDepartmentId ?? "");
           setPayGradeId(data.payGradeId || "");
           setJobResponsibilityId(data.jobResponsibilityId || "");
+          setJobResponsibility(data.jobResponsibility || "");
           setBranchId(data.branchId || "");
           setJobCodeId(data.jobCode || "");
           setCurrentSalary(data.currentSalary || "");
+          setStatus(data.status || "");
+          setEmpId(data.empId || "");
           if (data.jobPositionId) {
             fetch(
               `http://localhost:8080/api/job-type-details/${data.jobPositionId}`
@@ -238,12 +250,15 @@ function HrPromotion() {
                         toDepartmentId: data.toDepartmentId ?? "",
                         payGradeId: data.payGradeId,
                         jobResponsibilityId: data.jobResponsibilityId,
+                        jobResponsibility: data.jobResponsibility,
                         branchId: data.branchId,
                         jobCode: data.jobCode,
                         icf: icfValue,
                         incrementStep: stepNo,
                         jobClass: jobClassValue,
                         jobGradeId: jobGradeId,
+                        status,
+                        empId,
                       });
                     });
                 } else {
@@ -295,7 +310,7 @@ function HrPromotion() {
         const data = await response.json();
         const filtered = data.filter((req: any) => {
           if (req.status === undefined || req.status === null) return false;
-          return req.status === "1" || req.status === 1;
+          return req.status === "2" || req.status === 2;
         });
         setTransferRequests(filtered);
       } catch (error) {
@@ -331,6 +346,9 @@ function HrPromotion() {
         setJobPosition(
           req.employee.jobTypeDetail?.jobType?.jobTitle?.jobTitle || ""
         );
+        setJobTitle(
+          req.employee.jobTypeDetail?.jobType?.jobTitle?.jobTitle || ""
+        );
         setDirectorate(req.employee.department?.directorateName || "");
         setJobPositionId(req.employee.jobTypeDetail?.id?.toString() || "");
         setFromDepartmentId(req.employee.department?.deptId?.toString() || "");
@@ -353,6 +371,8 @@ function HrPromotion() {
         setTransferReason(req.description || "");
         setRequestDate(req.dateRequest || "");
         setRemark(req.remark || "");
+        setStatus(req.status || "");
+        setEmpId(req.employee.empId || "");
         setApproverDecision(req.status || "");
         if (req.employee.payGrade?.payGradeId) {
           fetch(
@@ -360,13 +380,18 @@ function HrPromotion() {
           )
             .then((res) => (res.ok ? res.json() : null))
             .then((payGradeData) => {
-              setIncrementStep(
-                payGradeData && payGradeData.stepNo ? payGradeData.stepNo : ""
-              );
+              const stepNo =
+                payGradeData && payGradeData.stepNo ? payGradeData.stepNo : "";
+              setIncrementStep(stepNo);
+              setSelectedIncrementStep(stepNo);
             })
-            .catch(() => setIncrementStep(""));
+            .catch(() => {
+              setIncrementStep("");
+              setSelectedIncrementStep("");
+            });
         } else {
           setIncrementStep("");
+          setSelectedIncrementStep("");
         }
       } else if (req) {
         setTransferType(req.transferType || "");
@@ -426,6 +451,23 @@ function HrPromotion() {
       })
       .then((data) => {
         setBranches(data);
+      });
+  }, []);
+  useEffect(() => {
+    fetch("http://localhost:8080/api/jobtypes/job-titles")
+      .then((res) => res.json())
+      .then((data) => setJobTitles(data))
+      .catch((err) => console.error("Failed to fetch job titles", err));
+  }, []);
+  useEffect(() => {
+    fetch("http://localhost:8080/api/hr-pay-grad/steps")
+      .then((res) => res.json())
+      .then((data) => {
+        setIncrementSteps(Array.isArray(data) ? data : []);
+      })
+      .catch((err) => {
+        setIncrementSteps([]);
+        console.error("Failed to fetch increment steps", err);
       });
   }, []);
 
@@ -599,10 +641,9 @@ function HrPromotion() {
               </div>
               <div className="flex flex-row items-center gap-2 justify-start">
                 <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
-                  Job Title:
+                  Job Title
                 </label>
                 <input
-                  type="text"
                   className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
                   value={jobPosition}
                   onChange={(e) => setJobPosition(e.target.value)}
@@ -692,10 +733,8 @@ function HrPromotion() {
                   Increment Step
                 </label>
                 <input
-                  type="text"
-                  className="flex-1 border border-gray-300 rounded-md focus:outline-none p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
                   value={incrementStep}
-                  onChange={(e) => setIncrementStep(e.target.value)}
                   readOnly
                 />
               </div>
@@ -742,7 +781,6 @@ function HrPromotion() {
                   onChange={(e) =>
                     setTransferType(e.target.value as TransferType)
                   }
-                  required
                 >
                   <option value="">--Select one--</option>
                   <option value="direct transfer">direct transfer</option>
@@ -769,15 +807,31 @@ function HrPromotion() {
               </div>
               <div className="flex flex-row items-center gap-2 justify-start">
                 <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
-                  Job Title:
+                  Job Title
                 </label>
-                <input
-                  type="text"
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
-                  value={jobPosition}
-                  onChange={(e) => setJobPosition(e.target.value)}
-                  readOnly
-                />
+                <div className="flex-1">
+                  <select
+                    className="flex-1 w-full border border-gray-300 rounded-md focus:outline-none p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-300 truncate"
+                    style={{
+                      minWidth: "120px",
+                      overflowX: "auto",
+                      whiteSpace: "nowrap",
+                    }}
+                    value={jobTitle}
+                    onChange={(e) => setJobTitle(e.target.value)}
+                  >
+                    <option value="">--Select One--</option>
+                    {jobPosition &&
+                      !jobTitles.some((jt) => jt.jobTitle === jobPosition) && (
+                        <option value={jobPosition}>{jobPosition}</option>
+                      )}
+                    {jobTitles.map((jt) => (
+                      <option key={jt.id} value={jt.jobTitle}>
+                        {jt.jobTitle}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
               <div className="flex flex-row items-center gap-2 justify-end">
                 <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
@@ -812,7 +866,6 @@ function HrPromotion() {
                   className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
                   value={branchNameTo}
                   onChange={(e) => setBranchNameTo(e.target.value)}
-                  required
                 >
                   <option value="">--Select One--</option>
                   {branches.map((branch) => (
@@ -879,13 +932,18 @@ function HrPromotion() {
                 <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Increment Step
                 </label>
-                <input
-                  type="text"
-                  className="flex-1 border border-gray-300 rounded-md focus:outline-none p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
-                  value={incrementStep}
-                  onChange={(e) => setIncrementStep(e.target.value)}
-                  readOnly
-                />
+                <select
+                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  value={selectedIncrementStep}
+                  onChange={(e) => setSelectedIncrementStep(e.target.value)}
+                >
+                  <option value="">--Select One--</option>
+                  {incrementSteps.map((step) => (
+                    <option key={step} value={step}>
+                      {step}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="flex flex-row items-center gap-2 justify-start">
                 <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
@@ -896,7 +954,6 @@ function HrPromotion() {
                   className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
                   value={currentSalary}
                   onChange={(e) => setCurrentSalary(e.target.value)}
-                  required
                   readOnly
                 />
               </div>
@@ -929,7 +986,7 @@ function HrPromotion() {
                         key={resp.id}
                         value={resp.id}
                         style={{
-                          maxWidth: "220px",
+                          maxWidth: "80px",
                           overflowX: "auto",
                           whiteSpace: "nowrap",
                           textOverflow: "ellipsis",

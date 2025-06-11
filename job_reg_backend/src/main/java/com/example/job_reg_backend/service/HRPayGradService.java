@@ -53,7 +53,6 @@ public class HRPayGradService {
         payGradRepository.saveAll(payGrades);
     }
 
-    // Delete a specific pay grade by ID
     public void deletePayGrade(Long id) {
         payGradRepository.deleteById(id);
     }
@@ -69,5 +68,10 @@ public class HRPayGradService {
     // Fetch pay grades by rankId
     public List<HRPayGrad> getPayGradesByRankId(Long rankId) {
         return payGradRepository.findByRankRankId(rankId);
+    }
+
+    // Fetch all unique STEP_NO values
+    public List<String> getAllStepNos() {
+        return payGradRepository.findDistinctStepNoBy();
     }
 }
