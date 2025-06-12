@@ -891,7 +891,25 @@ function HrPromotion() {
                 <select
                   className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
                   value={icfDropdown}
-                  onChange={(e) => setIcfDropdown(e.target.value)}
+                  onChange={(e) => {
+                    setIcfDropdown(e.target.value);
+                    const fetchAndLogIcfId = async () => {
+                      try {
+                        const data = await fetchICFs();
+                        const found = Array.isArray(data)
+                          ? data.find((item) => item.ICF === e.target.value)
+                          : null;
+                        if (found) {
+                          console.log("Selected ICF ID:", found.id);
+                        } else {
+                          console.log("Selected ICF not found");
+                        }
+                      } catch (err) {
+                        console.log("Error fetching ICFs for ID lookup", err);
+                      }
+                    };
+                    if (e.target.value) fetchAndLogIcfId();
+                  }}
                 >
                   <option value="">--Select One--</option>
                   {icfList.map((icfValue, idx) => (
@@ -921,7 +939,17 @@ function HrPromotion() {
                 <select
                   className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
                   value={branchNameTo}
-                  onChange={(e) => setBranchNameTo(e.target.value)}
+                  onChange={(e) => {
+                    setBranchNameTo(e.target.value);
+                    const selectedBranch = branches.find(
+                      (branch) => branch.branchName === e.target.value
+                    );
+                    if (selectedBranch) {
+                      console.log("Selected Branch ID:", selectedBranch.id);
+                    } else {
+                      console.log("Selected Branch not found");
+                    }
+                  }}
                 >
                   <option value="">--Select One--</option>
                   {branches.map((branch) => (
@@ -1115,7 +1143,7 @@ function HrPromotion() {
                   deptId: 61,
                   deptName:
                     departments.find((d) => d.deptId === 61)?.deptName ||
-                    "All Departments",
+                    "No Departments",
                   deptLevel: 0,
                   parentDeptId: null,
                 }}
