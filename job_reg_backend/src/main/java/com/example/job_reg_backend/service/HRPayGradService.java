@@ -72,6 +72,6 @@ public class HRPayGradService {
 
     // Fetch all unique STEP_NO values
     public List<String> getAllStepNos() {
-        return payGradRepository.findDistinctStepNoBy();
+        return payGradRepository.findDistinctStepNo();
     }
 }

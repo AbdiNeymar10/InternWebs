@@ -5,6 +5,7 @@ import Head from "next/head";
 import toast, { Toaster } from "react-hot-toast";
 import AppModuleLayout from "../../components/AppModuleLayout";
 import DepartmentTree from "../../components/DepartmentTree";
+import { fetchICFs } from "../../pages/api/icfService";
 
 type TransferType = "To Department" | "From Department" | "";
 
@@ -17,6 +18,7 @@ function HrPromotion() {
   const [employeeId, setEmployeeId] = useState("");
   const [department, setDepartment] = useState("");
   const [icf, seticf] = useState("");
+  const [icfDropdown, setIcfDropdown] = useState("");
   const [directorate, setDirectorate] = useState("");
   const [transferType, setTransferType] = useState<TransferType>("");
   const [toDepartment, setToDepartment] = useState("");
@@ -72,6 +74,7 @@ function HrPromotion() {
   const [incrementSteps, setIncrementSteps] = useState<string[]>([]);
   const [status, setStatus] = useState("");
   const [empId, setEmpId] = useState("");
+  const [icfList, setIcfList] = useState<string[]>([]);
 
   const clearForm = () => {
     setEmployeeName("");
@@ -214,6 +217,7 @@ function HrPromotion() {
                     ? jobTypeDetail.icf.ICF
                     : "";
                 seticf(icfValue);
+                setIcfDropdown(icfList.includes(icfValue) ? icfValue : "");
                 let jobClassValue = "";
                 let jobGradeId = "";
                 if (
@@ -340,7 +344,10 @@ function HrPromotion() {
         );
         setGender(req.employee.sex || "");
         setHiredDate(req.employee.hiredDate || "");
-        seticf(req.employee.icf?.icfName || "");
+        const icfValue =
+          req.employee.icf?.icfName || req.employee.icf?.ICF || "";
+        seticf(icfValue);
+        setIcfDropdown(icfValue);
         setDepartment(req.employee.department?.depName || "");
         setFromDepartment(req.employee.department?.depName || "");
         setJobPosition(
@@ -461,14 +468,38 @@ function HrPromotion() {
   }, []);
   useEffect(() => {
     fetch("http://localhost:8080/api/hr-pay-grad/steps")
-      .then((res) => res.json())
-      .then((data) => {
-        setIncrementSteps(Array.isArray(data) ? data : []);
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Failed to fetch increment steps");
+        }
+        return res.text();
+      })
+      .then((text) => {
+        try {
+          const data = text ? JSON.parse(text) : [];
+          setIncrementSteps(Array.isArray(data) ? data : []);
+        } catch (err) {
+          setIncrementSteps([]);
+          console.error("Failed to parse increment steps JSON", err);
+        }
       })
       .catch((err) => {
         setIncrementSteps([]);
         console.error("Failed to fetch increment steps", err);
       });
+  }, []);
+  useEffect(() => {
+    const fetchIcfData = async () => {
+      try {
+        const data = await fetchICFs();
+        setIcfList(
+          Array.isArray(data) ? data.map((item: any) => item.ICF) : []
+        );
+      } catch (error) {
+        console.error("Error fetching ICFs:", error);
+      }
+    };
+    fetchIcfData();
   }, []);
 
   return (
@@ -722,9 +753,8 @@ function HrPromotion() {
                 </label>
                 <input
                   type="text"
-                  className="flex-1 border border-gray-300 rounded-md focus:outline-none p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
                   value={icf}
-                  onChange={(e) => seticf(e.target.value)}
                   readOnly
                 />
               </div>
@@ -837,13 +867,18 @@ function HrPromotion() {
                 <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   ICF
                 </label>
-                <input
-                  type="text"
-                  className="flex-1 border border-gray-300 rounded-md focus:outline-none p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
-                  value={icf}
-                  onChange={(e) => seticf(e.target.value)}
-                  readOnly
-                />
+                <select
+                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  value={icfDropdown}
+                  onChange={(e) => setIcfDropdown(e.target.value)}
+                >
+                  <option value="">--Select One--</option>
+                  {icfList.map((icfValue, idx) => (
+                    <option key={idx} value={icfValue}>
+                      {icfValue}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="space-y-4">
                 <div className="flex flex-row items-center gap-2 justify-end">
@@ -1041,7 +1076,7 @@ function HrPromotion() {
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-semibold text-gray-700">
                 {departments.find((d) => d.deptId === 61)?.deptName ||
-                  "All Departments"}
+                  "No Department Trees"}
               </h2>
               <button
                 className="text-gray-700 hover:text-gray-800 text-2xl"
