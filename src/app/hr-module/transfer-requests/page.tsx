@@ -196,6 +196,7 @@ function TransferRequest() {
                   payGradeId: data.payGradeId,
                   jobResponsibilityId: data.jobResponsibilityId,
                   branchId: data.branchId,
+                  branchFromId: data.branchId,
                   jobCode: data.jobCode,
                   icf: icfValue,
                 });
@@ -241,14 +242,12 @@ function TransferRequest() {
   }, [employeeId]);
 
   useEffect(() => {
-    console.log("Fetching transfer requests...");
     const fetchRequests = async () => {
       try {
         const response = await fetch(
           "http://localhost:8080/api/hr-transfer-requests"
         );
         const data = await response.json();
-        console.log("Fetched data:", data);
         setTransferRequests(data);
       } catch (error) {
         console.error("Fetch error:", error);

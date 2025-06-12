@@ -8,8 +8,8 @@ import java.util.Date;
 public class HRPromotionHistory {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "promotion_history_seq")
-    @SequenceGenerator(name = "promotion_history_seq", sequenceName = "PROMOTION_HISTORY_SEQ", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "hr_promotion_history_seq")
+    @SequenceGenerator(name = "hr_promotion_history_seq", sequenceName = "HR_PROMOTION_HISTORY_SEQ", allocationSize = 1)
     @Column(name = "PROMOTION_HISTORY_ID")
     private Long promotionHistoryId;
 

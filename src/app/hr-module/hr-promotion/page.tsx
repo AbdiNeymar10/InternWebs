@@ -39,6 +39,7 @@ function HrPromotion() {
   const [payGradeId, setPayGradeId] = useState("");
   const [jobResponsibilityId, setJobResponsibilityId] = useState("");
   const [branchId, setBranchId] = useState("");
+  const [branchFromId, setBranchFromId] = useState("");
   const [jobCodeId, setJobCodeId] = useState("");
   const [transferRequests, setTransferRequests] = useState<any[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -75,6 +76,7 @@ function HrPromotion() {
   const [status, setStatus] = useState("");
   const [empId, setEmpId] = useState("");
   const [icfList, setIcfList] = useState<string[]>([]);
+  const employeeInfoRef = useRef<any>(null);
 
   const clearForm = () => {
     setEmployeeName("");
@@ -101,72 +103,83 @@ function HrPromotion() {
     setSearchValue("");
     setApproverDecision("");
     setRemark("");
+    employeeInfoRef.current = null;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const payload: any = {
-      hiredDate,
-      empId: employeeId,
-      description: transferReason,
-      dateRequest: requestDate,
-      transferType,
-      approverDecision,
-      remark,
-      progressBy,
-    };
-    if (jobPositionId) payload.jobPositionId = jobPositionId;
-    if (fromDepartmentId) payload.transferFromId = fromDepartmentId;
-    if (toDepartmentId) payload.transferToId = toDepartmentId;
-    if (payGradeId) payload.payGradeId = payGradeId;
-    if (jobResponsibilityId) payload.jobResponsibilityId = jobResponsibilityId;
-    if (branchId) payload.branchId = branchId;
-    if (jobCodeId) payload.jobCodeId = jobCodeId;
+    const usedBranchId =
+      branchId ||
+      (branches.find((b) => b.branchName === branch)
+        ? branches.find((b) => b.branchName === branch)?.id?.toString()
+        : "");
+    const usedJobResponsibility = jobResponsibilityId
+      ? jobResponsibilities.find((j) => j.id === jobResponsibilityId)
+          ?.responsibility || jobResponsibility
+      : jobResponsibility;
+    const usedToDepartmentId =
+      toDepartmentId ||
+      departments
+        .find((d) => d.deptName === toDepartment)
+        ?.deptId?.toString() ||
+      "";
+    const usedFromDepartmentId =
+      fromDepartmentId ||
+      departments
+        .find((d) => d.deptName === fromDepartment)
+        ?.deptId?.toString() ||
+      "";
+    const usedBranchFrom =
+      branchFromId ||
+      branches.find((b) => b.branchName === branchNameTo)?.id?.toString() ||
+      "";
 
-    // If updating an existing request
-    if (selectedRequest) {
-      fetch(
-        `http://localhost:8080/api/hr-transfer-requests/${selectedRequest}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...payload,
-            transferRequesterId: selectedRequest,
-            transferType,
-            dateRequest: requestDate,
-            description: transferReason,
-            transferTo: { deptId: toDepartmentId },
-            approvedBy: "Abdi Tolesa",
-          }),
-        }
-      )
-        .then((res) => {
-          if (!res.ok) throw new Error("Failed to update transfer request");
-          return res.json();
-        })
-        .then(() => {
-          toast.success("Transfer request updated successfully!");
-          clearForm();
-        })
-        .catch(() => toast.error("Failed to update transfer request"));
-    } else {
-      // Create new request
-      fetch("http://localhost:8080/api/hr-transfer-requests", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      })
-        .then((res) => {
-          if (!res.ok) throw new Error("Failed to save transfer request");
-          return res.json();
-        })
-        .then(() => {
-          toast.success("Transfer request submitted successfully!");
-          clearForm();
-        })
-        .catch(() => toast.error("Failed to submit transfer request"));
+    let usedStatus = employeeInfoRef.current?.status;
+    if (!usedStatus) usedStatus = status;
+    if (!usedStatus && selectedRequest) {
+      const req = transferRequests.find(
+        (r) => r.transferRequesterId.toString() === selectedRequest
+      );
+      if (req && req.status) usedStatus = req.status;
     }
+    const selectedJobTitle = jobTitles.find((jt) => jt.jobTitle === jobTitle);
+    const jobTitleChanged = selectedJobTitle ? selectedJobTitle.id : undefined;
+
+    const payload: any = {
+      branchId: usedBranchId ? Number(usedBranchId) : undefined,
+      branchFrom: usedBranchFrom ? Number(usedBranchFrom) : undefined,
+      jobResponsibility: usedJobResponsibility,
+      deptTransferTo: usedToDepartmentId
+        ? Number(usedToDepartmentId)
+        : undefined,
+      prevDepartmentId: usedFromDepartmentId
+        ? Number(usedFromDepartmentId)
+        : undefined,
+      prevJobPosition: jobPosition,
+      employeeId,
+      jobTitleChanged:
+        jobTitleChanged !== undefined ? Number(jobTitleChanged) : undefined,
+    };
+    if (usedStatus && usedStatus !== "") {
+      payload.status = usedStatus;
+    }
+
+    console.log("Submitting promotion history payload:", payload);
+
+    fetch("http://localhost:8080/api/promotion-history", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to save promotion history");
+        return res.json();
+      })
+      .then(() => {
+        toast.success("Promotion history saved successfully!");
+        clearForm();
+      })
+      .catch(() => toast.error("Failed to save promotion history"));
   };
 
   useEffect(() => {
@@ -187,6 +200,7 @@ function HrPromotion() {
           return res.json();
         })
         .then((data) => {
+          employeeInfoRef.current = data;
           setEmployeeName(data.employeeName || "");
           setGender(data.gender || "");
           setHiredDate(data.hiredDate || "");
@@ -206,6 +220,7 @@ function HrPromotion() {
           setCurrentSalary(data.currentSalary || "");
           setStatus(data.status || "");
           setEmpId(data.empId || "");
+          setBranchFromId(data.branchId ? data.branchId.toString() : "");
           if (data.jobPositionId) {
             fetch(
               `http://localhost:8080/api/job-type-details/${data.jobPositionId}`
@@ -256,6 +271,7 @@ function HrPromotion() {
                         jobResponsibilityId: data.jobResponsibilityId,
                         jobResponsibility: data.jobResponsibility,
                         branchId: data.branchId,
+                        branchFrom: data.branchId,
                         jobCode: data.jobCode,
                         icf: icfValue,
                         incrementStep: stepNo,
@@ -848,7 +864,12 @@ function HrPromotion() {
                       whiteSpace: "nowrap",
                     }}
                     value={jobTitle}
-                    onChange={(e) => setJobTitle(e.target.value)}
+                    onChange={(e) => {
+                      setJobTitle(e.target.value);
+                      const selected = jobTitles.find(
+                        (jt) => jt.jobTitle === e.target.value
+                      );
+                    }}
                   >
                     <option value="">--Select One--</option>
                     {jobPosition &&
