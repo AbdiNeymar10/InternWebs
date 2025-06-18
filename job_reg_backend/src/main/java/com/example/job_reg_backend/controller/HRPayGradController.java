@@ -134,4 +134,16 @@ public ResponseEntity<?> savePayGrades(@RequestBody List<HRPayGrad> payGrades) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
+
+    // Get pay grade by step number
+    @GetMapping("/step/{stepNo}")
+    public ResponseEntity<HRPayGrad> getPayGradeByStepNo(@PathVariable String stepNo) {
+        List<HRPayGrad> payGrades = payGradService.getAllPayGrades();
+        for (HRPayGrad payGrad : payGrades) {
+            if (payGrad.getStepNo() != null && payGrad.getStepNo().equals(stepNo)) {
+                return ResponseEntity.ok(payGrad);
+            }
+        }
+        return ResponseEntity.notFound().build();
+    }
 }

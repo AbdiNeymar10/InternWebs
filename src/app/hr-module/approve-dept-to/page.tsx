@@ -64,7 +64,7 @@ function ApproveDeptTo() {
     setToDepartment("");
     setFromDepartment("");
     setTransferReason("");
-    setRequestDate("2017-09-15");
+    setRequestDate("");
     setSelectedRequest("");
     setJobPositionId("");
     setFromDepartmentId("");
@@ -84,43 +84,60 @@ function ApproveDeptTo() {
     e.preventDefault();
     const payload: any = {
       hiredDate,
-      empId: employeeId,
+      empId: Number(employeeId) || employeeId,
       description: transferReason,
       dateRequest: requestDate,
+      approveDate: approvedDate,
       checkedDate,
       transferType,
-      approverDecision,
       decision,
       remark,
       progressBy,
     };
-    if (jobPositionId) payload.jobPositionId = jobPositionId;
-    if (fromDepartmentId) payload.transferFromId = fromDepartmentId;
-    if (toDepartmentId) payload.transferToId = toDepartmentId;
-    if (payGradeId) payload.payGradeId = payGradeId;
-    if (jobResponsibilityId) payload.jobResponsibilityId = jobResponsibilityId;
-    if (branchId) payload.branchId = branchId;
-    if (jobCodeId) payload.jobCodeId = jobCodeId;
+    if (jobPositionId) payload.jobPositionId = Number(jobPositionId);
+    if (fromDepartmentId) payload.transferFromId = Number(fromDepartmentId);
+    if (toDepartmentId) payload.transferToId = Number(toDepartmentId);
+    if (payGradeId) payload.payGradeId = Number(payGradeId);
+    if (jobResponsibilityId)
+      payload.jobResponsibilityId = Number(jobResponsibilityId);
+    if (branchId) payload.branchId = Number(branchId);
+    if (jobCodeId) payload.jobCodeId = Number(jobCodeId);
 
+    console.log("Submitting payload:", payload);
     // If updating an existing request
     if (selectedRequest) {
-      fetch(
-        `http://localhost:8080/api/hr-transfer-requests/${selectedRequest}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...payload,
-            transferRequesterId: selectedRequest,
-            transferType,
-            dateRequest: requestDate,
-            description: transferReason,
-            transferTo: { deptId: toDepartmentId },
-            status: decision,
-            approvedBy: "Abdi Tolesa",
-          }),
+      const updateUrl = `http://localhost:8080/api/hr-transfer-requests/${selectedRequest}`;
+      const updatePayload: any = {
+        hiredDate,
+        empId: Number(employeeId),
+        description: transferReason,
+        dateRequest: requestDate,
+        checkedDate,
+        transferType,
+        decision,
+        remark,
+        jobPositionId: jobPositionId ? Number(jobPositionId) : undefined,
+        transferFromId: fromDepartmentId ? Number(fromDepartmentId) : undefined,
+        payGradeId: payGradeId ? Number(payGradeId) : undefined,
+        jobResponsibilityId: jobResponsibilityId
+          ? Number(jobResponsibilityId)
+          : undefined,
+        branchId: branchId ? Number(branchId) : undefined,
+        jobCodeId: jobCodeId ? Number(jobCodeId) : undefined,
+        transferToId: toDepartmentId ? Number(toDepartmentId) : undefined,
+        status: decision,
+        approvedBy: "Abdi Tolesa",
+      };
+      Object.keys(updatePayload).forEach((key: string) => {
+        if (updatePayload[key] === undefined) {
+          delete updatePayload[key];
         }
-      )
+      });
+      fetch(updateUrl, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatePayload),
+      })
         .then((res) => {
           if (!res.ok) throw new Error("Failed to update transfer request");
           return res.json();
@@ -273,54 +290,78 @@ function ApproveDeptTo() {
   useEffect(() => {
     if (selectedRequest) {
       const req = transferRequests.find(
-        (r) => r.transferRequesterId.toString() === selectedRequest
+        (r) =>
+          (r.transferRequesterId &&
+            r.transferRequesterId.toString() === selectedRequest) ||
+          (r.empId && r.empId.toString() === selectedRequest)
       );
-      if (req && req.employee) {
-        setEmployeeId(req.employee.empId || "");
-        setEmployeeName(
-          [
-            req.employee.firstName,
-            req.employee.middleName,
-            req.employee.lastName,
-          ]
-            .filter(Boolean)
-            .join(" ")
+      if (req) {
+        setEmployeeId(req.empId || "");
+        setEmployeeName(req.employeeName || "");
+        setGender(req.gender || req.employee?.sex || "");
+        setHiredDate(req.hiredDate || req.employee?.hiredDate || "");
+        seticf(req.icf || req.employee?.icf?.icfName || "");
+        setDepartment(
+          req.departmentName || req.employee?.department?.depName || ""
         );
-        setGender(req.employee.sex || "");
-        setHiredDate(req.employee.hiredDate || "");
-        seticf(req.employee.icf?.icfName || "");
-        setDepartment(req.employee.department?.depName || "");
-        setFromDepartment(req.employee.department?.depName || "");
+        setFromDepartment(
+          req.departmentName || req.employee?.department?.depName || ""
+        );
         setJobPosition(
-          req.employee.jobTypeDetail?.jobType?.jobTitle?.jobTitle || ""
+          req.jobPosition ||
+            req.employee?.jobTypeDetail?.jobType?.jobTitle?.jobTitle ||
+            ""
         );
-        setDirectorate(req.employee.department?.directorateName || "");
-        setJobPositionId(req.employee.jobTypeDetail?.id?.toString() || "");
-        setFromDepartmentId(req.employee.department?.deptId?.toString() || "");
-        setPayGradeId(req.employee.payGrade?.payGradeId?.toString() || "");
+        setDirectorate(
+          req.directorateName || req.employee?.department?.directorateName || ""
+        );
+        setJobPositionId(
+          (req.jobPositionId || req.employee?.jobTypeDetail?.id)?.toString() ||
+            ""
+        );
+        setFromDepartmentId(
+          (
+            req.transferFromId || req.employee?.department?.deptId
+          )?.toString() || ""
+        );
+        setPayGradeId(
+          (req.payGradeId || req.employee?.payGrade?.payGradeId)?.toString() ||
+            ""
+        );
         setJobResponsibilityId(
-          req.employee.jobResponsibility?.id?.toString() || ""
+          (
+            req.jobResponsibilityId || req.employee?.jobResponsibility?.id
+          )?.toString() || ""
         );
-        setBranchId(req.employee.branch?.id?.toString() || "");
-        setJobCodeId(req.employee.jobTypeDetail?.jobType?.id?.toString() || "");
+        setBranchId(
+          (req.branchId || req.employee?.branch?.id)?.toString() || ""
+        );
+        setJobCodeId(
+          (
+            req.jobCodeId || req.employee?.jobTypeDetail?.jobType?.id
+          )?.toString() || ""
+        );
         setTransferType(req.transferType || "");
-        setToDepartment(req.transferTo?.depName || "");
-        setToDepartmentId(req.transferTo?.deptId?.toString() || "");
+        const toDeptId = req.transferToId || req.transferTo?.deptId;
+        const toDeptObj = departments.find(
+          (d) => d.deptId.toString() === (toDeptId ? toDeptId.toString() : "")
+        );
+        setToDepartment(
+          toDeptObj?.deptName ||
+            req.toDepartment ||
+            req.transferTo?.depName ||
+            ""
+        );
+        setToDepartmentId((toDeptId || "").toString());
         setTransferReason(req.description || "");
         setRequestDate(req.dateRequest || "");
         setRemark(req.remark || "");
         setApproverDecision(req.status || "");
         setApprovedDate(req.approveDate || "");
-      } else if (req) {
-        setTransferType(req.transferType || "");
-        setRemark(req.remark || "");
-        setApproverDecision(req.status || "");
-        setApprovedDate(req.approveDate || "");
       }
     }
-  }, [selectedRequest, transferRequests]);
+  }, [selectedRequest, transferRequests, departments]);
 
-  // Handle selecting an approved request
   useEffect(() => {
     if (approvedLists) {
       const req = approvedRequests.find(
@@ -409,10 +450,10 @@ function ApproveDeptTo() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <Head>
+      {/* <Head>
         <title>Approve Dept From</title>
         <meta name="description" content="Approve dept from form" />
-      </Head>
+      </Head> */}
       <Toaster />
       <div className="w-full p-0 ">
         <div className="bg-white shadow rounded-lg p-6 mb-4">
@@ -459,47 +500,36 @@ function ApproveDeptTo() {
                         <>
                           {transferRequests
                             .filter((req) => {
-                              const empId =
-                                req.employee?.empId?.toString() || "";
-                              const empName = [
-                                req.employee?.firstName,
-                                req.employee?.middleName,
-                                req.employee?.lastName,
-                              ]
-                                .filter(Boolean)
-                                .join(" ")
-                                .toLowerCase();
+                              const empId = req.empId?.toString?.() || "";
+                              const empName = req.employeeName || "";
+                              if (!empId || !empName) return false;
                               return (
                                 searchValue.trim() === "" ||
                                 empId.includes(searchValue.trim()) ||
-                                empName.includes(
-                                  searchValue.trim().toLowerCase()
-                                )
+                                empName
+                                  .toLowerCase()
+                                  .includes(searchValue.trim().toLowerCase())
                               );
                             })
-                            .map((req) => {
-                              const empId = req.employee?.empId || "N/A";
-                              const fullName =
-                                [
-                                  req.employee?.firstName,
-                                  req.employee?.middleName,
-                                  req.employee?.lastName,
-                                ]
-                                  .filter(Boolean)
-                                  .join(" ") || "";
-
+                            .map((req, idx) => {
+                              const empId = req.empId?.toString?.() || "";
+                              const fullName = req.employeeName || "";
                               return (
                                 <li
-                                  key={req.transferRequesterId}
+                                  key={
+                                    req.transferRequesterId ?? empId + "-" + idx
+                                  }
                                   className={`p-2 hover:bg-gray-200 cursor-pointer ${
                                     selectedRequest ===
-                                    req.transferRequesterId.toString()
+                                    (req.transferRequesterId?.toString?.() ||
+                                      empId)
                                       ? "bg-blue-100"
                                       : ""
                                   }`}
                                   onClick={() => {
                                     setSelectedRequest(
-                                      req.transferRequesterId.toString()
+                                      req.transferRequesterId?.toString?.() ||
+                                        empId
                                     );
                                     setShowDropdown(false);
                                     setSearchValue(`${empId} - ${fullName}`);
@@ -510,19 +540,15 @@ function ApproveDeptTo() {
                               );
                             })}
                           {transferRequests.filter((req) => {
-                            const empId = req.employee?.empId?.toString() || "";
-                            const empName = [
-                              req.employee?.firstName,
-                              req.employee?.middleName,
-                              req.employee?.lastName,
-                            ]
-                              .filter(Boolean)
-                              .join(" ")
-                              .toLowerCase();
+                            const empId = req.empId?.toString?.() || "";
+                            const empName = req.employeeName || "";
+                            if (!empId || !empName) return false;
                             return (
                               searchValue.trim() === "" ||
                               empId.includes(searchValue.trim()) ||
-                              empName.includes(searchValue.trim().toLowerCase())
+                              empName
+                                .toLowerCase()
+                                .includes(searchValue.trim().toLowerCase())
                             );
                           }).length === 0 && (
                             <li className="p-2 text-gray-400">
@@ -584,7 +610,7 @@ function ApproveDeptTo() {
           className="bg-white shadow rounded-lg p-6 w-full"
         >
           <h2 className="text-lg font-semibold text-gray-700 mb-4">
-            Approve Dept To:
+            Transfer Request Information:
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -599,18 +625,6 @@ function ApproveDeptTo() {
                   className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
                   value={employeeName}
                   onChange={(e) => setEmployeeName(e.target.value)}
-                  required
-                  readOnly
-                />
-              </div>
-              <div className="flex flex-row items-center gap-2 justify-start">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
-                  Gender
-                </label>
-                <input
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
-                  value={gender}
-                  onChange={(e) => setGender(e.target.value)}
                   required
                   readOnly
                 />
@@ -639,6 +653,43 @@ function ApproveDeptTo() {
                   readOnly
                 />
               </div>
+              <div className="flex flex-row items-center gap-2 justify-end">
+                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+                  From Department
+                </label>
+                <div className="flex-1">
+                  <input
+                    type="text"
+                    className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                    value={fromDepartment}
+                    onChange={(e) => setFromDepartment(e.target.value)}
+                    placeholder=""
+                    readOnly
+                  />
+                </div>
+              </div>
+              <div className="flex flex-row items-center gap-2 justify-start">
+                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+                  Transfer Reason
+                </label>
+                <textarea
+                  className="flex-1 border border-gray-300 rounded-md p-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300 resize-y min-h-[40px] max-h-[200px]"
+                  value={transferReason}
+                  onChange={(e) => setTransferReason(e.target.value)}
+                  rows={2}
+                />
+              </div>
+              <div className="flex flex-row items-center gap-2 justify-end">
+                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+                  Approver Remark
+                </label>
+                <textarea
+                  className="flex-1 border border-gray-300 rounded-md p-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300 resize-y min-h-[40px] max-h-[200px]"
+                  value={remark}
+                  onChange={(e) => setRemark(e.target.value)}
+                  rows={2}
+                />
+              </div>
             </div>
             {/* Right Column */}
             <div className="space-y-4">
@@ -657,21 +708,6 @@ function ApproveDeptTo() {
               </div>
               <div className="flex flex-row items-center gap-2 justify-end">
                 <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
-                  Department
-                </label>
-                <div className="flex-1">
-                  <input
-                    type="text"
-                    className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
-                    value={department}
-                    onChange={(e) => setDepartment(e.target.value)}
-                    placeholder=""
-                    readOnly
-                  />
-                </div>
-              </div>
-              <div className="flex flex-row items-center gap-2 justify-end">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   ICF
                 </label>
                 <input
@@ -684,43 +720,16 @@ function ApproveDeptTo() {
               </div>
               <div className="flex flex-row items-center gap-2 justify-end">
                 <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
-                  Directorate
+                  Request Date
                 </label>
                 <input
-                  type="text"
+                  type="date"
                   className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
-                  value={directorate}
-                  onChange={(e) => setDirectorate(e.target.value)}
+                  value={requestDate}
+                  onChange={(e) => setRequestDate(e.target.value)}
                   readOnly
                 />
               </div>
-            </div>
-          </div>
-
-          <h2 className="text-lg font-semibold text-gray-700 mb-4">
-            Request Detail:
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            {/* Left Column */}
-            <div className="space-y-4">
-              <div className="flex flex-row items-center gap-2 justify-start">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
-                  Transfer Type
-                </label>
-                <select
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
-                  value={transferType}
-                  onChange={(e) =>
-                    setTransferType(e.target.value as TransferType)
-                  }
-                  required
-                >
-                  <option value="">--Select one--</option>
-                  <option value="direct transfer">direct transfer</option>
-                  <option value="transfer">transfer</option>
-                </select>
-              </div>
-
               <div className="flex flex-row items-center gap-2 justify-start">
                 <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   To Department
@@ -735,30 +744,37 @@ function ApproveDeptTo() {
                   />
                 </div>
               </div>
-              <div className="flex flex-row items-center gap-2 justify-start">
+              <div className="flex flex-row items-center gap-2 justify-end">
                 <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
-                  Transfer Reason
+                  Approved Date
                 </label>
-                <textarea
-                  className="flex-1 border border-gray-300 rounded-md p-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300 resize-y min-h-[40px] max-h-[200px]"
-                  value={transferReason}
-                  onChange={(e) => setTransferReason(e.target.value)}
-                  rows={2}
+                <input
+                  type="date"
+                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  value={approvedDate}
+                  onChange={(e) => setApprovedDate(e.target.value)}
                 />
               </div>
-              <div className="space-y-4">
-                <div className="flex flex-row items-center gap-2 justify-end">
-                  <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
-                    Approver Remark
-                  </label>
-                  <textarea
-                    className="flex-1 border border-gray-300 rounded-md p-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300 resize-y min-h-[40px] max-h-[200px]"
-                    value={remark}
-                    onChange={(e) => setRemark(e.target.value)}
-                    rows={2}
-                  />
-                </div>
+              <div className="flex flex-row items-center gap-2 justify-start">
+                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+                  Approver Decision
+                </label>
+                <input
+                  type="text"
+                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  value={approverDecision}
+                  onChange={(e) => setApproverDecision(e.target.value)}
+                  required
+                  readOnly
+                />
               </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            {/* Left Column */}
+            <div className="space-y-4">
+              <div className="space-y-4"></div>
               <div className="flex flex-row items-center gap-2 justify-start">
                 <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Decision
@@ -778,58 +794,7 @@ function ApproveDeptTo() {
 
             {/* Right Column */}
             <div className="space-y-4">
-              <div className="flex flex-row items-center gap-2 justify-end">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
-                  From Department
-                </label>
-                <div className="flex-1">
-                  <input
-                    type="text"
-                    className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
-                    value={fromDepartment}
-                    onChange={(e) => setFromDepartment(e.target.value)}
-                    placeholder=""
-                    readOnly
-                  />
-                </div>
-              </div>
-              <div className="flex flex-row items-center gap-2 justify-end">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
-                  Request Date
-                </label>
-                <input
-                  type="date"
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
-                  value={requestDate}
-                  onChange={(e) => setRequestDate(e.target.value)}
-                  readOnly
-                />
-              </div>
-              <div className="flex flex-row items-center gap-2 justify-end">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
-                  Approved Date
-                </label>
-                <input
-                  type="date"
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
-                  value={approvedDate}
-                  onChange={(e) => setApprovedDate(e.target.value)}
-                />
-              </div>
-              <div className="h-2" />
-              <div className="flex flex-row items-center gap-2 justify-start">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
-                  Approver Decision
-                </label>
-                <input
-                  type="text"
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
-                  value={approverDecision}
-                  onChange={(e) => setApproverDecision(e.target.value)}
-                  required
-                  readOnly
-                />
-              </div>
+              {/* <div className="h-2" /> */}
               <div className="flex flex-row items-center gap-2 justify-end">
                 <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Checked Date

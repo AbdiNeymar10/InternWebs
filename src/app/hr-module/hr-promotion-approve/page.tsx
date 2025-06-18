@@ -42,6 +42,8 @@ function HrPromotionApprove() {
   const [jobClass, setJobClass] = useState("");
   const [startDate, setStartDate] = useState("");
   const [requestFrom, setRequestFrom] = useState("");
+  const [incrementSteps, setIncrementSteps] = useState<string[]>([]);
+  const [selectedIncrementStep, setSelectedIncrementStep] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -55,7 +57,7 @@ function HrPromotionApprove() {
     setToDepartment("");
     setFromDepartment("");
     setTransferReason("");
-    setRequestDate("2017-09-15");
+    setRequestDate("");
     setSelectedRequest("");
     setJobPositionId("");
     setFromDepartmentId("");
@@ -164,7 +166,11 @@ function HrPromotionApprove() {
           setBranchId(data.branchId || "");
           setJobCodeId(data.jobCode || "");
           setCurrentSalary(data.currentSalary || "");
-
+          setJobClass(data.jobClass || "");
+          setIncrementStep(data.incrementStep || "");
+          setBranch(data.branch || "");
+          setStartDate(data.startDate || "");
+          setRequestFrom(data.requestFrom || "");
           if (data.jobPositionId) {
             fetch(
               `http://localhost:8080/api/job-type-details/${data.jobPositionId}`
@@ -176,26 +182,20 @@ function HrPromotionApprove() {
                     ? jobTypeDetail.icf.ICF
                     : "";
                 seticf(icfValue);
-                // Log all fetched employee info
-                console.log("Fetched employee info:", {
-                  employeeName: data.employeeName,
-                  gender: data.gender,
-                  hiredDate: data.hiredDate,
-                  departmentName: data.departmentName,
-                  jobPosition: data.jobPosition,
-                  directorateName: data.directorateName,
-                  jobPositionId: data.jobPositionId,
-                  fromDepartmentId: data.fromDepartmentId,
-                  payGradeId: data.payGradeId,
-                  jobResponsibilityId: data.jobResponsibilityId,
-                  branchId: data.branchId,
-                  jobCode: data.jobCode,
-                  icf: icfValue,
-                });
+                let jobClassValue = "";
+                let jobGradeId = "";
+                if (
+                  jobTypeDetail &&
+                  jobTypeDetail.jobType &&
+                  jobTypeDetail.jobType.jobGrade
+                ) {
+                  jobClassValue = jobTypeDetail.jobType.jobGrade.grade;
+                  jobGradeId = jobTypeDetail.jobType.jobGrade.id || "";
+                }
+                setJobClass(jobClassValue);
               })
               .catch((err) => {
                 seticf("");
-                console.log("Error fetching ICF ", data.jobPositionId, err);
               });
           }
         })
@@ -211,6 +211,12 @@ function HrPromotionApprove() {
           setJobResponsibilityId("");
           setBranchId("");
           setJobCodeId("");
+          setCurrentSalary("");
+          setJobClass("");
+          setIncrementStep("");
+          setBranch("");
+          setStartDate("");
+          setRequestFrom("");
         });
     } else {
       setEmployeeName("");
@@ -224,6 +230,12 @@ function HrPromotionApprove() {
       setJobResponsibilityId("");
       setBranchId("");
       setJobCodeId("");
+      setCurrentSalary("");
+      setJobClass("");
+      setIncrementStep("");
+      setBranch("");
+      setStartDate("");
+      setRequestFrom("");
     }
   }, [employeeId]);
 
@@ -236,7 +248,7 @@ function HrPromotionApprove() {
         const data = await response.json();
         const filtered = data.filter((req: any) => {
           if (req.status === undefined || req.status === null) return false;
-          return req.status === "1" || req.status === 1;
+          return req.status === "2" || req.status === 2;
         });
         setTransferRequests(filtered);
       } catch (error) {
@@ -251,48 +263,88 @@ function HrPromotionApprove() {
   useEffect(() => {
     if (selectedRequest) {
       const req = transferRequests.find(
-        (r) => r.transferRequesterId.toString() === selectedRequest
+        (r) =>
+          (r.transferRequesterId &&
+            r.transferRequesterId.toString() === selectedRequest) ||
+          (r.empId && r.empId.toString() === selectedRequest)
       );
-      if (req && req.employee) {
-        setEmployeeId(req.employee.empId || "");
-        setEmployeeName(
-          [
-            req.employee.firstName,
-            req.employee.middleName,
-            req.employee.lastName,
-          ]
-            .filter(Boolean)
-            .join(" ")
+      if (req) {
+        setEmployeeId(req.empId || "");
+        setEmployeeName(req.employeeName || "");
+        setHiredDate(req.hiredDate || "");
+        seticf(req.icf || "");
+        setFromDepartment(req.departmentName || "");
+        setJobPosition(req.jobPosition || "");
+        setJobPositionId(req.jobPositionId?.toString() || "");
+        setFromDepartmentId(req.fromDepartmentId?.toString() || "");
+        setPayGradeId(
+          req.payGradeId?.toString() ||
+            (req.payGrade && req.payGrade.payGradeId
+              ? req.payGrade.payGradeId.toString()
+              : "")
         );
-        setHiredDate(req.employee.hiredDate || "");
-        seticf(req.employee.icf?.icfName || "");
-        setFromDepartment(req.employee.department?.depName || "");
-        setJobPosition(
-          req.employee.jobTypeDetail?.jobType?.jobTitle?.jobTitle || ""
-        );
-        setJobPositionId(req.employee.jobTypeDetail?.id?.toString() || "");
-        setFromDepartmentId(req.employee.department?.deptId?.toString() || "");
-        setPayGradeId(req.employee.payGrade?.payGradeId?.toString() || "");
-        setJobResponsibilityId(
-          req.employee.jobResponsibility?.id?.toString() || ""
-        );
-        setBranchId(req.employee.branch?.id?.toString() || "");
-        setJobCodeId(req.employee.jobTypeDetail?.jobType?.id?.toString() || "");
+        setJobResponsibilityId(req.jobResponsibilityId?.toString() || "");
+        setBranchId(req.branchId?.toString() || "");
+        setJobCodeId(req.jobCodeId?.toString() || "");
         setTransferType(req.transferType || "");
-        setToDepartment(req.transferTo?.depName || "");
-        setToDepartmentId(req.transferTo?.deptId?.toString() || "");
+        const toDeptId =
+          req.toDepartmentId || req.transferToId || req.transferTo?.deptId;
+        const toDeptObj = departments.find(
+          (d) => d.deptId.toString() === (toDeptId ? toDeptId.toString() : "")
+        );
+        setToDepartment(
+          toDeptObj?.deptName ||
+            req.toDepartment ||
+            req.transferTo?.depName ||
+            ""
+        );
+        setToDepartmentId((toDeptId || "").toString());
         setTransferReason(req.description || "");
         setRequestDate(req.dateRequest || "");
         setRemark(req.remark || "");
         setApproverDecision(req.status || "");
-      } else if (req) {
-        setTransferType(req.transferType || "");
-        setRemark(req.remark || "");
-        setApproverDecision(req.status || "");
         setCurrentSalary(req.currentSalary || "");
+        setBranch(req.branch || "");
+        setJobClass(req.jobClass || "");
+        setStartDate(req.startDate || "");
+        setRequestFrom(req.requestFrom || "");
+        if (req.incrementStep) {
+          setIncrementStep(req.incrementStep);
+          setSelectedIncrementStep(req.incrementStep);
+          setIncrementSteps((prev) => {
+            if (req.incrementStep && !prev.includes(req.incrementStep)) {
+              return [...prev, req.incrementStep];
+            }
+            return prev;
+          });
+        } else if (req.payGradeId) {
+          fetch(`http://localhost:8080/api/hr-pay-grad/${req.payGradeId}`)
+            .then((res) => (res.ok ? res.json() : null))
+            .then((payGradeData) => {
+              const stepNo =
+                payGradeData && payGradeData.stepNo
+                  ? payGradeData.stepNo.toString()
+                  : "";
+              setIncrementStep(stepNo);
+              setSelectedIncrementStep(stepNo);
+              setIncrementSteps((prev) => {
+                if (stepNo && !prev.includes(stepNo)) {
+                  return [...prev, stepNo];
+                }
+                return prev;
+              });
+            })
+            .catch(() => {
+              setIncrementStep("");
+              setSelectedIncrementStep("");
+            });
+        } else {
+          setIncrementStep("");
+          setSelectedIncrementStep("");
+        }
       }
     }
-  }, [selectedRequest, transferRequests]);
+  }, [selectedRequest, transferRequests, departments]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -314,6 +366,25 @@ function HrPromotionApprove() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [showDropdown]);
+
+  useEffect(() => {
+    fetch("http://localhost:8080/api/hr-pay-grad/steps")
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Failed to fetch increment steps");
+        }
+        return res.json();
+      })
+      .then((data) => {
+        // Always convert to string
+        const steps = Array.isArray(data) ? data.map((s) => s.toString()) : [];
+        setIncrementSteps(steps);
+      })
+      .catch((err) => {
+        setIncrementSteps([]);
+        console.error("Failed to fetch increment steps", err);
+      });
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -367,47 +438,37 @@ function HrPromotionApprove() {
                         <>
                           {transferRequests
                             .filter((req) => {
-                              const empId =
-                                req.employee?.empId?.toString() || "";
-                              const empName = [
-                                req.employee?.firstName,
-                                req.employee?.middleName,
-                                req.employee?.lastName,
-                              ]
-                                .filter(Boolean)
-                                .join(" ")
-                                .toLowerCase();
+                              // Use flat DTO fields for robust filtering
+                              const empId = req.empId?.toString?.() || "";
+                              const empName = req.employeeName || "";
+                              if (!empId || !empName) return false;
                               return (
                                 searchValue.trim() === "" ||
                                 empId.includes(searchValue.trim()) ||
-                                empName.includes(
-                                  searchValue.trim().toLowerCase()
-                                )
+                                empName
+                                  .toLowerCase()
+                                  .includes(searchValue.trim().toLowerCase())
                               );
                             })
-                            .map((req) => {
-                              const empId = req.employee?.empId || "N/A";
-                              const fullName =
-                                [
-                                  req.employee?.firstName,
-                                  req.employee?.middleName,
-                                  req.employee?.lastName,
-                                ]
-                                  .filter(Boolean)
-                                  .join(" ") || "";
-
+                            .map((req, idx) => {
+                              const empId = req.empId?.toString?.() || "";
+                              const fullName = req.employeeName || "";
                               return (
                                 <li
-                                  key={req.transferRequesterId}
+                                  key={
+                                    req.transferRequesterId ?? empId + "-" + idx
+                                  }
                                   className={`p-2 hover:bg-gray-200 cursor-pointer ${
                                     selectedRequest ===
-                                    req.transferRequesterId.toString()
+                                    (req.transferRequesterId?.toString?.() ||
+                                      empId)
                                       ? "bg-blue-100"
                                       : ""
                                   }`}
                                   onClick={() => {
                                     setSelectedRequest(
-                                      req.transferRequesterId.toString()
+                                      req.transferRequesterId?.toString?.() ||
+                                        empId
                                     );
                                     setShowDropdown(false);
                                     setSearchValue(`${empId} - ${fullName}`);
@@ -418,19 +479,15 @@ function HrPromotionApprove() {
                               );
                             })}
                           {transferRequests.filter((req) => {
-                            const empId = req.employee?.empId?.toString() || "";
-                            const empName = [
-                              req.employee?.firstName,
-                              req.employee?.middleName,
-                              req.employee?.lastName,
-                            ]
-                              .filter(Boolean)
-                              .join(" ")
-                              .toLowerCase();
+                            const empId = req.empId?.toString?.() || "";
+                            const empName = req.employeeName || "";
+                            if (!empId || !empName) return false;
                             return (
                               searchValue.trim() === "" ||
                               empId.includes(searchValue.trim()) ||
-                              empName.includes(searchValue.trim().toLowerCase())
+                              empName
+                                .toLowerCase()
+                                .includes(searchValue.trim().toLowerCase())
                             );
                           }).length === 0 && (
                             <li className="p-2 text-gray-400">
@@ -580,8 +637,7 @@ function HrPromotionApprove() {
                 <input
                   type="text"
                   className="flex-1 border border-gray-300 rounded-md focus:outline-none p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
-                  value={incrementStep}
-                  onChange={(e) => setIncrementStep(e.target.value)}
+                  value={selectedIncrementStep}
                   readOnly
                 />
               </div>
@@ -638,9 +694,9 @@ function HrPromotionApprove() {
                 <input
                   type="text"
                   className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
-                  value={requestFrom}
-                  onChange={(e) => setRequestFrom(e.target.value)}
-                  required
+                  value={employeeName}
+                  onChange={(e) => setEmployeeName(e.target.value)}
+                  readOnly
                 />
               </div>
               <div className="space-y-4"></div>
@@ -663,13 +719,18 @@ function HrPromotionApprove() {
                 <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Increment Step
                 </label>
-                <input
-                  type="text"
-                  className="flex-1 border border-gray-300 rounded-md focus:outline-none p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
-                  value={incrementStep}
-                  onChange={(e) => setIncrementStep(e.target.value)}
-                  readOnly
-                />
+                <select
+                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  value={selectedIncrementStep}
+                  onChange={(e) => setSelectedIncrementStep(e.target.value)}
+                >
+                  <option value="">--Select One--</option>
+                  {incrementSteps.map((step) => (
+                    <option key={step.toString()} value={step.toString()}>
+                      {step}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="flex flex-row items-center gap-2 justify-end">
                 <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
@@ -690,9 +751,9 @@ function HrPromotionApprove() {
                 <input
                   type="text"
                   className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
-                  value={requestFrom}
-                  onChange={(e) => setRequestFrom(e.target.value)}
-                  required
+                  value={employeeName}
+                  onChange={(e) => setEmployeeName(e.target.value)}
+                  readOnly
                 />
               </div>
             </div>

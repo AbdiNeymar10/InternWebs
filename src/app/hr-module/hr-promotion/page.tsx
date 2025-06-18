@@ -24,7 +24,6 @@ function HrPromotion() {
   const [toDepartment, setToDepartment] = useState("");
   const [fromDepartment, setFromDepartment] = useState("");
   const [transferReason, setTransferReason] = useState("");
-  const [requestDate, setRequestDate] = useState("2017-09-15");
   const [selectedRequest, setSelectedRequest] = useState("");
   const [showDepartmentTreeModal, setShowDepartmentTreeModal] = useState(false);
   const [departments, setDepartments] = useState<
@@ -52,6 +51,7 @@ function HrPromotion() {
   const [jobResponsibility, setJobResponsibility] = useState("");
   const [refNo, setRefNo] = useState("");
   const [remark, setRemark] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
   const [progressBy, setProgressBy] = useState("Abdi Tolesa");
   const [loading, setLoading] = useState(true);
   const [branchNameTo, setBranchNameTo] = useState("");
@@ -77,6 +77,10 @@ function HrPromotion() {
   const [empId, setEmpId] = useState("");
   const [icfList, setIcfList] = useState<string[]>([]);
   const employeeInfoRef = useRef<any>(null);
+  const [selectedJobTitle, setSelectedJobTitle] = useState("");
+  const [stepNoToPayGradeId, setStepNoToPayGradeId] = useState<{
+    [step: string]: number;
+  }>({});
 
   const clearForm = () => {
     setEmployeeName("");
@@ -91,7 +95,7 @@ function HrPromotion() {
     setToDepartment("");
     setFromDepartment("");
     setTransferReason("");
-    setRequestDate("2017-09-15");
+    setDateFrom("");
     setSelectedRequest("");
     setJobPositionId("");
     setFromDepartmentId("");
@@ -103,52 +107,139 @@ function HrPromotion() {
     setSearchValue("");
     setApproverDecision("");
     setRemark("");
+    setIncrementStep("");
+    setSelectedIncrementStep("");
+    setDivision("");
+    setBranch("");
+    setJobResponsibility("");
+    setIcfDropdown("");
+    setBranchNameTo("");
+    setCurrentSalary("");
+    setJobClass("");
     employeeInfoRef.current = null;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const usedBranchId =
       branchId ||
       (branches.find((b) => b.branchName === branch)
-        ? branches.find((b) => b.branchName === branch)?.id?.toString()
+        ? branches.find((b) => b.branchName === branch)?.id !== undefined &&
+          branches.find((b) => b.branchName === branch)?.id !== null
+          ? branches.find((b) => b.branchName === branch)?.id.toString()
+          : ""
         : "");
+    const usedJobResponsibilityId = jobResponsibilityId;
+    let usedIcfId = null;
+    if (icfDropdown) {
+      try {
+        const data = await fetchICFs();
+        const found = Array.isArray(data)
+          ? data.find((item) => item.ICF === icfDropdown)
+          : null;
+        if (found) usedIcfId = found.id;
+      } catch (err) {
+        console.log("Error fetching ICFs for ID lookup", err);
+      }
+    }
+    const usedBranchNameToId =
+      branches.find((b) => b.branchName === branchNameTo)?.id || null;
+
+    const foundPayGradeId = selectedIncrementStep
+      ? stepNoToPayGradeId[selectedIncrementStep]
+      : null;
+
+    console.log("Sending to employee table:", {
+      jobResponsibilityId: usedJobResponsibilityId,
+      branchNameToId: usedBranchNameToId,
+      icfId: usedIcfId,
+      payGradeId: foundPayGradeId,
+    });
+    if (
+      employeeId &&
+      (usedJobResponsibilityId ||
+        usedIcfId ||
+        usedBranchNameToId ||
+        foundPayGradeId)
+    ) {
+      await fetch(
+        `http://localhost:8080/api/employees/${employeeId}/job-update`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            jobResponsibilityId: usedJobResponsibilityId
+              ? Number(usedJobResponsibilityId)
+              : undefined,
+            icfId: usedIcfId ? Number(usedIcfId) : undefined,
+            branchId: usedBranchNameToId
+              ? Number(usedBranchNameToId)
+              : undefined,
+            payGradeId: foundPayGradeId ? foundPayGradeId : undefined,
+          }),
+        }
+      );
+    }
+
     const usedJobResponsibility = jobResponsibilityId
       ? jobResponsibilities.find((j) => j.id === jobResponsibilityId)
           ?.responsibility || jobResponsibility
       : jobResponsibility;
     const usedToDepartmentId =
       toDepartmentId ||
-      departments
-        .find((d) => d.deptName === toDepartment)
-        ?.deptId?.toString() ||
-      "";
+      (departments.find((d) => d.deptName === toDepartment)?.deptId !==
+        undefined &&
+        departments.find((d) => d.deptName === toDepartment)?.deptId !== null)
+        ? departments
+            .find((d) => d.deptName === toDepartment)
+            ?.deptId.toString()
+        : "";
     const usedFromDepartmentId =
       fromDepartmentId ||
-      departments
-        .find((d) => d.deptName === fromDepartment)
-        ?.deptId?.toString() ||
-      "";
-    const usedBranchFrom =
-      branchFromId ||
-      branches.find((b) => b.branchName === branchNameTo)?.id?.toString() ||
-      "";
+      (departments.find((d) => d.deptName === fromDepartment)?.deptId !==
+        undefined &&
+        departments.find((d) => d.deptName === fromDepartment)?.deptId !== null)
+        ? departments
+            .find((d) => d.deptName === fromDepartment)
+            ?.deptId.toString()
+        : "";
 
     let usedStatus = employeeInfoRef.current?.status;
     if (!usedStatus) usedStatus = status;
     if (!usedStatus && selectedRequest) {
       const req = transferRequests.find(
-        (r) => r.transferRequesterId.toString() === selectedRequest
+        (r) =>
+          r.transferRequesterId !== undefined &&
+          r.transferRequesterId !== null &&
+          r.transferRequesterId.toString() === selectedRequest
       );
       if (req && req.status) usedStatus = req.status;
     }
-    const selectedJobTitle = jobTitles.find((jt) => jt.jobTitle === jobTitle);
-    const jobTitleChanged = selectedJobTitle ? selectedJobTitle.id : undefined;
+
+    const jobTitleChangedObj = jobTitles.find(
+      (jt) => jt.jobTitle === selectedJobTitle
+    );
+    const jobTitleChanged = jobTitleChangedObj
+      ? jobTitleChangedObj.id
+      : undefined;
+    const branchFromIdValue =
+      branches.find((b) => b.branchName === branch)?.id !== undefined
+        ? Number(branches.find((b) => b.branchName === branch)?.id)
+        : undefined;
+    const branchIdFromDropdown = branches.find(
+      (b) => b.branchName === branchNameTo
+    )?.id;
+
+    const branchIdValue =
+      branchIdFromDropdown !== undefined && branchIdFromDropdown !== null
+        ? Number(branchIdFromDropdown)
+        : branchFromIdValue;
 
     const payload: any = {
-      branchId: usedBranchId ? Number(usedBranchId) : undefined,
-      branchFrom: usedBranchFrom ? Number(usedBranchFrom) : undefined,
+      branchFrom: branchFromIdValue,
+      branchId: branchIdValue,
       jobResponsibility: usedJobResponsibility,
+      promotionDate: dateFrom,
       deptTransferTo: usedToDepartmentId
         ? Number(usedToDepartmentId)
         : undefined,
@@ -220,7 +311,11 @@ function HrPromotion() {
           setCurrentSalary(data.currentSalary || "");
           setStatus(data.status || "");
           setEmpId(data.empId || "");
-          setBranchFromId(data.branchId ? data.branchId.toString() : "");
+          setBranchFromId(
+            data.branchId !== undefined && data.branchId !== null
+              ? data.branchId.toString()
+              : ""
+          );
           if (data.jobPositionId) {
             fetch(
               `http://localhost:8080/api/job-type-details/${data.jobPositionId}`
@@ -327,12 +422,19 @@ function HrPromotion() {
         const response = await fetch(
           "http://localhost:8080/api/hr-transfer-requests"
         );
+        const contentType = response.headers.get("content-type");
+        if (!response.ok) {
+          const text = await response.text();
+          console.error("Fetch failed with status:", response.status, text);
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        if (!contentType || !contentType.includes("application/json")) {
+          const text = await response.text();
+          console.error("Expected JSON but got:", text);
+          throw new Error("Response is not JSON");
+        }
         const data = await response.json();
-        const filtered = data.filter((req: any) => {
-          if (req.status === undefined || req.status === null) return false;
-          return req.status === "2" || req.status === 2;
-        });
-        setTransferRequests(filtered);
+        setTransferRequests(data);
       } catch (error) {
         console.error("Fetch error:", error);
       } finally {
@@ -345,68 +447,75 @@ function HrPromotion() {
   useEffect(() => {
     if (selectedRequest) {
       const req = transferRequests.find(
-        (r) => r.transferRequesterId.toString() === selectedRequest
+        (r) =>
+          (r.transferRequesterId?.toString() || r.empId?.toString()) ===
+          selectedRequest
       );
-      if (req && req.employee) {
-        setEmployeeId(req.employee.empId || "");
+      if (req) {
+        setEmployeeId(req.empId || "");
         setEmployeeName(
-          [
-            req.employee.firstName,
-            req.employee.middleName,
-            req.employee.lastName,
-          ]
+          [req.firstName, req.middleName, req.lastName]
             .filter(Boolean)
             .join(" ")
         );
-        setGender(req.employee.sex || "");
-        setHiredDate(req.employee.hiredDate || "");
-        const icfValue =
-          req.employee.icf?.icfName || req.employee.icf?.ICF || "";
-        seticf(icfValue);
-        setIcfDropdown(icfValue);
-        setDepartment(req.employee.department?.depName || "");
-        setFromDepartment(req.employee.department?.depName || "");
-        setJobPosition(
-          req.employee.jobTypeDetail?.jobType?.jobTitle?.jobTitle || ""
+        setGender(req.gender || "");
+        setHiredDate(req.hiredDate || "");
+        seticf(req.icf || "");
+        setIcfDropdown(req.icf || "");
+        setDepartment(req.departmentName || "");
+        setFromDepartment(req.transferFromName || "");
+        setJobPosition(req.jobPosition || "");
+        setSelectedJobTitle(req.jobPosition || "");
+        setDirectorate(req.directorateName || "");
+        setJobPositionId(req.jobPositionId ? req.jobPositionId.toString() : "");
+        setFromDepartmentId(
+          req.transferFromId ? req.transferFromId.toString() : ""
         );
-        setJobTitle(
-          req.employee.jobTypeDetail?.jobType?.jobTitle?.jobTitle || ""
-        );
-        setDirectorate(req.employee.department?.directorateName || "");
-        setJobPositionId(req.employee.jobTypeDetail?.id?.toString() || "");
-        setFromDepartmentId(req.employee.department?.deptId?.toString() || "");
-        setPayGradeId(req.employee.payGrade?.payGradeId?.toString() || "");
+        setToDepartmentId(req.transferToId ? req.transferToId.toString() : "");
+        setPayGradeId(req.payGradeId ? req.payGradeId.toString() : "");
         setJobResponsibilityId(
-          req.employee.jobResponsibility?.id?.toString() || ""
+          req.jobResponsibilityId ? req.jobResponsibilityId.toString() : ""
         );
-        const foundResp = jobResponsibilities.find(
-          (j) =>
-            j.id.toString() ===
-            (req.employee.jobResponsibility?.id?.toString() || "")
+        setJobResponsibility(req.jobResponsibility || "");
+        setBranchId(req.branchId ? req.branchId.toString() : "");
+        const foundBranch = branches.find(
+          (b) =>
+            b.id.toString() === (req.branchId ? req.branchId.toString() : "")
         );
-        setJobResponsibility(foundResp ? foundResp.responsibility : "");
-        setBranchId(req.employee.branch?.id?.toString() || "");
-        setBranch(req.employee.branch?.branchName || "");
-        setJobCodeId(req.employee.jobTypeDetail?.jobType?.id?.toString() || "");
-        setTransferType(req.transferType || "");
-        setToDepartment(req.transferTo?.depName || "");
-        setToDepartmentId(req.transferTo?.deptId?.toString() || "");
-        setTransferReason(req.description || "");
-        setRequestDate(req.dateRequest || "");
-        setRemark(req.remark || "");
+        setBranch(foundBranch ? foundBranch.branchName : "");
+        setBranchNameTo(foundBranch ? foundBranch.branchName : "");
+        setJobCodeId(req.jobCodeId ? req.jobCodeId.toString() : "");
+        setCurrentSalary(req.currentSalary || "");
         setStatus(req.status || "");
-        setEmpId(req.employee.empId || "");
+        setEmpId(req.empId || "");
+        setTransferType(req.transferType || "");
+        setToDepartmentId(req.transferToId ? req.transferToId.toString() : "");
+        const foundToDepartment = departments.find(
+          (d) =>
+            d.deptId.toString() ===
+            (req.transferToId ? req.transferToId.toString() : "")
+        );
+        setToDepartment(foundToDepartment ? foundToDepartment.deptName : "");
+        setTransferReason(req.description || "");
+        setRemark(req.remark || "");
         setApproverDecision(req.status || "");
-        if (req.employee.payGrade?.payGradeId) {
+        if (req && req.payGrade?.payGradeId) {
           fetch(
-            `http://localhost:8080/api/hr-pay-grad/${req.employee.payGrade.payGradeId}`
+            `http://localhost:8080/api/hr-pay-grad/${req.payGrade.payGradeId}`
           )
             .then((res) => (res.ok ? res.json() : null))
             .then((payGradeData) => {
               const stepNo =
-                payGradeData && payGradeData.stepNo ? payGradeData.stepNo : "";
+                payGradeData && payGradeData.stepNo
+                  ? payGradeData.stepNo.toString()
+                  : "";
               setIncrementStep(stepNo);
-              setSelectedIncrementStep(stepNo);
+              setIncrementSteps((prev) => {
+                if (stepNo && !prev.includes(stepNo)) {
+                  return [...prev, stepNo];
+                }
+                return prev;
+              });
             })
             .catch(() => {
               setIncrementStep("");
@@ -416,20 +525,30 @@ function HrPromotion() {
           setIncrementStep("");
           setSelectedIncrementStep("");
         }
-      } else if (req) {
-        setTransferType(req.transferType || "");
-        setRemark(req.remark || "");
-        setApproverDecision(req.status || "");
-        setCurrentSalary(req.currentSalary || "");
       }
     }
-  }, [selectedRequest, transferRequests, jobResponsibilities]);
+  }, [selectedRequest, transferRequests, branches, departments]);
+
+  useEffect(() => {
+    if (jobTitle) {
+      setJobTitles((prev) => {
+        if (!prev.some((jt) => jt.jobTitle === jobTitle)) {
+          return [...prev, { id: -1, jobTitle }];
+        }
+        return prev;
+      });
+    }
+  }, [jobTitle, jobTitles]);
 
   const handleSelectDepartment = (deptId: number) => {
     if (departmentFieldBeingEdited === "to") {
       const dept = departments.find((d) => d.deptId === deptId);
       setToDepartment(dept ? dept.deptName : "");
-      setToDepartmentId(dept ? dept.deptId.toString() : "");
+      setToDepartmentId(
+        dept && dept.deptId !== undefined && dept.deptId !== null
+          ? dept.deptId.toString()
+          : ""
+      );
       setShowDepartmentTreeModal(false);
       setDepartmentFieldBeingEdited(null);
     }
@@ -488,16 +607,11 @@ function HrPromotion() {
         if (!res.ok) {
           throw new Error("Failed to fetch increment steps");
         }
-        return res.text();
+        return res.json();
       })
-      .then((text) => {
-        try {
-          const data = text ? JSON.parse(text) : [];
-          setIncrementSteps(Array.isArray(data) ? data : []);
-        } catch (err) {
-          setIncrementSteps([]);
-          console.error("Failed to parse increment steps JSON", err);
-        }
+      .then((data) => {
+        const steps = Array.isArray(data) ? data.map((s) => s.toString()) : [];
+        setIncrementSteps(steps);
       })
       .catch((err) => {
         setIncrementSteps([]);
@@ -517,6 +631,67 @@ function HrPromotion() {
     };
     fetchIcfData();
   }, []);
+  useEffect(() => {
+    if (incrementStep) {
+      setIncrementSteps((prev) => {
+        if (!prev.includes(incrementStep)) {
+          return [...prev, incrementStep];
+        }
+        return prev;
+      });
+      setSelectedIncrementStep(incrementStep);
+    }
+  }, [incrementStep]);
+
+  useEffect(() => {
+    if (jobTitle && !jobTitles.some((jt) => jt.jobTitle === jobTitle)) {
+      setJobTitles((prev) => [...prev, { id: -1, jobTitle }]);
+    }
+  }, [jobTitle]);
+
+  useEffect(() => {
+    const updatePayGradeId = async () => {
+      if (employeeId && selectedIncrementStep) {
+        try {
+          const res = await fetch(
+            `http://localhost:8080/api/hr-pay-grad/step/${selectedIncrementStep}`
+          );
+          if (res.ok) {
+            const payGrade = await res.json();
+            if (payGrade && payGrade.payGradeId) {
+              await fetch(
+                `http://localhost:8080/api/employees/${employeeId}/job-update`,
+                {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ payGradeId: payGrade.payGradeId }),
+                }
+              );
+              setPayGradeId(payGrade.payGradeId.toString());
+            }
+          }
+        } catch (err) {}
+      }
+    };
+    updatePayGradeId();
+  }, [selectedIncrementStep, employeeId]);
+
+  useEffect(() => {
+    if (incrementSteps.length > 0) {
+      fetch("http://localhost:8080/api/hr-pay-grad")
+        .then((res) => res.json())
+        .then((data) => {
+          const mapping: { [step: string]: number } = {};
+          data.forEach((pg: any) => {
+            if (pg.stepNo && pg.payGradeId) {
+              mapping[pg.stepNo] = pg.payGradeId;
+            }
+          });
+          setStepNoToPayGradeId(mapping);
+        })
+        .catch(() => setStepNoToPayGradeId({}));
+    }
+  }, [incrementSteps]);
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -570,12 +745,22 @@ function HrPromotion() {
                         <>
                           {transferRequests
                             .filter((req) => {
-                              const empId =
-                                req.employee?.empId?.toString() || "";
-                              const empName = [
-                                req.employee?.firstName,
-                                req.employee?.middleName,
-                                req.employee?.lastName,
+                              const status =
+                                typeof req.status === "string"
+                                  ? req.status.trim()
+                                  : req.status;
+                              return (
+                                (status === "2" || status === 2) && req.empId
+                              );
+                            })
+                            .filter((req) => {
+                              const empId = req.empId
+                                ? req.empId.toString()
+                                : "";
+                              const fullName = [
+                                req.firstName,
+                                req.middleName,
+                                req.lastName,
                               ]
                                 .filter(Boolean)
                                 .join(" ")
@@ -583,35 +768,35 @@ function HrPromotion() {
                               return (
                                 searchValue.trim() === "" ||
                                 empId.includes(searchValue.trim()) ||
-                                empName.includes(
+                                fullName.includes(
                                   searchValue.trim().toLowerCase()
                                 )
                               );
                             })
-                            .map((req) => {
-                              const empId = req.employee?.empId || "N/A";
-                              const fullName =
-                                [
-                                  req.employee?.firstName,
-                                  req.employee?.middleName,
-                                  req.employee?.lastName,
-                                ]
-                                  .filter(Boolean)
-                                  .join(" ") || "";
-
+                            .map((req, idx) => {
+                              const empId = req.empId || "N/A";
+                              let fullName = [
+                                req.firstName,
+                                req.middleName,
+                                req.lastName,
+                              ]
+                                .filter(Boolean)
+                                .join(" ");
+                              if (!fullName && req.employeeName) {
+                                fullName = req.employeeName;
+                              }
+                              const keyStr =
+                                req.transferRequesterId?.toString() || empId;
                               return (
                                 <li
-                                  key={req.transferRequesterId}
+                                  key={keyStr + "-" + idx}
                                   className={`p-2 hover:bg-gray-200 cursor-pointer ${
-                                    selectedRequest ===
-                                    req.transferRequesterId.toString()
+                                    selectedRequest === keyStr
                                       ? "bg-blue-100"
                                       : ""
                                   }`}
                                   onClick={() => {
-                                    setSelectedRequest(
-                                      req.transferRequesterId.toString()
-                                    );
+                                    setSelectedRequest(keyStr);
                                     setShowDropdown(false);
                                     setSearchValue(`${empId} - ${fullName}`);
                                   }}
@@ -621,11 +806,11 @@ function HrPromotion() {
                               );
                             })}
                           {transferRequests.filter((req) => {
-                            const empId = req.employee?.empId?.toString() || "";
-                            const empName = [
-                              req.employee?.firstName,
-                              req.employee?.middleName,
-                              req.employee?.lastName,
+                            const empId = req.empId ? req.empId.toString() : "";
+                            const fullName = [
+                              req.firstName,
+                              req.middleName,
+                              req.lastName,
                             ]
                               .filter(Boolean)
                               .join(" ")
@@ -633,7 +818,9 @@ function HrPromotion() {
                             return (
                               searchValue.trim() === "" ||
                               empId.includes(searchValue.trim()) ||
-                              empName.includes(searchValue.trim().toLowerCase())
+                              fullName.includes(
+                                searchValue.trim().toLowerCase()
+                              )
                             );
                           }).length === 0 && (
                             <li className="p-2 text-gray-400">
@@ -863,21 +1050,20 @@ function HrPromotion() {
                       overflowX: "auto",
                       whiteSpace: "nowrap",
                     }}
-                    value={jobTitle}
-                    onChange={(e) => {
-                      setJobTitle(e.target.value);
-                      const selected = jobTitles.find(
-                        (jt) => jt.jobTitle === e.target.value
-                      );
-                    }}
+                    value={selectedJobTitle}
+                    onChange={(e) => setSelectedJobTitle(e.target.value)}
                   >
-                    <option value="">--Select One--</option>
-                    {jobPosition &&
-                      !jobTitles.some((jt) => jt.jobTitle === jobPosition) && (
-                        <option value={jobPosition}>{jobPosition}</option>
+                    {selectedJobTitle &&
+                      !jobTitles.some(
+                        (jt) => jt.jobTitle === selectedJobTitle
+                      ) && (
+                        <option value={selectedJobTitle}>
+                          {selectedJobTitle} (from request)
+                        </option>
                       )}
-                    {jobTitles.map((jt) => (
-                      <option key={jt.id} value={jt.jobTitle}>
+                    <option value="">--Select One--</option>
+                    {jobTitles.map((jt, idx) => (
+                      <option key={jt.id + "-" + idx} value={jt.jobTitle}>
                         {jt.jobTitle}
                       </option>
                     ))}
@@ -899,11 +1085,6 @@ function HrPromotion() {
                         const found = Array.isArray(data)
                           ? data.find((item) => item.ICF === e.target.value)
                           : null;
-                        if (found) {
-                          console.log("Selected ICF ID:", found.id);
-                        } else {
-                          console.log("Selected ICF not found");
-                        }
                       } catch (err) {
                         console.log("Error fetching ICFs for ID lookup", err);
                       }
@@ -913,7 +1094,7 @@ function HrPromotion() {
                 >
                   <option value="">--Select One--</option>
                   {icfList.map((icfValue, idx) => (
-                    <option key={idx} value={icfValue}>
+                    <option key={icfValue + "-" + idx} value={icfValue}>
                       {icfValue}
                     </option>
                   ))}
@@ -944,16 +1125,14 @@ function HrPromotion() {
                     const selectedBranch = branches.find(
                       (branch) => branch.branchName === e.target.value
                     );
-                    if (selectedBranch) {
-                      console.log("Selected Branch ID:", selectedBranch.id);
-                    } else {
-                      console.log("Selected Branch not found");
-                    }
                   }}
                 >
                   <option value="">--Select One--</option>
-                  {branches.map((branch) => (
-                    <option key={branch.id} value={branch.branchName}>
+                  {branches.map((branch, idx) => (
+                    <option
+                      key={branch.id + "-" + idx}
+                      value={branch.branchName}
+                    >
                       {branch.branchName}
                     </option>
                   ))}
@@ -981,9 +1160,8 @@ function HrPromotion() {
                 <input
                   type="date"
                   className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
-                  value={requestDate}
-                  onChange={(e) => setRequestDate(e.target.value)}
-                  readOnly
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
                 />
               </div>
               <div className="flex flex-row items-center gap-2 justify-end">
@@ -1022,8 +1200,8 @@ function HrPromotion() {
                   onChange={(e) => setSelectedIncrementStep(e.target.value)}
                 >
                   <option value="">--Select One--</option>
-                  {incrementSteps.map((step) => (
-                    <option key={step} value={step}>
+                  {incrementSteps.map((step, idx) => (
+                    <option key={step + "-" + idx} value={step.toString()}>
                       {step}
                     </option>
                   ))}
@@ -1065,9 +1243,9 @@ function HrPromotion() {
                     }}
                   >
                     <option value="">--Select One--</option>
-                    {jobResponsibilities.map((resp) => (
+                    {jobResponsibilities.map((resp, idx) => (
                       <option
-                        key={resp.id}
+                        key={resp.id + "-" + idx}
                         value={resp.id}
                         style={{
                           maxWidth: "80px",

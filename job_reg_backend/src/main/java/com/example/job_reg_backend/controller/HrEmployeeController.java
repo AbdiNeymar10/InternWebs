@@ -92,4 +92,45 @@ public class HrEmployeeController {
         hrEmployeeService.updateEmployee(empId, employee);
         return ResponseEntity.ok().build();
     }
+
+    static class EmployeeJobUpdateDto {
+        public Long jobResponsibilityId;
+        public Long icfId;
+        public Long branchId;
+        public Long payGradeId; 
+    }
+
+    @Autowired
+    private com.example.job_reg_backend.repository.HRLuResponsibilityRepository hrLuResponsibilityRepository;
+    @Autowired
+    private com.example.job_reg_backend.repository.HRLuBranchRepository hrLuBranchRepository;
+    @Autowired
+    private com.example.job_reg_backend.repository.HRLuIcfRepository hrLuIcfRepository;
+    @Autowired
+    private com.example.job_reg_backend.repository.HRPayGradRepository hrPayGradRepository;
+
+    @PostMapping("/{empId}/job-update")
+    public ResponseEntity<?> updateEmployeeJobFields(
+            @PathVariable String empId,
+            @RequestBody EmployeeJobUpdateDto dto) {
+        HrEmployee employee = hrEmployeeService.getEmployeeById(empId);
+        if (dto.jobResponsibilityId != null) {
+            var resp = hrLuResponsibilityRepository.findById(dto.jobResponsibilityId).orElse(null);
+            employee.setJobResponsibility(resp);
+        }
+        if (dto.icfId != null) {
+            var icf = hrLuIcfRepository.findById(dto.icfId).orElse(null);
+            employee.setIcf(icf);
+        }
+        if (dto.branchId != null) {
+            var branch = hrLuBranchRepository.findById(dto.branchId).orElse(null);
+            employee.setBranch(branch);
+        }
+        if (dto.payGradeId != null) { 
+            var payGrade = hrPayGradRepository.findById(dto.payGradeId).orElse(null);
+            employee.setPayGrade(payGrade);
+        }
+        hrEmployeeService.updateEmployee(empId, employee);
+        return ResponseEntity.ok().build();
+    }
 }

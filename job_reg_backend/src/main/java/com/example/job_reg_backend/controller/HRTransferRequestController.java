@@ -49,8 +49,38 @@ public class HRTransferRequestController {
     private HRJobTypeRepository hrJobTypeRepository;
 
     @GetMapping
-    public List<HRTransferRequest> getAll() {
-        return service.getAll();
+    public List<TransferRequestDto> getAll() {
+        List<HRTransferRequest> entities = service.getAll();
+        List<TransferRequestDto> dtos = new java.util.ArrayList<>();
+        for (HRTransferRequest entity : entities) {
+            TransferRequestDto dto = new TransferRequestDto();
+            dto.setEmployeeName(entity.getEmployee() != null ? entity.getEmployee().getFirstName() : null);
+            dto.setEmpId(entity.getEmployee() != null ? entity.getEmployee().getEmpId() : null);
+            dto.setGender(entity.getEmployee() != null ? entity.getEmployee().getSex() : null);
+            dto.setHiredDate(entity.getEmployee() != null ? entity.getEmployee().getHiredDate() : null);
+            dto.setIcf(entity.getEmployee() != null && entity.getEmployee().getIcf() != null ? entity.getEmployee().getIcf().getIcf() : null);
+            dto.setDescription(entity.getDescription());
+            dto.setDateRequest(entity.getDateRequest());
+            dto.setTransferType(entity.getTransferType());
+            dto.setJobPositionId(entity.getJobPosition() != null ? entity.getJobPosition().getId() : null);
+            dto.setTransferFromId(entity.getTransferFrom() != null ? entity.getTransferFrom().getDeptId() : null);
+            dto.setTransferToId(entity.getTransferTo() != null ? entity.getTransferTo().getDeptId() : null);
+            dto.setPayGradeId(entity.getNewJobPayGrade() != null ? entity.getNewJobPayGrade().getPayGradeId() : null);
+            dto.setJobResponsibilityId(entity.getResponsibility() != null ? entity.getResponsibility().getId() : null);
+            dto.setBranchId(entity.getBiranchId() != null ? entity.getBiranchId().getId() : null);
+            dto.setJobCodeId(entity.getJobCode() != null ? entity.getJobCode().getId() : null);
+            dto.setStatus(entity.getStatus());
+            dto.setRemark(entity.getRemark());
+            dto.setApprovedBy(entity.getApprovedBy());
+            dto.setBranchFromId(entity.getBranchFrom() != null ? Long.valueOf(entity.getBranchFrom()) : null);
+            dto.setPreparedDate(entity.getPreparedDate());
+            dto.setCheckedDate(entity.getCheckedDate());
+            dto.setAuthorizedDate(entity.getAuthorizedDate());
+            dto.setTransferRequesterId(entity.getTransferRequesterId());
+           // dto.setStepNo(entity.getStepNo());
+            dtos.add(dto);
+        }
+        return dtos;
     }
 
     @GetMapping("/{id}")
@@ -107,6 +137,9 @@ public class HRTransferRequestController {
         HRTransferRequest request = service.getById(id)
             .orElseThrow(() -> new RuntimeException("Transfer request not found"));
 
+        if (dto.getTransferRequesterId() != null) {
+            request.setTransferRequesterId(dto.getTransferRequesterId());
+        }
         if (dto.getEmpId() != null) {
             HrEmployee employee = hrEmployeeRepository.findById(dto.getEmpId())
                 .orElseThrow(() -> new RuntimeException("Employee not found"));

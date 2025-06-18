@@ -91,6 +91,7 @@ function HrApprove() {
     if (branchId) payload.branchId = branchId;
     if (jobCodeId) payload.jobCodeId = jobCodeId;
 
+    console.log("Submitting payload:", payload);
     // If updating an existing request
     if (selectedRequest) {
       fetch(
@@ -277,54 +278,48 @@ function HrApprove() {
   useEffect(() => {
     if (selectedRequest) {
       const req = transferRequests.find(
-        (r) => r.transferRequesterId.toString() === selectedRequest
+        (r) =>
+          (r.transferRequesterId &&
+            r.transferRequesterId.toString() === selectedRequest) ||
+          (r.empId && r.empId.toString() === selectedRequest)
       );
-      if (req && req.employee) {
-        setEmployeeId(req.employee.empId || "");
-        setEmployeeName(
-          [
-            req.employee.firstName,
-            req.employee.middleName,
-            req.employee.lastName,
-          ]
-            .filter(Boolean)
-            .join(" ")
-        );
-        setHiredDate(req.employee.hiredDate || "");
-        seticf(req.employee.icf?.icfName || "");
-        setFromDepartment(req.employee.department?.depName || "");
-        setJobPosition(
-          req.employee.jobTypeDetail?.jobType?.jobTitle?.jobTitle || ""
-        );
-        setJobPositionId(req.employee.jobTypeDetail?.id?.toString() || "");
-        setFromDepartmentId(req.employee.department?.deptId?.toString() || "");
-        setPayGradeId(req.employee.payGrade?.payGradeId?.toString() || "");
-        setJobResponsibilityId(
-          req.employee.jobResponsibility?.id?.toString() || ""
-        );
-        setBranchId(req.employee.branch?.id?.toString() || "");
-        setJobCodeId(req.employee.jobTypeDetail?.jobType?.id?.toString() || "");
+      if (req) {
+        setEmployeeId(req.empId || "");
+        setEmployeeName(req.employeeName || "");
+        setHiredDate(req.hiredDate || "");
+        seticf(req.icf || "");
+        setFromDepartment(req.departmentName || "");
+        setJobPosition(req.jobPosition || "");
+        setJobPositionId(req.jobPositionId?.toString() || "");
+        setFromDepartmentId(req.fromDepartmentId?.toString() || "");
+        setPayGradeId(req.payGradeId?.toString() || "");
+        setJobResponsibilityId(req.jobResponsibilityId?.toString() || "");
+        setBranchId(req.branchId?.toString() || "");
+        setJobCodeId(req.jobCodeId?.toString() || "");
         setTransferType(req.transferType || "");
-        setToDepartment(req.transferTo?.depName || "");
-        setToDepartmentId(
-          req.transferTo?.deptId ? req.transferTo.deptId.toString() : ""
+        const toDeptId =
+          req.toDepartmentId || req.transferToId || req.transferTo?.deptId;
+        const toDeptObj = departments.find(
+          (d) => d.deptId.toString() === (toDeptId ? toDeptId.toString() : "")
         );
+        setToDepartment(
+          toDeptObj?.deptName ||
+            req.toDepartment ||
+            req.transferTo?.depName ||
+            ""
+        );
+        setToDepartmentId((toDeptId || "").toString());
         setTransferReason(req.description || "");
         setRequestDate(req.dateRequest || "");
         setRemark(req.remark || "");
         setApproverDecision(req.status || "");
         setApprovedDate(req.approveDate || "");
-      } else if (req) {
-        setTransferType(req.transferType || "");
-        setRemark(req.remark || "");
-        setApproverDecision(req.status || "");
-        setApprovedDate(req.approveDate || "");
-        setToDepartmentId(
-          req.transferTo?.deptId ? req.transferTo.deptId.toString() : ""
-        );
+        setApprovedBy(req.approvedBy || "");
+        setCurrentSalary(req.currentSalary || "");
+        setAuthorizedDate(req.authorizedDate || "");
       }
     }
-  }, [selectedRequest, transferRequests]);
+  }, [selectedRequest, transferRequests, departments]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -399,47 +394,37 @@ function HrApprove() {
                         <>
                           {transferRequests
                             .filter((req) => {
-                              const empId =
-                                req.employee?.empId?.toString() || "";
-                              const empName = [
-                                req.employee?.firstName,
-                                req.employee?.middleName,
-                                req.employee?.lastName,
-                              ]
-                                .filter(Boolean)
-                                .join(" ")
-                                .toLowerCase();
+                              // Use flat DTO fields for robust filtering
+                              const empId = req.empId?.toString?.() || "";
+                              const empName = req.employeeName || "";
+                              if (!empId || !empName) return false;
                               return (
                                 searchValue.trim() === "" ||
                                 empId.includes(searchValue.trim()) ||
-                                empName.includes(
-                                  searchValue.trim().toLowerCase()
-                                )
+                                empName
+                                  .toLowerCase()
+                                  .includes(searchValue.trim().toLowerCase())
                               );
                             })
-                            .map((req) => {
-                              const empId = req.employee?.empId || "N/A";
-                              const fullName =
-                                [
-                                  req.employee?.firstName,
-                                  req.employee?.middleName,
-                                  req.employee?.lastName,
-                                ]
-                                  .filter(Boolean)
-                                  .join(" ") || "";
-
+                            .map((req, idx) => {
+                              const empId = req.empId?.toString?.() || "";
+                              const fullName = req.employeeName || "";
                               return (
                                 <li
-                                  key={req.transferRequesterId}
+                                  key={
+                                    req.transferRequesterId ?? empId + "-" + idx
+                                  }
                                   className={`p-2 hover:bg-gray-200 cursor-pointer ${
                                     selectedRequest ===
-                                    req.transferRequesterId.toString()
+                                    (req.transferRequesterId?.toString?.() ||
+                                      empId)
                                       ? "bg-blue-100"
                                       : ""
                                   }`}
                                   onClick={() => {
                                     setSelectedRequest(
-                                      req.transferRequesterId.toString()
+                                      req.transferRequesterId?.toString?.() ||
+                                        empId
                                     );
                                     setShowDropdown(false);
                                     setSearchValue(`${empId} - ${fullName}`);
@@ -450,19 +435,15 @@ function HrApprove() {
                               );
                             })}
                           {transferRequests.filter((req) => {
-                            const empId = req.employee?.empId?.toString() || "";
-                            const empName = [
-                              req.employee?.firstName,
-                              req.employee?.middleName,
-                              req.employee?.lastName,
-                            ]
-                              .filter(Boolean)
-                              .join(" ")
-                              .toLowerCase();
+                            const empId = req.empId?.toString?.() || "";
+                            const empName = req.employeeName || "";
+                            if (!empId || !empName) return false;
                             return (
                               searchValue.trim() === "" ||
                               empId.includes(searchValue.trim()) ||
-                              empName.includes(searchValue.trim().toLowerCase())
+                              empName
+                                .toLowerCase()
+                                .includes(searchValue.trim().toLowerCase())
                             );
                           }).length === 0 && (
                             <li className="p-2 text-gray-400">

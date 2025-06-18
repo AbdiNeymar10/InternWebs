@@ -1,6 +1,8 @@
 package com.example.job_reg_backend.dto;
 
 public class TransferRequestDto {
+    private Long id;
+    private Long transferRequesterId; 
     private String employeeName;
     private String gender;
     private String hiredDate;
@@ -24,7 +26,16 @@ public class TransferRequestDto {
     private String checkedDate;
     private String authorizedDate;
     private String stepNo;
+    private String approveDate;
 
+
+    // Getter and Setter for id
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    // Getter and Setter for transferRequesterId
+    public Long getTransferRequesterId() { return transferRequesterId; }
+    public void setTransferRequesterId(Long transferRequesterId) { this.transferRequesterId = transferRequesterId; }
 
     // Getters and Setters
     public String getEmployeeName() { return employeeName; }
@@ -95,5 +106,8 @@ public class TransferRequestDto {
 
     public String getStepNo() { return stepNo; }
     public void setStepNo(String stepNo) { this.stepNo = stepNo; }
+
+    public String getApproveDate() { return approveDate; }
+    public void setApproveDate(String approveDate) { this.approveDate = approveDate; }
 
 }

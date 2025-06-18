@@ -32,6 +32,9 @@ public class HRPromotionHistoryController {
 
     @PostMapping
     public HRPromotionHistory createPromotionHistory(@RequestBody HRPromotionHistory promotionHistory) {
+        if (promotionHistory.getJobTitleChanged() == null) {
+            promotionHistory.setJobTitleChanged(0);
+        }
         return service.savePromotionHistory(promotionHistory);
     }
 
@@ -42,6 +45,9 @@ public class HRPromotionHistoryController {
         Optional<HRPromotionHistory> existing = service.getPromotionHistoryById(id);
         if (existing.isPresent()) {
             promotionHistory.setPromotionHistoryId(id);
+            if (promotionHistory.getJobTitleChanged() == null) {
+                promotionHistory.setJobTitleChanged(0);
+            }
             return ResponseEntity.ok(service.savePromotionHistory(promotionHistory));
         } else {
             return ResponseEntity.notFound().build();

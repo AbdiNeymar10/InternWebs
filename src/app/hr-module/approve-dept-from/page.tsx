@@ -76,7 +76,7 @@ function ApproveDeptFrom() {
     e.preventDefault();
     const payload: any = {
       hiredDate,
-      empId: employeeId,
+      empId: Number(employeeId) || employeeId,
       description: transferReason,
       dateRequest: requestDate,
       preparedDate,
@@ -85,33 +85,50 @@ function ApproveDeptFrom() {
       remark,
       progressBy,
     };
-    if (jobPositionId) payload.jobPositionId = jobPositionId;
-    if (fromDepartmentId) payload.transferFromId = fromDepartmentId;
-    if (toDepartmentId) payload.transferToId = toDepartmentId;
-    if (payGradeId) payload.payGradeId = payGradeId;
-    if (jobResponsibilityId) payload.jobResponsibilityId = jobResponsibilityId;
-    if (branchId) payload.branchId = branchId;
-    if (jobCodeId) payload.jobCodeId = jobCodeId;
+    if (jobPositionId) payload.jobPositionId = Number(jobPositionId);
+    if (fromDepartmentId) payload.transferFromId = Number(fromDepartmentId);
+    if (toDepartmentId) payload.transferToId = Number(toDepartmentId);
+    if (payGradeId) payload.payGradeId = Number(payGradeId);
+    if (jobResponsibilityId)
+      payload.jobResponsibilityId = Number(jobResponsibilityId);
+    if (branchId) payload.branchId = Number(branchId);
+    if (jobCodeId) payload.jobCodeId = Number(jobCodeId);
 
     // If updating an existing request
     if (selectedRequest) {
-      fetch(
-        `http://localhost:8080/api/hr-transfer-requests/${selectedRequest}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...payload,
-            transferRequesterId: selectedRequest,
-            transferType,
-            dateRequest: requestDate,
-            description: transferReason,
-            transferTo: { deptId: toDepartmentId },
-            status: decision,
-            approvedBy: "Abdi Neymar",
-          }),
+      const updateUrl = `http://localhost:8080/api/hr-transfer-requests/${selectedRequest}`;
+      const updatePayload: any = {
+        hiredDate,
+        empId: Number(employeeId),
+        description: transferReason,
+        dateRequest: requestDate,
+        preparedDate,
+        transferType,
+        decision,
+        remark,
+        jobPositionId: jobPositionId ? Number(jobPositionId) : undefined,
+        transferFromId: fromDepartmentId ? Number(fromDepartmentId) : undefined,
+        payGradeId: payGradeId ? Number(payGradeId) : undefined,
+        jobResponsibilityId: jobResponsibilityId
+          ? Number(jobResponsibilityId)
+          : undefined,
+        branchId: branchId ? Number(branchId) : undefined,
+        jobCodeId: jobCodeId ? Number(jobCodeId) : undefined,
+        transferToId: toDepartmentId ? Number(toDepartmentId) : undefined,
+        status: decision,
+        approvedBy: "Abdi Neymar",
+      };
+      Object.keys(updatePayload).forEach((key: string) => {
+        if (updatePayload[key] === undefined) {
+          delete updatePayload[key];
         }
-      )
+      });
+      console.log("Submitting Payload:", updatePayload);
+      fetch(updateUrl, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatePayload),
+      })
         .then((res) => {
           if (!res.ok) throw new Error("Failed to update transfer request");
           return res.json();
@@ -264,46 +281,77 @@ function ApproveDeptFrom() {
   useEffect(() => {
     if (selectedRequest) {
       const req = transferRequests.find(
-        (r) => r.transferRequesterId.toString() === selectedRequest
+        (r) =>
+          (r.transferRequesterId &&
+            r.transferRequesterId.toString() === selectedRequest) ||
+          (r.empId && r.empId.toString() === selectedRequest)
       );
-      if (req && req.employee) {
-        setEmployeeId(req.employee.empId || "");
-        setEmployeeName(
-          [
-            req.employee.firstName,
-            req.employee.middleName,
-            req.employee.lastName,
-          ]
-            .filter(Boolean)
-            .join(" ")
+      if (req) {
+        setEmployeeId(req.empId || "");
+        setEmployeeName(req.employeeName || "");
+        setGender(req.gender || req.employee?.sex || "");
+        setHiredDate(req.hiredDate || req.employee?.hiredDate || "");
+        seticf(req.icf || req.employee?.icf?.icfName || "");
+        setDepartment(
+          req.departmentName || req.employee?.department?.depName || ""
         );
-        setGender(req.employee.sex || "");
-        setHiredDate(req.employee.hiredDate || "");
-        seticf(req.employee.icf?.icfName || "");
-        setDepartment(req.employee.department?.depName || "");
-        setFromDepartment(req.employee.department?.depName || "");
+        setFromDepartment(
+          req.departmentName || req.employee?.department?.depName || ""
+        );
         setJobPosition(
-          req.employee.jobTypeDetail?.jobType?.jobTitle?.jobTitle || ""
+          req.jobPosition ||
+            req.employee?.jobTypeDetail?.jobType?.jobTitle?.jobTitle ||
+            ""
         );
-        setDirectorate(req.employee.department?.directorateName || "");
-        setJobPositionId(req.employee.jobTypeDetail?.id?.toString() || "");
-        setFromDepartmentId(req.employee.department?.deptId?.toString() || "");
-        setPayGradeId(req.employee.payGrade?.payGradeId?.toString() || "");
+        setDirectorate(
+          req.directorateName || req.employee?.department?.directorateName || ""
+        );
+        setJobPositionId(
+          (req.jobPositionId || req.employee?.jobTypeDetail?.id)?.toString() ||
+            ""
+        );
+        setFromDepartmentId(
+          (
+            req.transferFromId || req.employee?.department?.deptId
+          )?.toString() || ""
+        );
+        setPayGradeId(
+          (req.payGradeId || req.employee?.payGrade?.payGradeId)?.toString() ||
+            ""
+        );
         setJobResponsibilityId(
-          req.employee.jobResponsibility?.id?.toString() || ""
+          (
+            req.jobResponsibilityId || req.employee?.jobResponsibility?.id
+          )?.toString() || ""
         );
-        setBranchId(req.employee.branch?.id?.toString() || "");
-        setJobCodeId(req.employee.jobTypeDetail?.jobType?.id?.toString() || "");
+        setBranchId(
+          (req.branchId || req.employee?.branch?.id)?.toString() || ""
+        );
+        setJobCodeId(
+          (
+            req.jobCodeId || req.employee?.jobTypeDetail?.jobType?.id
+          )?.toString() || ""
+        );
         setTransferType(req.transferType || "");
-        setToDepartment(req.transferTo?.depName || "");
-        setToDepartmentId(req.transferTo?.deptId?.toString() || "");
+        const toDeptId = req.transferToId || req.transferTo?.deptId;
+        const toDeptObj = departments.find(
+          (d) => d.deptId.toString() === (toDeptId ? toDeptId.toString() : "")
+        );
+        setToDepartment(
+          toDeptObj?.deptName ||
+            req.toDepartment ||
+            req.transferTo?.depName ||
+            ""
+        );
+        setToDepartmentId((toDeptId || "").toString());
         setTransferReason(req.description || "");
         setRequestDate(req.dateRequest || "");
-      } else if (req) {
-        setTransferType(req.transferType || "");
+        setPreparedDate(req.preparedDate || "");
+        setDecision(req.status || "");
+        setRemark(req.remark || "");
       }
     }
-  }, [selectedRequest, transferRequests]);
+  }, [selectedRequest, transferRequests, departments]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -328,10 +376,10 @@ function ApproveDeptFrom() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <Head>
+      {/* <Head>
         <title>Approve Dept From</title>
         <meta name="description" content="Approve dept from form" />
-      </Head>
+      </Head> */}
       <Toaster />
       <div className="w-full p-0 ">
         <div className="bg-white shadow rounded-lg p-6 mb-4">
@@ -370,6 +418,7 @@ function ApproveDeptFrom() {
                       ×
                     </button>
                   )}
+                  {/* Dropdown logic: robust filtering, display, and selection */}
                   {showDropdown && (
                     <ul className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md max-h-48 overflow-y-auto">
                       {loading ? (
@@ -378,47 +427,37 @@ function ApproveDeptFrom() {
                         <>
                           {transferRequests
                             .filter((req) => {
-                              const empId =
-                                req.employee?.empId?.toString() || "";
-                              const empName = [
-                                req.employee?.firstName,
-                                req.employee?.middleName,
-                                req.employee?.lastName,
-                              ]
-                                .filter(Boolean)
-                                .join(" ")
-                                .toLowerCase();
+                              // Use flat DTO fields
+                              const empId = req.empId?.toString?.() || "";
+                              const empName = req.employeeName || "";
+                              if (!empId || !empName) return false;
                               return (
                                 searchValue.trim() === "" ||
                                 empId.includes(searchValue.trim()) ||
-                                empName.includes(
-                                  searchValue.trim().toLowerCase()
-                                )
+                                empName
+                                  .toLowerCase()
+                                  .includes(searchValue.trim().toLowerCase())
                               );
                             })
-                            .map((req) => {
-                              const empId = req.employee?.empId || "N/A";
-                              const fullName =
-                                [
-                                  req.employee?.firstName,
-                                  req.employee?.middleName,
-                                  req.employee?.lastName,
-                                ]
-                                  .filter(Boolean)
-                                  .join(" ") || "";
-
+                            .map((req, idx) => {
+                              const empId = req.empId?.toString?.() || "";
+                              const fullName = req.employeeName || "";
                               return (
                                 <li
-                                  key={req.transferRequesterId}
+                                  key={
+                                    req.transferRequesterId ?? empId + "-" + idx
+                                  }
                                   className={`p-2 hover:bg-gray-200 cursor-pointer ${
                                     selectedRequest ===
-                                    req.transferRequesterId.toString()
+                                    (req.transferRequesterId?.toString?.() ||
+                                      empId)
                                       ? "bg-blue-100"
                                       : ""
                                   }`}
                                   onClick={() => {
                                     setSelectedRequest(
-                                      req.transferRequesterId.toString()
+                                      req.transferRequesterId?.toString?.() ||
+                                        empId
                                     );
                                     setShowDropdown(false);
                                     setSearchValue(`${empId} - ${fullName}`);
@@ -429,19 +468,15 @@ function ApproveDeptFrom() {
                               );
                             })}
                           {transferRequests.filter((req) => {
-                            const empId = req.employee?.empId?.toString() || "";
-                            const empName = [
-                              req.employee?.firstName,
-                              req.employee?.middleName,
-                              req.employee?.lastName,
-                            ]
-                              .filter(Boolean)
-                              .join(" ")
-                              .toLowerCase();
+                            const empId = req.empId?.toString?.() || "";
+                            const empName = req.employeeName || "";
+                            if (!empId || !empName) return false;
                             return (
                               searchValue.trim() === "" ||
                               empId.includes(searchValue.trim()) ||
-                              empName.includes(searchValue.trim().toLowerCase())
+                              empName
+                                .toLowerCase()
+                                .includes(searchValue.trim().toLowerCase())
                             );
                           }).length === 0 && (
                             <li className="p-2 text-gray-400">
@@ -463,7 +498,7 @@ function ApproveDeptFrom() {
           className="bg-white shadow rounded-lg p-6 w-full"
         >
           <h2 className="text-lg font-semibold text-gray-700 mb-4">
-            Approve Dept From:
+            Transfer Request:
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">

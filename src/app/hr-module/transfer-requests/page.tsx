@@ -83,28 +83,36 @@ function TransferRequest() {
       description: transferReason,
       dateRequest: requestDate,
       transferType,
+      status: selectedStatus,
     };
-    if (jobPositionId) payload.jobPositionId = jobPositionId;
-    if (fromDepartmentId) payload.transferFromId = fromDepartmentId;
-    if (toDepartmentId) payload.transferToId = toDepartmentId;
-    if (payGradeId) payload.payGradeId = payGradeId;
-    if (jobResponsibilityId) payload.jobResponsibilityId = jobResponsibilityId;
-    if (branchId) payload.branchId = branchId;
-    if (jobCodeId) payload.jobCodeId = jobCodeId;
-    if (branchFromId) payload.branchFromId = branchFromId;
+    if (jobPositionId) payload.jobPositionId = Number(jobPositionId);
+    if (fromDepartmentId) payload.transferFromId = Number(fromDepartmentId);
+    if (toDepartmentId) payload.transferToId = Number(toDepartmentId);
+    if (payGradeId) payload.payGradeId = Number(payGradeId);
+    if (jobResponsibilityId)
+      payload.jobResponsibilityId = Number(jobResponsibilityId);
+    if (branchId) payload.branchId = Number(branchId);
+    if (jobCodeId) payload.jobCodeId = Number(jobCodeId);
+    if (branchFromId) payload.branchFromId = Number(branchFromId);
+
+    const updateId = transferRequests.find(
+      (r) =>
+        (r.transferRequesterId &&
+          String(r.transferRequesterId) === selectedRequest) ||
+        (r.empId && String(r.empId) === selectedRequest)
+    )?.transferRequesterId;
 
     console.log("Submitting payload:", payload);
 
-    // If updating an existing request
-    if (selectedRequest) {
+    if (selectedRequest && updateId) {
       fetch(
-        `http://localhost:8080/api/hr-transfer-requests/${selectedRequest}`,
+        `http://localhost:8080/api/hr-transfer-requests/${Number(updateId)}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             ...payload,
-            transferRequesterId: selectedRequest,
+            transferRequesterId: Number(updateId),
             transferType,
             dateRequest: requestDate,
             description: transferReason,
@@ -262,47 +270,46 @@ function TransferRequest() {
   useEffect(() => {
     if (selectedRequest) {
       const req = transferRequests.find(
-        (r) => r.transferRequesterId.toString() === selectedRequest
+        (r) =>
+          (r.transferRequesterId &&
+            String(r.transferRequesterId) === selectedRequest) ||
+          (r.empId && String(r.empId) === selectedRequest)
       );
-      if (req && req.employee) {
-        setEmployeeId(req.employee.empId || "");
-        setEmployeeName(
-          [
-            req.employee.firstName,
-            req.employee.middleName,
-            req.employee.lastName,
-          ]
-            .filter(Boolean)
-            .join(" ")
+      if (req) {
+        setEmployeeId(req.empId || "");
+        setEmployeeName(req.employeeName || "");
+        setGender(req.gender || "");
+        setHiredDate(req.hiredDate || "");
+        seticf(req.icf || "");
+        setDepartment(req.departmentName || "");
+        setFromDepartment(req.departmentName || "");
+        setJobPosition(req.jobPosition || "");
+        setDirectorate(req.directorateName || "");
+        setJobPositionId(req.jobPositionId ? req.jobPositionId.toString() : "");
+        setFromDepartmentId(
+          req.transferFromId ? req.transferFromId.toString() : ""
         );
-        setGender(req.employee.sex || "");
-        setHiredDate(req.employee.hiredDate || "");
-        seticf(req.employee.icf?.icfName || "");
-        setDepartment(req.employee.department?.depName || "");
-        setFromDepartment(req.employee.department?.depName || "");
-        setJobPosition(
-          req.employee.jobTypeDetail?.jobType?.jobTitle?.jobTitle || ""
-        );
-        setDirectorate(req.employee.department?.directorateName || "");
-        setJobPositionId(req.employee.jobTypeDetail?.id?.toString() || "");
-        setFromDepartmentId(req.employee.department?.deptId?.toString() || "");
-        setPayGradeId(req.employee.payGrade?.payGradeId?.toString() || "");
+        setPayGradeId(req.payGradeId ? req.payGradeId.toString() : "");
         setJobResponsibilityId(
-          req.employee.jobResponsibility?.id?.toString() || ""
+          req.jobResponsibilityId ? req.jobResponsibilityId.toString() : ""
         );
-        setBranchId(req.employee.branch?.id?.toString() || "");
-        setJobCodeId(req.employee.jobTypeDetail?.jobType?.id?.toString() || "");
+        setBranchId(req.branchId ? req.branchId.toString() : "");
+        setJobCodeId(req.jobCodeId ? req.jobCodeId.toString() : "");
         setTransferType(req.transferType || "");
-        setToDepartment(req.transferTo?.depName || "");
-        setToDepartmentId(req.transferTo?.deptId?.toString() || "");
+        setToDepartmentId(req.transferToId ? req.transferToId.toString() : "");
+        const toDeptObj = departments.find(
+          (d) =>
+            d.deptId.toString() ===
+            (req.transferToId ? req.transferToId.toString() : "")
+        );
+        setToDepartment(toDeptObj ? toDeptObj.deptName : "");
         setTransferReason(req.description || "");
         setRequestDate(req.dateRequest || "");
-        setBranchFromId(req.employee.branch?.id?.toString() || "");
-      } else if (req) {
-        setTransferType(req.transferType || "");
+        setBranchFromId(req.branchId ? req.branchId.toString() : "");
+        setSelectedStatus(req.status || ""); // <-- ensure status is set
       }
     }
-  }, [selectedRequest, transferRequests]);
+  }, [selectedRequest, transferRequests, departments]);
 
   const handleSelectDepartment = (deptId: number) => {
     if (departmentFieldBeingEdited === "to") {
@@ -386,17 +393,16 @@ function TransferRequest() {
                       ) : (
                         <>
                           {transferRequests
+                            .filter(
+                              (req) =>
+                                req.transferRequesterId != null ||
+                                (req.empId && req.employeeName)
+                            )
                             .filter((req) => {
-                              const empId =
-                                req.employee?.empId?.toString() || "";
-                              const empName = [
-                                req.employee?.firstName,
-                                req.employee?.middleName,
-                                req.employee?.lastName,
-                              ]
-                                .filter(Boolean)
-                                .join(" ")
-                                .toLowerCase();
+                              const empId = req.empId || "";
+                              const empName = req.employeeName
+                                ? req.employeeName.toLowerCase()
+                                : "";
                               return (
                                 searchValue.trim() === "" ||
                                 empId.includes(searchValue.trim()) ||
@@ -405,29 +411,23 @@ function TransferRequest() {
                                 )
                               );
                             })
-                            .map((req) => {
-                              const empId = req.employee?.empId || "N/A";
-                              const fullName =
-                                [
-                                  req.employee?.firstName,
-                                  req.employee?.middleName,
-                                  req.employee?.lastName,
-                                ]
-                                  .filter(Boolean)
-                                  .join(" ") || "";
-
+                            .map((req, idx) => {
+                              const empId = req.empId || "";
+                              const fullName = req.employeeName || "";
                               return (
                                 <li
-                                  key={req.transferRequesterId}
+                                  key={
+                                    req.transferRequesterId ?? empId + "-" + idx
+                                  }
                                   className={`p-2 hover:bg-gray-200 cursor-pointer ${
                                     selectedRequest ===
-                                    req.transferRequesterId.toString()
+                                    String(req.transferRequesterId ?? empId)
                                       ? "bg-blue-100"
                                       : ""
                                   }`}
                                   onClick={() => {
                                     setSelectedRequest(
-                                      req.transferRequesterId.toString()
+                                      String(req.transferRequesterId ?? empId)
                                     );
                                     setShowDropdown(false);
                                     setSearchValue(`${empId} - ${fullName}`);
@@ -438,7 +438,8 @@ function TransferRequest() {
                               );
                             })}
                           {transferRequests.filter((req) => {
-                            const empId = req.employee?.empId?.toString() || "";
+                            const empId =
+                              req.employee?.empId?.toString?.() || "";
                             const empName = [
                               req.employee?.firstName,
                               req.employee?.middleName,
