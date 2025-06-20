@@ -96,6 +96,9 @@ public class HRTransferRequest {
     @Column(name = "BRANCH_FROM")
     private String branchFrom;
 
+    @Column(name = "ICF")
+    private Integer icf;
+
     // Constructors
     public HRTransferRequest() {}
 
@@ -125,6 +128,7 @@ public class HRTransferRequest {
             String status2,
             HrLuResponsibility responsibility,
             HrLuBranch biranchId,
+            Integer icf,
             String branchFrom
     ) {
         this.transferRequesterId = transferRequesterId;
@@ -153,6 +157,7 @@ public class HRTransferRequest {
         this.responsibility = responsibility;
         this.biranchId = biranchId;
         this.branchFrom = branchFrom;
+        this.icf = icf;
     }
 
     // Getters and Setters
@@ -354,6 +359,14 @@ public class HRTransferRequest {
 
     public void setBiranchId(HrLuBranch biranchId) {
         this.biranchId = biranchId;
+    }
+
+    public Integer getIcf() {
+        return icf;
+    }
+
+    public void setIcf(Integer icf) {
+        this.icf = icf;
     }
 
     public String getBranchFrom() {

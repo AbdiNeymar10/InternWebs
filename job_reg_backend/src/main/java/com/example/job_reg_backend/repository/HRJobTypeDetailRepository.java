@@ -18,4 +18,7 @@ List<String> findDistinctIcfValues();
 
 @Query("SELECT d.icf.icf FROM HRJobTypeDetail d WHERE d.jobType.id = :jobTypeId")
 List<String> findIcfValuesByJobTypeId(@Param("jobTypeId") Long jobTypeId);
+
+@Query("SELECT d FROM HRJobTypeDetail d WHERE d.jobType.id = :jobTypeId")
+List<HRJobTypeDetail> findByJobTypeId(@Param("jobTypeId") Long jobTypeId);
 }

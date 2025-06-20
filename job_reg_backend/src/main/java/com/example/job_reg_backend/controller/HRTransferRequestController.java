@@ -196,6 +196,9 @@ public class HRTransferRequestController {
         if (dto.getBranchFromId() != null) {
             request.setBranchFrom(dto.getBranchFromId().toString());
         }
+        if (dto.getIcfId() != null) {
+            request.setIcf(dto.getIcfId());
+        }
         return service.save(request);
     }
 

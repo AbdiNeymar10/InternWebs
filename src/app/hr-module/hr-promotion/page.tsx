@@ -109,6 +109,7 @@ function HrPromotion() {
     setRemark("");
     setIncrementStep("");
     setSelectedIncrementStep("");
+    setSelectedJobTitle("");
     setDivision("");
     setBranch("");
     setJobResponsibility("");
@@ -180,6 +181,41 @@ function HrPromotion() {
         }
       );
     }
+    let usedStatus = employeeInfoRef.current?.status;
+    if (!usedStatus) usedStatus = status;
+    if (!usedStatus && selectedRequest) {
+      const req = transferRequests.find(
+        (r) =>
+          r.transferRequesterId !== undefined &&
+          r.transferRequesterId !== null &&
+          r.transferRequesterId.toString() === selectedRequest
+      );
+      if (req && req.status) usedStatus = req.status;
+    }
+
+    const transferRequestPayload = {
+      id: selectedRequest ? Number(selectedRequest) : undefined,
+      jobPositionId: jobPositionId ? Number(jobPositionId) : undefined,
+      payGradeId: foundPayGradeId ? foundPayGradeId : undefined,
+      jobResponsibilityId: jobResponsibilityId
+        ? Number(jobResponsibilityId)
+        : undefined,
+      icfId: usedIcfId ? Number(usedIcfId) : undefined,
+      transferToId: toDepartmentId ? Number(toDepartmentId) : undefined,
+      branchId: usedBranchNameToId ? Number(usedBranchNameToId) : undefined,
+      branchFromId: branchFromId ? Number(branchFromId) : undefined,
+    };
+    console.log("Submitting transfer request payload:", transferRequestPayload);
+    if (transferRequestPayload.id) {
+      await fetch(
+        `http://localhost:8080/api/hr-transfer-requests/${transferRequestPayload.id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(transferRequestPayload),
+        }
+      );
+    }
 
     const usedJobResponsibility = jobResponsibilityId
       ? jobResponsibilities.find((j) => j.id === jobResponsibilityId)
@@ -204,18 +240,6 @@ function HrPromotion() {
             ?.deptId.toString()
         : "";
 
-    let usedStatus = employeeInfoRef.current?.status;
-    if (!usedStatus) usedStatus = status;
-    if (!usedStatus && selectedRequest) {
-      const req = transferRequests.find(
-        (r) =>
-          r.transferRequesterId !== undefined &&
-          r.transferRequesterId !== null &&
-          r.transferRequesterId.toString() === selectedRequest
-      );
-      if (req && req.status) usedStatus = req.status;
-    }
-
     const jobTitleChangedObj = jobTitles.find(
       (jt) => jt.jobTitle === selectedJobTitle
     );
@@ -237,8 +261,14 @@ function HrPromotion() {
 
     const payload: any = {
       branchFrom: branchFromIdValue,
-      branchId: branchIdValue,
+      branchId:
+        branchIdFromDropdown !== undefined && branchIdFromDropdown !== null
+          ? Number(branchIdFromDropdown)
+          : undefined,
       jobResponsibility: usedJobResponsibility,
+      jobResponsibilityId: jobResponsibilityId
+        ? Number(jobResponsibilityId)
+        : undefined,
       promotionDate: dateFrom,
       deptTransferTo: usedToDepartmentId
         ? Number(usedToDepartmentId)
@@ -1051,7 +1081,49 @@ function HrPromotion() {
                       whiteSpace: "nowrap",
                     }}
                     value={selectedJobTitle}
-                    onChange={(e) => setSelectedJobTitle(e.target.value)}
+                    onChange={async (e) => {
+                      setSelectedJobTitle(e.target.value);
+                      const selected = jobTitles.find(
+                        (jt) => jt.jobTitle === e.target.value
+                      );
+                      if (selected) {
+                        try {
+                          const jobTypeRes = await fetch(
+                            `http://localhost:8080/api/hr-job-types/details-by-job-title-id?jobTitleId=${selected.id}`
+                          );
+                          if (jobTypeRes.ok) {
+                            const jobTypeData = await jobTypeRes.json();
+                            const jobTypeId = jobTypeData.jobTypeId;
+                            if (jobTypeId) {
+                              const detailRes = await fetch(
+                                `http://localhost:8080/api/job-type-details/by-job-type/${jobTypeId}`
+                              );
+                              if (detailRes.ok) {
+                                const details = await detailRes.json();
+                                if (
+                                  Array.isArray(details) &&
+                                  details.length > 0
+                                ) {
+                                  setJobPositionId(details[0].id.toString());
+                                } else {
+                                  setJobPositionId("");
+                                }
+                              } else {
+                                setJobPositionId("");
+                              }
+                            } else {
+                              setJobPositionId("");
+                            }
+                          } else {
+                            setJobPositionId("");
+                          }
+                        } catch {
+                          setJobPositionId("");
+                        }
+                      } else {
+                        setJobPositionId("");
+                      }
+                    }}
                   >
                     {selectedJobTitle &&
                       !jobTitles.some(
@@ -1278,21 +1350,12 @@ function HrPromotion() {
             </div>
           </div>
           <div className="flex justify-start">
-            {selectedRequest ? (
-              <button
-                type="submit"
-                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
-              >
-                Update
-              </button>
-            ) : (
-              <button
-                type="submit"
-                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
-              >
-                Create
-              </button>
-            )}
+            <button
+              type="submit"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+            >
+              Create
+            </button>
           </div>
         </form>
       </div>
@@ -1302,7 +1365,7 @@ function HrPromotion() {
           <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md max-h-[80vh] flex flex-col">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-semibold text-gray-700">
-                {departments.find((d) => d.deptId === 61)?.deptName ||
+                {departments.find((d) => d.deptId === 2)?.deptName ||
                   "No Department Trees"}
               </h2>
               <button
@@ -1318,10 +1381,10 @@ function HrPromotion() {
             <div className="flex-grow overflow-y-auto">
               <DepartmentTree
                 dept={{
-                  deptId: 61,
+                  deptId: 2,
                   deptName:
-                    departments.find((d) => d.deptId === 61)?.deptName ||
-                    "No Departments",
+                    departments.find((d) => d.deptId === 2)?.deptName ||
+                    "Departments",
                   deptLevel: 0,
                   parentDeptId: null,
                 }}

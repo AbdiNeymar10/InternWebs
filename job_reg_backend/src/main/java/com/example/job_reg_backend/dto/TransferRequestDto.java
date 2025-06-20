@@ -27,6 +27,7 @@ public class TransferRequestDto {
     private String authorizedDate;
     private String stepNo;
     private String approveDate;
+    private Integer icfId;
 
 
     // Getter and Setter for id
@@ -109,5 +110,8 @@ public class TransferRequestDto {
 
     public String getApproveDate() { return approveDate; }
     public void setApproveDate(String approveDate) { this.approveDate = approveDate; }
+
+    public Integer getIcfId() { return icfId; }
+    public void setIcfId(Integer icfId) { this.icfId = icfId; }
 
 }

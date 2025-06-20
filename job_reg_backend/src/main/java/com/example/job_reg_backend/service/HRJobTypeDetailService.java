@@ -50,4 +50,8 @@ public class HRJobTypeDetailService {
     public void deleteById(Long id) {
         repository.deleteById(id);
     }
+
+    public List<HRJobTypeDetail> findByJobTypeId(Long jobTypeId) {
+        return repository.findByJobTypeId(jobTypeId);
+    }
 }

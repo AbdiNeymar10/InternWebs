@@ -71,8 +71,47 @@ function HrPromotionApprove() {
     setRemark("");
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Prepare the job update payload (for employee profile update)
+    const jobUpdatePayload: any = {};
+    if (jobResponsibilityId)
+      jobUpdatePayload.jobResponsibilityId = Number(jobResponsibilityId);
+    if (icf) jobUpdatePayload.icfId = icf; // You may need to map icf to its ID if needed
+    if (branchId) jobUpdatePayload.branchId = Number(branchId);
+    if (payGradeId) jobUpdatePayload.payGradeId = Number(payGradeId);
+
+    // Only call the job-update endpoint if employeeId and at least one field is present
+
+    if (
+      employeeId &&
+      (jobUpdatePayload.jobResponsibilityId ||
+        jobUpdatePayload.icfId ||
+        jobUpdatePayload.branchId ||
+        jobUpdatePayload.payGradeId)
+    ) {
+      // Log the values before submitting
+      console.log("Submitting job update fields:", {
+        jobResponsibilityId: jobUpdatePayload.jobResponsibilityId,
+        icfId: jobUpdatePayload.icfId,
+        branchId: jobUpdatePayload.branchId,
+        payGradeId: jobUpdatePayload.payGradeId,
+      });
+      try {
+        await fetch(
+          `http://localhost:8080/api/employees/${employeeId}/job-update`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(jobUpdatePayload),
+          }
+        );
+      } catch (err) {
+        toast.error("Failed to update employee job info");
+      }
+    }
+
     const payload: any = {
       hiredDate,
       empId: employeeId,
@@ -308,6 +347,25 @@ function HrPromotionApprove() {
         setJobClass(req.jobClass || "");
         setStartDate(req.startDate || "");
         setRequestFrom(req.requestFrom || "");
+        // Log all fetched employee info (like the attached file)
+        console.log("Fetched employee info:", {
+          employeeName: req.employeeName,
+          hiredDate: req.hiredDate,
+          departmentName: req.departmentName,
+          jobPosition: req.jobPosition,
+          jobPositionId: req.jobPositionId,
+          fromDepartmentId: req.fromDepartmentId,
+          toDepartmentId: toDeptId,
+          payGradeId: req.payGradeId,
+          jobResponsibilityId: req.jobResponsibilityId,
+          branchId: req.branchId,
+          jobCodeId: req.jobCodeId,
+          icf: req.icf,
+          incrementStep: req.incrementStep,
+          jobClass: req.jobClass,
+          status: req.status,
+          empId: req.empId,
+        });
         if (req.incrementStep) {
           setIncrementStep(req.incrementStep);
           setSelectedIncrementStep(req.incrementStep);
@@ -376,7 +434,6 @@ function HrPromotionApprove() {
         return res.json();
       })
       .then((data) => {
-        // Always convert to string
         const steps = Array.isArray(data) ? data.map((s) => s.toString()) : [];
         setIncrementSteps(steps);
       })
@@ -388,10 +445,10 @@ function HrPromotionApprove() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <Head>
-        {/* <title>Approve Dept From</title> */}
+      {/* <Head>
+         <title>Approve Dept From</title> 
         <meta name="description" content="Approve dept from form" />
-      </Head>
+      </Head> */}
       <Toaster />
       <div className="w-full p-0 ">
         <div className="bg-white shadow rounded-lg p-6 mb-4">
@@ -719,7 +776,14 @@ function HrPromotionApprove() {
                 <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Increment Step
                 </label>
-                <select
+                <input
+                  type="text"
+                  className="flex-1 border border-gray-300 rounded-md focus:outline-none p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  value={selectedIncrementStep}
+                  onChange={(e) => setSelectedIncrementStep(e.target.value)}
+                  readOnly
+                />
+                {/* <select
                   className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
                   value={selectedIncrementStep}
                   onChange={(e) => setSelectedIncrementStep(e.target.value)}
@@ -730,7 +794,7 @@ function HrPromotionApprove() {
                       {step}
                     </option>
                   ))}
-                </select>
+                </select> */}
               </div>
               <div className="flex flex-row items-center gap-2 justify-end">
                 <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
@@ -759,21 +823,12 @@ function HrPromotionApprove() {
             </div>
           </div>
           <div className="flex justify-start">
-            {selectedRequest ? (
-              <button
-                type="submit"
-                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
-              >
-                Change Profile
-              </button>
-            ) : (
-              <button
-                type="submit"
-                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
-              >
-                Save
-              </button>
-            )}
+            <button
+              type="submit"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+            >
+              Change Profile
+            </button>
           </div>
         </form>
       </div>

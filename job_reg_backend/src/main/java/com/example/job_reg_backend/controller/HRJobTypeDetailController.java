@@ -144,4 +144,9 @@ public ResponseEntity<?> saveJobTypeDetails(@RequestBody List<HRJobTypeDetail> j
             return ResponseEntity.status(404).body(e.getMessage());
         }
     }
+
+    @GetMapping("/by-job-type/{jobTypeId}")
+    public ResponseEntity<List<HRJobTypeDetail>> getByJobTypeId(@PathVariable Long jobTypeId) {
+        return ResponseEntity.ok(jobTypeDetailService.findByJobTypeId(jobTypeId));
+    }
 }
