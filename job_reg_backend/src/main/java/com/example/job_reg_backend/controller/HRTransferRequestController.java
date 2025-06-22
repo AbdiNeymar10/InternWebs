@@ -58,7 +58,7 @@ public class HRTransferRequestController {
             dto.setEmpId(entity.getEmployee() != null ? entity.getEmployee().getEmpId() : null);
             dto.setGender(entity.getEmployee() != null ? entity.getEmployee().getSex() : null);
             dto.setHiredDate(entity.getEmployee() != null ? entity.getEmployee().getHiredDate() : null);
-            dto.setIcf(entity.getEmployee() != null && entity.getEmployee().getIcf() != null ? entity.getEmployee().getIcf().getIcf() : null);
+            dto.setIcf(entity.getIcf() != null ? entity.getIcf().toString() : null);
             dto.setDescription(entity.getDescription());
             dto.setDateRequest(entity.getDateRequest());
             dto.setTransferType(entity.getTransferType());
@@ -98,7 +98,7 @@ public class HRTransferRequestController {
         request.setDescription(dto.getDescription());
         request.setDateRequest(dto.getDateRequest());
         request.setTransferType(dto.getTransferType());
-         request.setStatus("0");
+        request.setStatus("0");
         if (dto.getTransferFromId() != null) {
             request.setTransferFrom(departmentRepository.findById(dto.getTransferFromId()).orElse(null));
         }
@@ -128,6 +128,9 @@ public class HRTransferRequestController {
         }
         if (dto.getBranchFromId() != null) {
             request.setBranchFrom(dto.getBranchFromId().toString());
+        }
+        if (dto.getIcfId() != null) {
+            request.setIcf(dto.getIcfId());
         }
         return service.save(request);
     }
@@ -184,6 +187,9 @@ public class HRTransferRequestController {
         if (dto.getApprovedBy() != null) {
             request.setApprovedBy(dto.getApprovedBy());
         }
+        if (dto.getApproveDate() != null) {
+            request.setApproveDate(dto.getApproveDate());
+        }
         if (dto.getPreparedDate() != null) {
             request.setPreparedDate(dto.getPreparedDate());
         }
@@ -195,9 +201,6 @@ public class HRTransferRequestController {
         }
         if (dto.getBranchFromId() != null) {
             request.setBranchFrom(dto.getBranchFromId().toString());
-        }
-        if (dto.getIcfId() != null) {
-            request.setIcf(dto.getIcfId());
         }
         return service.save(request);
     }

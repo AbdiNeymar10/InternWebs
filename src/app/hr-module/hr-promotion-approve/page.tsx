@@ -128,8 +128,9 @@ function HrPromotionApprove() {
     if (jobResponsibilityId) payload.jobResponsibilityId = jobResponsibilityId;
     if (branchId) payload.branchId = branchId;
     if (jobCodeId) payload.jobCodeId = jobCodeId;
+    if (icf) payload.icf = icf;
 
-    // If updating an existing request
+    //  updating an existing request
     if (selectedRequest) {
       fetch(
         `http://localhost:8080/api/hr-transfer-requests/${selectedRequest}`,
@@ -144,6 +145,7 @@ function HrPromotionApprove() {
             description: transferReason,
             transferTo: { deptId: toDepartmentId },
             approvedBy: "Abdi Tolesa",
+            status: "DirectChanged",
           }),
         }
       )
@@ -216,11 +218,6 @@ function HrPromotionApprove() {
             )
               .then((res) => (res.ok ? res.json() : null))
               .then((jobTypeDetail) => {
-                const icfValue =
-                  jobTypeDetail && jobTypeDetail.icf && jobTypeDetail.icf.ICF
-                    ? jobTypeDetail.icf.ICF
-                    : "";
-                seticf(icfValue);
                 let jobClassValue = "";
                 let jobGradeId = "";
                 let jobTitle = "";
@@ -241,9 +238,7 @@ function HrPromotionApprove() {
                 setJobClass(jobClassValue);
                 setJobPosition(jobTitle);
               })
-              .catch((err) => {
-                seticf("");
-              });
+              .catch((err) => {});
           } else {
             setJobPosition(data.jobPosition || "");
             setJobClass(data.jobClass || "");
@@ -252,7 +247,6 @@ function HrPromotionApprove() {
         .catch(() => {
           setEmployeeName("");
           setHiredDate("");
-          seticf("");
           setFromDepartment("");
           setJobPosition("");
           setJobPositionId("");
@@ -553,7 +547,6 @@ function HrPromotionApprove() {
           <h2 className="text-lg font-semibold text-gray-700 mb-4">
             Search Requester Info:
           </h2>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div>
               <div className="flex flex-row items-center gap-2 justify-start">

@@ -112,6 +112,7 @@ function ApproveDeptTo() {
         empId: Number(employeeId),
         description: transferReason,
         dateRequest: requestDate,
+        approveDate: approvedDate,
         checkedDate,
         transferType,
         decision,
@@ -365,36 +366,67 @@ function ApproveDeptTo() {
   useEffect(() => {
     if (approvedLists) {
       const req = approvedRequests.find(
-        (r) => r.transferRequesterId.toString() === approvedLists
+        (r) =>
+          (r.transferRequesterId?.toString?.() || r.empId?.toString?.()) ===
+          approvedLists
       );
-      if (req && req.employee) {
-        setEmployeeId(req.employee.empId || "");
+      if (req) {
+        setEmployeeId(req.empId || req.employee?.empId || "");
         setEmployeeName(
-          [
-            req.employee.firstName,
-            req.employee.middleName,
-            req.employee.lastName,
-          ]
-            .filter(Boolean)
-            .join(" ")
+          req.employeeName ||
+            (req.employee
+              ? [
+                  req.employee.firstName,
+                  req.employee.middleName,
+                  req.employee.lastName,
+                ]
+                  .filter(Boolean)
+                  .join(" ")
+              : "")
         );
-        setGender(req.employee.sex || "");
-        setHiredDate(req.employee.hiredDate || "");
-        seticf(req.employee.icf?.icfName || "");
-        setDepartment(req.employee.department?.depName || "");
-        setFromDepartment(req.employee.department?.depName || "");
+        setGender(req.gender || req.employee?.sex || "");
+        setHiredDate(req.hiredDate || req.employee?.hiredDate || "");
+        seticf(req.icf || req.employee?.icf?.icfName || "");
+        setDepartment(
+          req.departmentName || req.employee?.department?.depName || ""
+        );
+        setFromDepartment(
+          req.departmentName || req.employee?.department?.depName || ""
+        );
         setJobPosition(
-          req.employee.jobTypeDetail?.jobType?.jobTitle?.jobTitle || ""
+          req.jobPosition ||
+            req.employee?.jobTypeDetail?.jobType?.jobTitle?.jobTitle ||
+            ""
         );
-        setDirectorate(req.employee.department?.directorateName || "");
-        setJobPositionId(req.employee.jobTypeDetail?.id?.toString() || "");
-        setFromDepartmentId(req.employee.department?.deptId?.toString() || "");
-        setPayGradeId(req.employee.payGrade?.payGradeId?.toString() || "");
+        setDirectorate(
+          req.directorateName || req.employee?.department?.directorateName || ""
+        );
+        setJobPositionId(
+          (req.jobPositionId || req.employee?.jobTypeDetail?.id)?.toString() ||
+            ""
+        );
+        setFromDepartmentId(
+          (
+            req.transferFromId || req.employee?.department?.deptId
+          )?.toString() || ""
+        );
+        setPayGradeId(
+          (req.payGradeId || req.employee?.payGrade?.payGradeId)?.toString() ||
+            ""
+        );
         setJobResponsibilityId(
-          req.employee.jobResponsibility?.id?.toString() || ""
+          (
+            req.jobResponsibilityId || req.employee?.jobResponsibility?.id
+          )?.toString() || ""
         );
-        setBranchId(req.employee.branch?.id?.toString() || "");
-        setJobCodeId(req.employee.jobTypeDetail?.jobType?.id?.toString() || "");
+        setBranchId(
+          (req.branchId || req.employee?.branch?.id)?.toString() || ""
+        );
+        setJobCodeId(
+          (
+            req.jobCodeId || req.employee?.jobTypeDetail?.jobType?.id
+          )?.toString() || ""
+        );
         setTransferType(req.transferType || "");
         setToDepartment(req.transferTo?.depName || "");
         setToDepartmentId(req.transferTo?.deptId?.toString() || "");
@@ -582,15 +614,20 @@ function ApproveDeptTo() {
                 )}
                 {!approvedLoading &&
                   approvedRequests.map((req) => {
-                    const empId = req.employee?.empId || "N/A";
+                    // Use top-level empId and employeeName if available, else fallback to employee object
+                    const empId = req.empId || req.employee?.empId || "N/A";
                     const fullName =
-                      [
-                        req.employee?.firstName,
-                        req.employee?.middleName,
-                        req.employee?.lastName,
-                      ]
-                        .filter(Boolean)
-                        .join(" ") || "";
+                      req.employeeName ||
+                      (req.employee
+                        ? [
+                            req.employee.firstName,
+                            req.employee.middleName,
+                            req.employee.lastName,
+                          ]
+                            .filter(Boolean)
+                            .join(" ")
+                        : "");
+                    if (!empId || !fullName) return null;
                     return (
                       <option
                         key={req.transferRequesterId}

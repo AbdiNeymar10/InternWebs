@@ -150,37 +150,6 @@ function HrPromotion() {
       ? stepNoToPayGradeId[selectedIncrementStep]
       : null;
 
-    // console.log("Sending to employee table:", {
-    //   jobResponsibilityId: usedJobResponsibilityId,
-    //   branchNameToId: usedBranchNameToId,
-    //   icfId: usedIcfId,
-    //   payGradeId: foundPayGradeId,
-    // });
-    // if (
-    //   employeeId &&
-    //   (usedJobResponsibilityId ||
-    //     usedIcfId ||
-    //     usedBranchNameToId ||
-    //     foundPayGradeId)
-    // ) {
-    //   await fetch(
-    //     `http://localhost:8080/api/employees/${employeeId}/job-update`,
-    //     {
-    //       method: "POST",
-    //       headers: { "Content-Type": "application/json" },
-    //       body: JSON.stringify({
-    //         jobResponsibilityId: usedJobResponsibilityId
-    //           ? Number(usedJobResponsibilityId)
-    //           : undefined,
-    //         icfId: usedIcfId ? Number(usedIcfId) : undefined,
-    //         branchId: usedBranchNameToId
-    //           ? Number(usedBranchNameToId)
-    //           : undefined,
-    //         payGradeId: foundPayGradeId ? foundPayGradeId : undefined,
-    //       }),
-    //     }
-    //   );
-    // }
     let usedStatus = employeeInfoRef.current?.status;
     if (!usedStatus) usedStatus = status;
     if (!usedStatus && selectedRequest) {
@@ -725,10 +694,10 @@ function HrPromotion() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <Head>
+      {/* <Head>
         <title>Approve Dept From</title>
         <meta name="description" content="Approve dept from form" />
-      </Head>
+      </Head> */}
       <Toaster />
       <div className="w-full p-0 ">
         <div className="bg-white shadow rounded-lg p-6 mb-4">
