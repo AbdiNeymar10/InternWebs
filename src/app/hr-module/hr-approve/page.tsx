@@ -186,6 +186,7 @@ function HrApprove() {
           setApprovedBy(data.approvedBy || "");
           setCurrentSalary(data.currentSalary || "");
           setToDepartmentId(data.toDepartmentId ?? "");
+          setApprovedDate(data.approveDate || "");
 
           if (data.jobPositionId) {
             fetch(
@@ -237,6 +238,7 @@ function HrApprove() {
           setBranchId("");
           setJobCodeId("");
           setToDepartmentId("");
+          setApprovedDate("");
         });
     } else {
       setEmployeeName("");
@@ -251,6 +253,7 @@ function HrApprove() {
       setBranchId("");
       setJobCodeId("");
       setToDepartmentId("");
+      setApprovedDate("");
     }
   }, [employeeId]);
 
@@ -291,12 +294,7 @@ function HrApprove() {
         setFromDepartment(req.departmentName || "");
         setJobPosition(req.jobPosition || "");
         setJobPositionId(req.jobPositionId?.toString() || "");
-        setFromDepartmentId(req.fromDepartmentId?.toString() || "");
-        setPayGradeId(req.payGradeId?.toString() || "");
-        setJobResponsibilityId(req.jobResponsibilityId?.toString() || "");
-        setBranchId(req.branchId?.toString() || "");
-        setJobCodeId(req.jobCodeId?.toString() || "");
-        setTransferType(req.transferType || "");
+        setApprovedDate(req.approveDate || "");
         const toDeptId =
           req.toDepartmentId || req.transferToId || req.transferTo?.deptId;
         const toDeptObj = departments.find(
@@ -313,7 +311,6 @@ function HrApprove() {
         setRequestDate(req.dateRequest || "");
         setRemark(req.remark || "");
         setApproverDecision(req.status || "");
-        setApprovedDate(req.approveDate || "");
         setApprovedBy(req.approvedBy || "");
         setCurrentSalary(req.currentSalary || "");
         setAuthorizedDate(req.authorizedDate || "");
