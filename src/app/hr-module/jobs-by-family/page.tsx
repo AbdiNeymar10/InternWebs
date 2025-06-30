@@ -3,7 +3,8 @@
 import React, { useEffect, useState } from "react";
 import { fetchJobTypes } from "../../pages/api/jobTypeService";
 import toast, { Toaster } from "react-hot-toast";
-import AppModuleLayout from "../../components/AppModuleLayout"; 
+import AppModuleLayout from "../../components/AppModuleLayout";
+import { FiPlus } from "react-icons/fi";
 
 interface JobFamily {
   id: number;
@@ -47,7 +48,7 @@ const JobFamily: React.FC = () => {
   useEffect(() => {
     const fetchJobFamilies = async () => {
       try {
-        const res = await fetch("http://localhost:8080/api/job-family");
+        const res = await fetch("http://localhost:8080/api/job-families");
         if (!res.ok) {
           throw new Error("Failed to fetch job families");
         }
@@ -77,13 +78,13 @@ const JobFamily: React.FC = () => {
       return;
     }
     try {
-      const res = await fetch("http://localhost:8080/api/job-family", {
+      const res = await fetch("http://localhost:8080/api/job-families", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           familyName: jobFamilyNameInput,
           familyCode: jobFamilyCodeInput,
-          status: "1", // Default value for status
+          status: "1",
         }),
       });
 
@@ -179,7 +180,6 @@ const JobFamily: React.FC = () => {
 
     try {
       console.log("Assigned Jobs:", assignedJobs);
-      // Prepare the payload
       const jobTypeUpdates = assignedJobs.map((job) => ({
         jobTitleId: jobTitles.find((jt) => jt.jobTitle === job.jobTitle)?.id,
         jobFamilyId: selectedJobFamilyId,
@@ -213,9 +213,7 @@ const JobFamily: React.FC = () => {
       {/* Top Label */}
       <Toaster />
       <h2 className="text-xl font-bold mb-4">Job Family</h2>
-      {/* Job Family Name and Code */}
       <div className="mb-4 ml-0 md:ml-12">
-        {/* Job Family Name */}
         <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4">
           <label className="whitespace-nowrap w-full md:w-32 text-left md:text-right">
             Job Family Name
@@ -228,7 +226,6 @@ const JobFamily: React.FC = () => {
                 const selectedId = Number(e.target.value);
                 setSelectedJobFamilyId(selectedId);
 
-                // Fetch the corresponding Job Family Code
                 const selectedJobFamily = jobFamilies.find(
                   (jf) => jf.id === selectedId
                 );
@@ -242,17 +239,15 @@ const JobFamily: React.FC = () => {
                 </option>
               ))}
             </select>
-            {/* Plus Icon */}
             <button
-              className="bg-gray-400 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-500 transition duration-300"
+              className="flex items-center bg-[#3c8dbc] bg-opacity-60 hover:bg-[#3c8dbc] hover:bg-opacity-70 text-white px-3 py-1 rounded-md shadow-md hover:shadow-lg transition-all duration-300 border border-[#3c8dbc] border-opacity-60 text-xs md:text-sm ring-2 ring-[#3c8dbc]/20 hover:ring-[#3c8dbc]/40 focus:outline-none focus:ring-4 focus:ring-[#3c8dbc]/50"
               onClick={() => setShowJobFamilyModal(true)}
             >
-              <span className="text-xl">+</span>
+              <FiPlus size={16} />
             </button>
           </div>
         </div>
 
-        {/* Job Family Code */}
         <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 mt-4">
           <label className="whitespace-nowrap w-full md:w-32 text-left md:text-right">
             Job Family Code
@@ -271,19 +266,23 @@ const JobFamily: React.FC = () => {
         Assign job under job family
       </div>
       {/* Job Table */}
-      <div className="border rounded">
-        <div className="flex justify-center border-b p-2">
-          <button
-            className="bg-gray-500 text-white px-5 py-2 hover:bg-gray-500 rounded"
-            onClick={() => setShowAddJobPopup(true)}
-          >
-            Add Job
-          </button>
-        </div>
-        {/* Make table horizontally scrollable on small screens */}
+      <div className="overflow-x-auto rounded-xl shadow mt-6">
         <div className="overflow-x-auto">
           <table className="min-w-full bg-white border-gray-200 mt-8">
             <thead className="bg-gray-100">
+              <tr>
+                <th
+                  colSpan={4}
+                  className="text-center px-6 py-4 border-b rounded-t-xl"
+                >
+                  <button
+                    className="px-4 py-2 bg-[#3c8dbc] text-white rounded-lg hover:bg-[#367fa9] shadow-lg hover:shadow-xl"
+                    onClick={() => setShowAddJobPopup(true)}
+                  >
+                    Add Job
+                  </button>
+                </th>
+              </tr>
               <tr>
                 <th className="p-2 border-r">No</th>
                 <th className="p-2 border-r">Job Title</th>
@@ -324,7 +323,7 @@ const JobFamily: React.FC = () => {
       {/* Save Button */}
       <div className="flex justify-start p-4">
         <button
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+          className="px-4 py-2 bg-[#3c8dbc] text-white rounded-lg hover:bg-[#367fa9] shadow-lg hover:shadow-xl"
           onClick={saveJobFamily}
         >
           Save
@@ -334,9 +333,11 @@ const JobFamily: React.FC = () => {
       {/* Add Job Modal */}
       {showAddJobPopup && (
         <div className="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center z-50">
-          <div className="bg-white rounded-2xl p-10 w-[450px] shadow-lg relative">
+          <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl p-10 w-[450px] shadow-lg relative border border-gray-200 backdrop-blur-sm">
             <div className="flex justify-between items-center mb-4">
-              <div className="font-semibold">Add Position</div>
+              <div className="text-2xl font-bold text-[#3c8dbc]">
+                Add Position
+              </div>
               <button
                 className="text-gray-600 font-bold absolute top-2 right-2 text-xl"
                 onClick={() => setShowAddJobPopup(false)}
@@ -362,7 +363,7 @@ const JobFamily: React.FC = () => {
             </div>
             <div className="flex justify-end">
               <button
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+                className="px-4 py-2 bg-[#3c8dbc] text-white rounded-lg hover:bg-[#367fa9] shadow-lg hover:shadow-xl"
                 onClick={addJob}
               >
                 Add
@@ -375,9 +376,11 @@ const JobFamily: React.FC = () => {
       {/* Job Family Modal */}
       {showJobFamilyModal && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
-          <div className="bg-white rounded-2xl p-6 w-96 relative">
+          <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl p-6 w-96 relative border border-gray-200 backdrop-blur-sm">
             <div className="flex justify-between mb-4">
-              <h2 className="text-lg font-semibold">Add Job Family</h2>
+              <h2 className="text-2xl font-bold text-[#3c8dbc]">
+                Add Job Family
+              </h2>
               <button
                 className="absolute top-2 right-2 text-gray-600 font-bold text-xl"
                 onClick={() => setShowJobFamilyModal(false)}
@@ -385,7 +388,6 @@ const JobFamily: React.FC = () => {
                 &times;
               </button>
             </div>
-            {/* Job Family Name Input */}
             <input
               type="text"
               className="border rounded w-full px-2 py-1 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -393,7 +395,6 @@ const JobFamily: React.FC = () => {
               value={jobFamilyNameInput}
               onChange={(e) => setJobFamilyNameInput(e.target.value)}
             />
-            {/* Job Family Code Input */}
             <input
               type="text"
               className="border rounded w-full px-2 py-1 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -403,7 +404,7 @@ const JobFamily: React.FC = () => {
             />
             <div className="flex justify-end">
               <button
-                className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition"
+                className="px-4 py-2 bg-[#3c8dbc] text-white rounded-lg hover:bg-[#367fa9] shadow-lg hover:shadow-xl"
                 onClick={addJobFamily}
               >
                 Save

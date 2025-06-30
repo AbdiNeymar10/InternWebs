@@ -43,14 +43,12 @@ function HrPromotion() {
   const [transferRequests, setTransferRequests] = useState<any[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [searchValue, setSearchValue] = useState("");
-  const [approverDecision, setApproverDecision] = useState("");
   const [incrementStep, setIncrementStep] = useState("");
   const [selectedIncrementStep, setSelectedIncrementStep] = useState("");
   const [division, setDivision] = useState("");
   const [branch, setBranch] = useState("");
   const [jobResponsibility, setJobResponsibility] = useState("");
   const [refNo, setRefNo] = useState("");
-  const [remark, setRemark] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [progressBy, setProgressBy] = useState("Abdi Tolesa");
   const [loading, setLoading] = useState(true);
@@ -58,6 +56,7 @@ function HrPromotion() {
   const [currentSalary, setCurrentSalary] = useState("");
   const [jobClass, setJobClass] = useState("");
   const [changeTo, setChangeTo] = useState("");
+  const [prevSalary, setPrevSalary] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [jobResponsibilities, setJobResponsibilities] = useState<
@@ -105,8 +104,6 @@ function HrPromotion() {
     setBranchId("");
     setJobCodeId("");
     setSearchValue("");
-    setApproverDecision("");
-    setRemark("");
     setIncrementStep("");
     setSelectedIncrementStep("");
     setSelectedJobTitle("");
@@ -117,6 +114,7 @@ function HrPromotion() {
     setBranchNameTo("");
     setCurrentSalary("");
     setJobClass("");
+    setRefNo("");
     employeeInfoRef.current = null;
   };
 
@@ -166,6 +164,7 @@ function HrPromotion() {
       id: selectedRequest ? Number(selectedRequest) : undefined,
       jobPositionId: jobPositionId ? Number(jobPositionId) : undefined,
       payGradeId: foundPayGradeId ? foundPayGradeId : undefined,
+
       jobResponsibilityId: jobResponsibilityId
         ? Number(jobResponsibilityId)
         : undefined,
@@ -173,6 +172,7 @@ function HrPromotion() {
       transferToId: toDepartmentId ? Number(toDepartmentId) : undefined,
       branchId: usedBranchNameToId ? Number(usedBranchNameToId) : undefined,
       branchFromId: branchFromId ? Number(branchFromId) : undefined,
+      salary: currentSalary ? currentSalary : undefined,
     };
     console.log("Submitting transfer request payload:", transferRequestPayload);
     if (transferRequestPayload.id) {
@@ -249,6 +249,8 @@ function HrPromotion() {
       employeeId,
       jobTitleChanged:
         jobTitleChanged !== undefined ? Number(jobTitleChanged) : undefined,
+      promLetterNumber: refNo,
+      prevSalary: prevSalary ? parseFloat(prevSalary) : undefined,
     };
     if (usedStatus && usedStatus !== "") {
       payload.status = usedStatus;
@@ -485,6 +487,7 @@ function HrPromotion() {
         setBranchNameTo(foundBranch ? foundBranch.branchName : "");
         setJobCodeId(req.jobCodeId ? req.jobCodeId.toString() : "");
         setCurrentSalary(req.currentSalary || "");
+        setPrevSalary(req.currentSalary || "");
         setStatus(req.status || "");
         setEmpId(req.empId || "");
         setTransferType(req.transferType || "");
@@ -496,8 +499,6 @@ function HrPromotion() {
         );
         setToDepartment(foundToDepartment ? foundToDepartment.deptName : "");
         setTransferReason(req.description || "");
-        setRemark(req.remark || "");
-        setApproverDecision(req.status || "");
         if (req && req.payGrade?.payGradeId) {
           fetch(
             `http://localhost:8080/api/hr-pay-grad/${req.payGrade.payGradeId}`
@@ -575,7 +576,7 @@ function HrPromotion() {
   }, [showDropdown]);
 
   useEffect(() => {
-    fetch("http://localhost:8080/api/hr-lu-responsibility")
+    fetch("http://localhost:8080/api/responsibilities")
       .then((res) => res.json())
       .then((data) => {
         setJobResponsibilities(data);
@@ -595,7 +596,7 @@ function HrPromotion() {
       });
   }, []);
   useEffect(() => {
-    fetch("http://localhost:8080/api/jobtypes/job-titles")
+    fetch("http://localhost:8080/api/job_types/job-titles")
       .then((res) => res.json())
       .then((data) => setJobTitles(data))
       .catch((err) => console.error("Failed to fetch job titles", err));
@@ -1029,7 +1030,7 @@ function HrPromotion() {
                     className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
                     value={toDepartment}
                     readOnly
-                    placeholder=""
+                    placeholder="--select department--"
                     onClick={() => {
                       setDepartmentFieldBeingEdited("to");
                       setShowDepartmentTreeModal(true);
@@ -1257,7 +1258,6 @@ function HrPromotion() {
                   className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
                   value={currentSalary}
                   onChange={(e) => setCurrentSalary(e.target.value)}
-                  readOnly
                 />
               </div>
               <div className="flex flex-row items-center gap-2 justify-end">
@@ -1321,7 +1321,7 @@ function HrPromotion() {
           <div className="flex justify-start">
             <button
               type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+              className="px-4 py-2 bg-[#3c8dbc] text-white rounded-lg hover:bg-[#367fa9] shadow-lg hover:shadow-xl"
             >
               Create
             </button>
@@ -1331,11 +1331,11 @@ function HrPromotion() {
       {/* To Department modal*/}
       {showDepartmentTreeModal && departmentFieldBeingEdited === "to" && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md max-h-[80vh] flex flex-col">
+          <div className="bg-white pt-1 pb-6 px-6 shadow-lg w-full max-w-md max-h-[80vh] flex flex-col">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-semibold text-gray-700">
-                {departments.find((d) => d.deptId === 2)?.deptName ||
-                  "No Department Trees"}
+                {/* {departments.find((d) => d.deptId === 2)?.deptName ||
+                  "No Department Trees"} */}
               </h2>
               <button
                 className="text-gray-700 hover:text-gray-800 text-2xl"

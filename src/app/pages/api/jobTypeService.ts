@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:8080/api/jobtypes"; // Replace with your backend JobType API URL
+const API_BASE_URL = "http://localhost:8080/api/job_types";
 
 // Fetch all job types
 export const fetchJobTypes = async () => {
@@ -22,7 +22,6 @@ export const createJobType = async (jobTypeData: {
   status: string;
   code?: string;
 }) => {
-  // Remove the `id` field if it exists
   const { id, ...payloadWithoutId } = jobTypeData as any;
 
   const response = await axios.post(API_BASE_URL, payloadWithoutId);

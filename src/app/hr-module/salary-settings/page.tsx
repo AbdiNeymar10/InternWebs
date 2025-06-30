@@ -53,7 +53,6 @@ const SalarySettings = () => {
     undefined
   );
 
-  // Fetch job grades and ICFs for dropdowns
   useEffect(() => {
     const fetchClassAndICFData = async () => {
       try {
@@ -72,7 +71,6 @@ const SalarySettings = () => {
     fetchClassAndICFData();
   }, []);
 
-  // Fetch pay grades from the backend
   const loadPayGrades = async () => {
     if (!classDropdown || !icfDropdown) {
       return;
@@ -89,14 +87,13 @@ const SalarySettings = () => {
       }
 
       const data = await response.json();
-      console.log("Fetched Data:", data);
 
       if (data.length === 0) {
         return;
       }
 
-      // Map backend response to include jobGrade and icf properties
       const validRecords = data.map((item: any) => ({
+        id: item.payGradeId || item.rank?.rankId || Date.now() + Math.random(),
         payGradeId: item.payGradeId,
         rankId: item.rank?.rankId || null,
         incrementStep: item.stepNo,
@@ -124,7 +121,7 @@ const SalarySettings = () => {
       toast.error("Please fill all fields before adding details.");
       return;
     }
-    setIsPopupOpen(true); // Open the pop-up form
+    setIsPopupOpen(true);
   };
 
   const editDetail = (record: Record) => {
@@ -160,7 +157,7 @@ const SalarySettings = () => {
     }
 
     const updatedRecord: Record = {
-      id: editRecordId || Date.now(), // If editing, keep the id, else create a new one
+      id: editRecordId || Date.now() + Math.random(),
       incrementStep: incrementStep.toString(),
       salary: salary.toString(),
       jobGrade: { id: parseInt(classDropdown) },
@@ -172,7 +169,6 @@ const SalarySettings = () => {
     };
 
     if (editRecordId !== null) {
-      // Update existing record in the table
       setRecords((prev) =>
         prev.map((record) =>
           record.id === editRecordId ? { ...record, ...updatedRecord } : record
@@ -192,8 +188,8 @@ const SalarySettings = () => {
     setMaxSalary("");
     setClassDropdown("");
     setIcfDropdown("");
-    setEditRecordId(null); // Reset editRecordId to null after updating
-    setIsPopupOpen(false); // Close the pop-up form
+    setEditRecordId(null);
+    setIsPopupOpen(false);
   };
   const deleteDetail = async (id: number) => {
     try {
@@ -204,7 +200,6 @@ const SalarySettings = () => {
     }
   };
 
-  // Update the saveDetails function
   const saveDetails = async () => {
     if (records.length === 0) {
       toast.error("No records to save.");
@@ -231,11 +226,8 @@ const SalarySettings = () => {
       }));
 
       console.log("New Ranks Payload:", newRankPayload);
-      console.log("Existing Ranks Payload:", existingRankPayload);
-
       let savedRanks: SavedRank[] = [];
 
-      // Save new ranks first
       if (newRankPayload.length > 0) {
         const response = await fetch(
           "http://localhost:8080/api/hr-rank/bulk-save",
@@ -273,7 +265,6 @@ const SalarySettings = () => {
         savedRanks = [...savedRanks, ...result];
       }
 
-      // Now Pay Grades
       const payGradPayload = records.map((record) => {
         const rankId =
           record.rankId ||
@@ -286,8 +277,8 @@ const SalarySettings = () => {
           )?.rankId;
 
         return {
-          payGradeId: record.payGradeId, // important for updating
-          rank: { rankId }, // Use the correct ID
+          payGradeId: record.payGradeId,
+          rank: { rankId },
           stepNo: record.incrementStep,
           salary: record.salary,
         };
@@ -311,7 +302,6 @@ const SalarySettings = () => {
       const payGradeResult = await payGradeResponse.json();
       console.log("Saved PayGrades:", payGradeResult);
 
-      // Fetch updated records to ensure the table reflects the latest data
       await loadPayGrades();
 
       setRecords([]);
@@ -388,66 +378,72 @@ const SalarySettings = () => {
             placeholder="Max Salary"
           />
         </div>
-
         {/* Add Detail Button */}
-        <div className="flex justify-center">
-          <button
-            onClick={addDetail}
-            className="bg-blue-500 text-white px-4 py-2 rounded-md"
-          >
-            Add Detail
-          </button>
-        </div>
       </div>
 
       {/* Table */}
-      <table className="min-w-full bg-white border border-gray-200 mt-8">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="px-6 py-3 border-b text-left">S/N</th>
-            <th className="px-6 py-3 border-b text-left">Increment Step</th>
-            <th className="px-6 py-3 border-b text-left">Salary</th>
-            <th className="px-6 py-3 border-b text-left">Option</th>
-          </tr>
-        </thead>
-        <tbody>
-          {records.map((record, index) => (
-            <tr key={record.id} className="hover:bg-gray-50">
-              <td className="px-6 py-4 border-b">{index + 1}</td>
-              <td className="px-6 py-4 border-b">{record.incrementStep}</td>
-              <td className="px-6 py-4 border-b">{record.salary}</td>
-              <td className="px-6 py-4 border-b">
-                <button
-                  onClick={() => editDetail(record)}
-                  className="text-blue-600 hover:underline mr-4"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => deleteDetail(record.id)}
-                  className="text-red-600 hover:underline"
-                >
-                  Remove
-                </button>
-              </td>
-            </tr>
-          ))}
-          {records.length === 0 && (
+      <div className="overflow-x-auto rounded-xl shadow mt-6">
+        <table className="min-w-full bg-white border border-gray-200 mt-8 rounded-xl overflow-hidden">
+          <thead className="bg-gray-100">
             <tr>
-              <td colSpan={4} className="text-center text-gray-400 py-6">
-                No records added yet.
-              </td>
+              <th
+                colSpan={4}
+                className="text-center px-6 py-4 border-b rounded-t-xl"
+              >
+                <button
+                  onClick={addDetail}
+                  className="px-4 py-2 bg-[#3c8dbc] text-white rounded-lg hover:bg-[#367fa9] shadow-lg hover:shadow-xl"
+                >
+                  Add Detail
+                </button>
+              </th>
             </tr>
-          )}
-        </tbody>
-      </table>
+            <tr>
+              <th className="px-6 py-3 border-b text-left">S/N</th>
+              <th className="px-6 py-3 border-b text-left">Increment Step</th>
+              <th className="px-6 py-3 border-b text-left">Salary</th>
+              <th className="px-6 py-3 border-b text-left">Option</th>
+            </tr>
+          </thead>
+          <tbody>
+            {records.map((record, index) => (
+              <tr key={record.id} className="hover:bg-gray-50">
+                <td className="px-6 py-4 border-b">{index + 1}</td>
+                <td className="px-6 py-4 border-b">{record.incrementStep}</td>
+                <td className="px-6 py-4 border-b">{record.salary}</td>
+                <td className="px-6 py-4 border-b">
+                  <button
+                    onClick={() => editDetail(record)}
+                    className="text-blue-600 hover:underline mr-4"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => deleteDetail(record.id)}
+                    className="text-red-600 hover:underline"
+                  >
+                    Remove
+                  </button>
+                </td>
+              </tr>
+            ))}
+            {records.length === 0 && (
+              <tr>
+                <td colSpan={4} className="text-center text-gray-400 py-6">
+                  No records added yet.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
 
       {/* Save Button */}
       <div className="flex justify-center mt-4">
         <button
           onClick={saveDetails}
           className={`${
-            isEditing ? "bg-blue-500" : "bg-blue-500"
+            isEditing ? "bg-[#3c8dbc]" : "bg-[#3c8dbc]"
           } text-white px-4 py-2 rounded-md`}
         >
           {isEditing ? "Update" : "Save"}
@@ -457,7 +453,7 @@ const SalarySettings = () => {
       {/* Pop-up Form */}
       {isPopupOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-[400px] max-w-[90%] relative border border-gray-800">
+          <div className="bg-gradient-to-br from-blue-50/80 to-purple-50/80 border border-white/30 rounded-2xl shadow-2xl backdrop-blur-sm p-6 w-[400px] max-w-[90%] relative">
             {/* Close Button */}
             <button
               onClick={() => setIsPopupOpen(false)}
@@ -503,7 +499,7 @@ const SalarySettings = () => {
               <div className="flex justify-center mt-4">
                 <button
                   onClick={addIncrementStepAndSalary}
-                  className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-all"
+                  className="px-4 py-2 bg-[#3c8dbc] text-white rounded-lg hover:bg-[#367fa9] shadow-lg hover:shadow-xl focus:ring-2 focus:ring-blue-300 focus:outline-none transition-all duration-150"
                 >
                   {editRecordId ? "Update" : "Add"}
                 </button>

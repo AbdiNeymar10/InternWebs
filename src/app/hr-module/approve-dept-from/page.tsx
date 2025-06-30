@@ -391,7 +391,7 @@ function ApproveDeptFrom() {
             <div>
               <div className="flex flex-row items-center gap-2 justify-start">
                 <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
-                  Update Request
+                  Available Requests:
                 </label>
                 <div className="flex-1 relative" ref={dropdownRef}>
                   <input
@@ -658,6 +658,7 @@ function ApproveDeptFrom() {
                   value={transferReason}
                   onChange={(e) => setTransferReason(e.target.value)}
                   rows={2}
+                  readOnly
                 />
               </div>
             </div>
@@ -750,21 +751,12 @@ function ApproveDeptFrom() {
           </div>
 
           <div className="flex justify-start">
-            {selectedRequest ? (
-              <button
-                type="submit"
-                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
-              >
-                Update
-              </button>
-            ) : (
-              <button
-                type="submit"
-                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
-              >
-                Save
-              </button>
-            )}
+            <button
+              type="submit"
+              className="px-4 py-2 bg-[#3c8dbc] text-white rounded-lg hover:bg-[#367fa9] shadow-lg hover:shadow-xl"
+            >
+              Save
+            </button>
           </div>
         </form>
       </div>

@@ -5,6 +5,7 @@ import axios from "axios";
 import DepartmentTree from "../../components/DepartmentTree";
 import toast, { Toaster } from "react-hot-toast";
 import AppModuleLayout from "../../components/AppModuleLayout";
+import { FiPlus } from "react-icons/fi";
 
 import {
   ArrowForward as ArrowForwardIcon,
@@ -82,7 +83,6 @@ function DepartmentSearch() {
     fetchDepartments();
   }, []);
 
-  // Handle checkbox selection for available jobs
   const handleAvailableJobSelect = (jobId: number) => {
     if (selectedAvailableJobs.includes(jobId)) {
       setSelectedAvailableJobs(
@@ -136,7 +136,6 @@ function DepartmentSearch() {
       console.error("Error fetching job details:", error);
     }
   };
-  // Handle assigning ALL jobs to department
   const assignAllJobs = async () => {
     if (availableJobs.length === 0) return;
 
@@ -149,14 +148,12 @@ function DepartmentSearch() {
           );
           return response.data;
         } catch (error) {
-          // If 404, skip this job
           return null;
         }
       });
 
       const jobDetailsList = await Promise.all(jobDetailsPromises);
 
-      // Filter out nulls (failed fetches)
       const newJobs = jobDetailsList
         .filter((jobDetails) => jobDetails !== null)
         .map((jobDetails) => ({
@@ -185,7 +182,6 @@ function DepartmentSearch() {
     setSelectedAssignedJobs([]);
   };
 
-  // Handle removing ALL jobs from department
   const removeAllJobs = () => {
     setAvailableJobs([...availableJobs, ...assignedJobs]);
     setAssignedJobs([]);
@@ -219,7 +215,6 @@ function DepartmentSearch() {
     setSelectedDepartmentId(departmentId);
     setShowDepartmentTreeModal(false);
 
-    // Fetch jobs for this department
     try {
       const response = await axios.get(
         `http://localhost:8080/api/hr-dept-jobs/by-department/${departmentId}`
@@ -247,7 +242,6 @@ function DepartmentSearch() {
       return;
     }
 
-    // Only send jobs that are not already in departmentJobs
     const existingJobIds = new Set(departmentJobs.map((job) => job.id));
     const newJobs = assignedJobs.filter((job) => !existingJobIds.has(job.id));
 
@@ -257,7 +251,6 @@ function DepartmentSearch() {
     }
 
     try {
-      // Prepare the payload
       const payload = newJobs.map((job) => ({
         departmentId: selectedDepartmentId,
         jobTypeId: job.id,
@@ -281,7 +274,6 @@ function DepartmentSearch() {
   return (
     <div className="p-6 font-sans bg-white min-h-screen">
       <Toaster />
-      {/* Department Search Header */}
       <h1 className="text-2xl font-bold text-gray-800 mb-6">
         Department Search
       </h1>
@@ -293,21 +285,23 @@ function DepartmentSearch() {
         </h2>
         <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-8">
           <div className="flex-1 flex">
-            <input
-              type="text"
-              className="w-full p-2 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
-              placeholder="Select Department"
-              value={selectedDepartment}
-              readOnly
-            />
-            <button
-              className="bg-gray-400 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-500 transition duration-300 ml-2 mt-1"
-              onClick={() => setShowDepartmentTreeModal(true)}
-              type="button"
-              aria-label="Open department tree"
-            >
-              <span className="text-xl font-bold leading-none">+</span>
-            </button>
+            <div className="flex-1 flex gap-2">
+              <input
+                type="text"
+                className="w-full p-2 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                placeholder="Select Department"
+                value={selectedDepartment}
+                readOnly
+              />
+              <button
+                className="flex items-center bg-[#3c8dbc] bg-opacity-60 hover:bg-[#3c8dbc] hover:bg-opacity-70 text-white px-3 py-1 rounded-md shadow-md hover:shadow-lg transition-all duration-300 border border-[#3c8dbc] border-opacity-60 text-xs md:text-sm ring-2 ring-[#3c8dbc]/20 hover:ring-[#3c8dbc]/40 focus:outline-none focus:ring-4 focus:ring-[#3c8dbc]/50"
+                onClick={() => setShowDepartmentTreeModal(true)}
+                type="button"
+                aria-label="Open department tree"
+              >
+                <FiPlus size={14} />
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -322,7 +316,6 @@ function DepartmentSearch() {
           {/* Available Jobs */}
           <div className="border border-gray-300 rounded-md p-4 flex-1">
             <h3 className="font-medium text-gray-700 mb-3">Available Jobs</h3>
-            {/* Scrollable container for available jobs */}
             <div className="max-h-36 overflow-y-auto">
               <ul>
                 {availableJobs.length > 0 ? (
@@ -352,7 +345,7 @@ function DepartmentSearch() {
             <button
               onClick={assignSelectedJobs}
               disabled={selectedAvailableJobs.length === 0}
-              className="p-2 text-gray-700 hover:text-blue-600 disabled:text-gray-300"
+              className="p-1 bg-[#3c8dbc]/20 rounded-md text-gray-700 hover:text-blue-600 disabled:text-gray-300 transition-colors"
               title="Assign selected"
             >
               <ArrowForwardIcon className="h-5 w-6" />
@@ -362,7 +355,7 @@ function DepartmentSearch() {
             <button
               onClick={assignAllJobs}
               disabled={availableJobs.length === 0}
-              className="p-2 text-gray-700 hover:text-blue-600 disabled:text-gray-300"
+              className="p-1 bg-[#3c8dbc]/20 rounded-md text-gray-700 hover:text-blue-600 disabled:text-gray-300 transition-colors"
               title="Assign all"
             >
               <KeyboardTabIcon className="h-5 w-6" />
@@ -372,7 +365,7 @@ function DepartmentSearch() {
             <button
               onClick={removeSelectedJobs}
               disabled={selectedAssignedJobs.length === 0}
-              className="p-2 text-gray-700 hover:text-red-600 disabled:text-gray-300"
+              className="p-1 bg-[#3c8dbc]/20 rounded-md text-gray-700 hover:text-blue-600 disabled:text-gray-300 transition-colors"
               title="Remove selected"
             >
               <ArrowBackIcon className="h-5 w-6" />
@@ -382,7 +375,7 @@ function DepartmentSearch() {
             <button
               onClick={removeAllJobs}
               disabled={assignedJobs.length === 0}
-              className="p-2 text-gray-700 hover:text-red-600 disabled:text-gray-300"
+              className="p-1 bg-[#3c8dbc]/20 rounded-md text-gray-700 hover:text-blue-600 disabled:text-gray-300 transition-colors"
               title="Remove all"
             >
               <KeyboardTabIcon className="h-5 w-6 transform rotate-180" />
@@ -422,7 +415,7 @@ function DepartmentSearch() {
       {/* Department Tree Modal */}
       {showDepartmentTreeModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md max-h-[80vh] flex flex-col">
+          <div className="bg-gradient-to-br from-blue-50/80 to-purple-50/80 border border-white/30 rounded-2xl shadow-2xl backdrop-blur-sm p-6 w-full max-w-md max-h-[80vh] flex flex-col">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-semibold text-gray-700">
                 {departments.find((d) => d.id === 61)?.name ||
@@ -530,7 +523,7 @@ function DepartmentSearch() {
         <div className="mt-6 flex justify-start">
           <button
             onClick={handleSave}
-            className="px-4 py-2 text-white font-semibold rounded-md bg-blue-500 hover:bg-blue-600"
+            className="px-4 py-2 bg-[#3c8dbc] text-white rounded-lg hover:bg-[#367fa9] shadow-lg hover:shadow-xl"
           >
             Save
           </button>

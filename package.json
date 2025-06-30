@@ -16,7 +16,7 @@
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
     "@fortawesome/react-fontawesome": "^0.2.2",
     "@heroicons/react": "^2.2.0",
-    "@mui/icons-material": "^7.0.2",
+    "@mui/icons-material": "^7.1.2",
     "@mui/material": "^7.0.2",
     "@tanstack/react-query": "^5.71.3",
     "axios": "^1.8.4",

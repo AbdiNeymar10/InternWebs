@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import toast, { Toaster } from "react-hot-toast";
 import { fetchICFs, createICF } from "../../pages/api/icfService";
 import AppModuleLayout from "../../components/AppModuleLayout";
+import { FiPlus } from "react-icons/fi";
 import {
   fetchJobTypes,
   createJobType,
@@ -54,7 +55,7 @@ const JobRegisterModal = ({ type, onClose, onSave }: JobRegisterModalProps) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white p-6 rounded-2xl shadow-xl w-[400px] max-w-[90%] relative">
+      <div className="bg-gradient-to-br from-blue-50 to-purple-50 p-6 rounded-2xl shadow-xl w-[400px] max-w-[90%] relative border border-gray-200 backdrop-blur-sm">
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -62,8 +63,7 @@ const JobRegisterModal = ({ type, onClose, onSave }: JobRegisterModalProps) => {
         >
           ✕
         </button>
-
-        <h2 className="text-2xl font-bold mb-6 text-center">
+        <h2 className="text-xl font-bold mb-4 text-[#3c8dbc]">
           {type === "job"
             ? "Add Job Title"
             : type === "class"
@@ -129,7 +129,7 @@ const JobRegisterModal = ({ type, onClose, onSave }: JobRegisterModalProps) => {
             <button
               type="submit"
               onClick={() => toast.success("Added successfully!")}
-              className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition"
+              className="px-4 py-2 bg-[#3c8dbc] text-white rounded-lg hover:bg-[#367fa9] shadow-lg hover:shadow-xl"
             >
               Save
             </button>
@@ -162,7 +162,7 @@ const RegisterJob = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const icfs = await fetchICFs(); // Fetch data from the backend
+        const icfs = await fetchICFs();
         setIcfList(icfs);
       } catch (error) {
         console.error("Error fetching ICFs:", error);
@@ -230,7 +230,6 @@ const RegisterJob = () => {
       const newICFData = { ICF: icf, description: description };
       const createdICF = await createICF(newICFData);
 
-      // Dynamically update the dropdown
       setIcfList((prev) => [...prev, createdICF]);
       setSelectedICF(createdICF.ICF);
     } catch (error) {
@@ -247,7 +246,6 @@ const RegisterJob = () => {
     setRecords((prev) => [...prev, data]);
   };
 
-  // integrating job title with the backend
   const handleSaveJobType = async (data: {
     jobTitle: string;
     jobTitleInAmharic: string;
@@ -281,14 +279,12 @@ const RegisterJob = () => {
   };
   const handleModalSave = async (data: any) => {
     if (modalType === "job") {
-      // Save job title to the backend
       try {
         await handleSaveJobType(data);
       } catch (error) {
         console.error("Error saving job title:", error);
       }
     } else if (modalType === "class") {
-      // Save job grade to the backend
       try {
         const { id, ...jobGradeData } = data;
         const newJobGrade = await createJobGrade(jobGradeData);
@@ -297,7 +293,6 @@ const RegisterJob = () => {
         console.error("Error saving job grade:", error);
       }
     } else {
-      // Handle other types
       addRecord(data);
     }
   };
@@ -319,7 +314,6 @@ const RegisterJob = () => {
     setNewPositions((prev) => [...prev, newPosition]);
     toast.success("Position added successfully.");
 
-    // Reset the form fields
     setSelectedICF("");
     setSelectedJobTitle("");
     setSelectedClass("");
@@ -416,10 +410,10 @@ const RegisterJob = () => {
 
           <button
             type="button"
-            className="bg-gray-400 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-400 transition duration-300"
+            className="flex items-center bg-[#3c8dbc] bg-opacity-60 hover:bg-[#3c8dbc] hover:bg-opacity-70 text-white px-3 py-1 rounded-md shadow-md hover:shadow-lg transition-all duration-300 border border-[#3c8dbc] border-opacity-60 text-xs md:text-sm ring-2 ring-[#3c8dbc]/20 hover:ring-[#3c8dbc]/40 focus:outline-none focus:ring-4 focus:ring-[#3c8dbc]/50"
             onClick={() => setModalType("job")}
           >
-            <span className="text-xl">+</span>
+            <FiPlus size={16} />
           </button>
         </div>
 
@@ -479,10 +473,10 @@ const RegisterJob = () => {
             )}
           </div>
           <button
-            className="bg-gray-400 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-500 transition duration-300"
+            className="flex items-center bg-[#3c8dbc] bg-opacity-60 hover:bg-[#3c8dbc] hover:bg-opacity-70 text-white px-3 py-1 rounded-md shadow-md hover:shadow-lg transition-all duration-300 border border-[#3c8dbc] border-opacity-60 text-xs md:text-sm ring-2 ring-[#3c8dbc]/20 hover:ring-[#3c8dbc]/40 focus:outline-none focus:ring-4 focus:ring-[#3c8dbc]/50"
             onClick={() => setModalType("class")}
           >
-            <span className="text-xl">+</span>
+            <FiPlus size={16} />
           </button>
         </div>
 
@@ -491,7 +485,7 @@ const RegisterJob = () => {
           {/* Position Modal */}
           {modalType === "position" && (
             <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-              <div className="bg-white p-6 border border-gray-300 rounded-2xl shadow-lg w-[450px] relative flex flex-col space-y-6">
+              <div className="bg-gradient-to-br from-blue-50 to-purple-50 p-6 border border-gray-300 rounded-2xl shadow-lg w-[450px] relative flex flex-col space-y-6 backdrop-blur-sm">
                 {/* Close button */}
                 <button
                   onClick={() => setModalType(null)}
@@ -500,10 +494,10 @@ const RegisterJob = () => {
                   ✕
                 </button>
 
-                {/* ICF Dropdown */}
+                {/* ICF */}
                 <div className="flex flex-col space-y-4">
                   {/* Add Position Row */}
-                  <h2 className="text-2xl font-bold mb-6 text-center">
+                  <h2 className="text-2xl font-bold text-[#3c8dbc]">
                     Add Position
                   </h2>
                   <div className="flex items-center gap-4">
@@ -518,15 +512,15 @@ const RegisterJob = () => {
                       <option value="">--Select One--</option>
                       {icfList.map((icf) => (
                         <option key={icf.id} value={icf.ICF}>
-                          {icf.ICF} {/* Render the ICF property */}
+                          {icf.ICF}
                         </option>
                       ))}
                     </select>
                     <button
                       onClick={() => setShowAddICFModal(true)}
-                      className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-400 text-white hover:bg-gray-500 shadow-md transition transform hover:scale-110"
+                      className="flex items-center bg-[#3c8dbc] bg-opacity-60 hover:bg-[#3c8dbc] hover:bg-opacity-70 text-white px-3 py-1 rounded-md shadow-md hover:shadow-lg transition-all duration-300 border border-[#3c8dbc] border-opacity-60 text-xs md:text-sm ring-2 ring-[#3c8dbc]/20 hover:ring-[#3c8dbc]/40 focus:outline-none focus:ring-4 focus:ring-[#3c8dbc]/50"
                     >
-                      <span className="text-xl">+</span>
+                      <FiPlus size={16} />
                     </button>
                   </div>
 
@@ -537,7 +531,7 @@ const RegisterJob = () => {
                         !selectedICF || !selectedJobTitle || !selectedClass
                       }
                       onClick={handleAddPosition}
-                      className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition"
+                      className="px-4 py-2 bg-[#3c8dbc] text-white rounded-lg hover:bg-[#367fa9] shadow-lg hover:shadow-xl"
                     >
                       Add
                     </button>
@@ -550,7 +544,7 @@ const RegisterJob = () => {
           {/* Add New ICF Modal */}
           {showAddICFModal && (
             <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-              <div className="bg-white p-6 border border-gray-300 rounded-2xl shadow-lg w-[450px] relative flex flex-col space-y-6">
+              <div className="bg-gradient-to-br from-blue-50 to-purple-50 p-6 border border-gray-300 rounded-2xl shadow-lg w-[450px] relative flex flex-col space-y-6 backdrop-blur-sm">
                 {/* Close button */}
                 <button
                   onClick={() => setShowAddICFModal(false)}
@@ -559,7 +553,7 @@ const RegisterJob = () => {
                   ✕
                 </button>
 
-                <h2 className="text-2xl font-bold mb-6 text-center">Add ICF</h2>
+                <h2 className="text-xl font-bold text-[#3c8dbc]">Add ICF</h2>
 
                 {/* Inputs */}
                 <div className="flex flex-col space-y-4">
@@ -592,7 +586,7 @@ const RegisterJob = () => {
                         toast.success("icf added.");
                       }
                     }}
-                    className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition"
+                    className="px-4 py-2 bg-[#3c8dbc] text-white rounded-lg hover:bg-[#367fa9] shadow-lg hover:shadow-xl"
                   >
                     Save
                   </button>
@@ -605,14 +599,14 @@ const RegisterJob = () => {
           <h3 className="text-xl font-bold text-gray-800 mt-6">
             Job Position Under Job Type
           </h3>
-          <div className="overflow-x-auto rounded-lg shadow mt-6">
-            <table className="min-w-full bg-white border border-gray-200">
+          <div className="overflow-x-auto rounded-xl shadow mt-6">
+            <table className="min-w-full bg-white border border-gray-200 rounded-xl overflow-hidden">
               <thead className="bg-gray-100">
                 <tr>
                   <th colSpan={3} className="text-center px-6 py-4 border-b">
                     <button
                       onClick={() => setModalType("position")}
-                      className="bg-gray-400 text-white px-5 py-2 rounded-md hover:bg-gray-500 transition"
+                      className="px-4 py-2 bg-[#3c8dbc] text-white rounded-lg hover:bg-[#367fa9] shadow-lg hover:shadow-xl"
                     >
                       Add Job Position
                     </button>
@@ -654,7 +648,7 @@ const RegisterJob = () => {
         {/* Save Button */}
         <div className="flex justify-start pt-8">
           <button
-            className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+            className="px-4 py-2 bg-[#3c8dbc] text-white rounded-lg hover:bg-[#367fa9] shadow-lg hover:shadow-xl"
             onClick={async () => {
               if (newPositions.length === 0) {
                 toast.error("No new positions to save.");
@@ -697,7 +691,7 @@ const RegisterJob = () => {
                   throw new Error("Failed to save job types");
                 }
 
-                const jobTypeIds = await jobTypeResponse.json(); // Get the saved jobTypeIds
+                const jobTypeIds = await jobTypeResponse.json();
                 console.log("Saved Job Type IDs:", jobTypeIds);
 
                 // Prepare payload for HR_JOB_TYPE_DETAIL
@@ -739,7 +733,6 @@ const RegisterJob = () => {
                   detailResponseData
                 );
 
-                // Clear newPositions from the table
                 setPositions((prev) =>
                   prev.filter(
                     (position) =>
@@ -749,7 +742,6 @@ const RegisterJob = () => {
                   )
                 );
 
-                // Clear the newPositions state
                 setPositions([]);
                 setNewPositions([]);
 

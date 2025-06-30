@@ -59,9 +59,8 @@ function JobQualification() {
     }[]
   >([]);
   useEffect(() => {
-    // Fetch job titles with IDs from HR_LU_JOB_TYPE table
     axios
-      .get("http://localhost:8080/api/jobtypes/job-titles")
+      .get("http://localhost:8080/api/job_types/job-titles")
       .then((response) => {
         setJobs(response.data);
       })
@@ -71,7 +70,6 @@ function JobQualification() {
   }, []);
 
   useEffect(() => {
-    // Fetch distinct ICF values from the backend
     axios
       .get<string[]>(
         "http://localhost:8080/api/job-type-details/distinct-icf-values"
@@ -93,7 +91,6 @@ function JobQualification() {
 
   useEffect(() => {
     if (selectedJobTypeId) {
-      // Fetch filtered ICF values based on the selected jobTypeId
       axios
         .get<string[]>(
           `http://localhost:8080/api/job-type-details/icfs-by-job-type-id?jobTypeId=${selectedJobTypeId}`
@@ -281,7 +278,6 @@ function JobQualification() {
     }
     try {
       const payload = qualifications.map((qualification) => {
-        // Only send id if it's a valid DB id
         const id =
           typeof qualification.id === "number" && qualification.id < 1000000
             ? qualification.id
@@ -308,7 +304,6 @@ function JobQualification() {
         toast.success("Qualifications saved successfully!");
         setQualifications([]);
 
-        // Save HRFieldOfStudy for each qualification and field of study
         const savedQualifications = response.data;
         let hrFieldOfStudyPayload: any[] = [];
         savedQualifications.forEach((qualification: any, idx: number) => {
@@ -424,7 +419,7 @@ function JobQualification() {
                   <th colSpan={9} className="text-center py-2">
                     <button
                       onClick={() => setShowModal(true)}
-                      className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
+                      className="px-4 py-2 bg-[#3c8dbc] text-white rounded-lg hover:bg-[#367fa9] shadow-lg hover:shadow-xl"
                     >
                       Add Qualification
                     </button>
@@ -500,7 +495,7 @@ function JobQualification() {
           <div className="flex justify-start mt-4">
             <button
               onClick={handleSaveQualifications}
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+              className="px-4 py-2 bg-[#3c8dbc] text-white rounded-lg hover:bg-[#367fa9] shadow-lg hover:shadow-xl"
             >
               Save
             </button>
@@ -510,14 +505,16 @@ function JobQualification() {
         {/* Modal: Add Qualification */}
         {showModal && (
           <div className="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-lg w-full max-w-4xl p-6 relative max-h-[90vh] overflow-y-auto">
+            <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl shadow-lg w-full max-w-4xl p-6 relative max-h-[90vh] overflow-y-auto border border-gray-200 backdrop-blur-sm">
               <button
                 onClick={() => setShowModal(false)}
                 className="absolute top-2 right-2 text-xl font-bold text-gray-600 hover:text-red-500"
               >
                 &times;
               </button>
-              <h2 className="text-xl font-semibold mb-4">Qualification</h2>
+              <h2 className="text-xl font-semibold text-[#3c8dbc] mb-4">
+                Qualification
+              </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Education Category */}
                 <div>
@@ -588,7 +585,6 @@ function JobQualification() {
                     {educationLevel.map((level) => (
                       <option key={level.id} value={level.id}>
                         {level.eduName}{" "}
-                        {/* Display the name, but send the ID */}
                       </option>
                     ))}
                   </select>
@@ -635,7 +631,7 @@ function JobQualification() {
               <div className="col-span-1 flex justify-start items-end mt-4">
                 <button
                   onClick={handleModalSaveQualification}
-                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                  className="px-4 py-2 bg-[#3c8dbc] text-white rounded-lg hover:bg-[#367fa9] shadow-lg hover:shadow-xl"
                 >
                   {editingIndex !== null ? "Update" : "Add"}
                 </button>
