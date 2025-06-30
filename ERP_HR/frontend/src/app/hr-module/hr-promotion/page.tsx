@@ -57,6 +57,7 @@ function HrPromotion() {
   const [jobClass, setJobClass] = useState("");
   const [changeTo, setChangeTo] = useState("");
   const [prevSalary, setPrevSalary] = useState("");
+  const [originalSalary, setOriginalSalary] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [jobResponsibilities, setJobResponsibilities] = useState<
@@ -250,7 +251,7 @@ function HrPromotion() {
       jobTitleChanged:
         jobTitleChanged !== undefined ? Number(jobTitleChanged) : undefined,
       promLetterNumber: refNo,
-      prevSalary: prevSalary ? parseFloat(prevSalary) : undefined,
+      prevSalary: originalSalary || undefined,
     };
     if (usedStatus && usedStatus !== "") {
       payload.status = usedStatus;
@@ -310,6 +311,8 @@ function HrPromotion() {
           setBranchId(data.branchId || "");
           setJobCodeId(data.jobCode || "");
           setCurrentSalary(data.currentSalary || "");
+          setCurrentSalary(data.currentSalary || "");
+          if (!originalSalary) setOriginalSalary(data.currentSalary || "");
           setStatus(data.status || "");
           setEmpId(data.empId || "");
           setBranchFromId(
@@ -486,6 +489,7 @@ function HrPromotion() {
         setBranch(foundBranch ? foundBranch.branchName : "");
         setBranchNameTo(foundBranch ? foundBranch.branchName : "");
         setJobCodeId(req.jobCodeId ? req.jobCodeId.toString() : "");
+        setOriginalSalary(req.currentSalary || "");
         setCurrentSalary(req.currentSalary || "");
         setPrevSalary(req.currentSalary || "");
         setStatus(req.status || "");

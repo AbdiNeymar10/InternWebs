@@ -23,7 +23,7 @@ public class HRPromotionHistory {
     private String prevRank;
 
     @Column(name = "PREV_SALARY")
-    private Float prevSalary;
+    private String prevSalary;
 
     @Column(name = "PROM_LETTER_NUMBER")
     private String promLetterNumber;
@@ -102,11 +102,11 @@ public class HRPromotionHistory {
         this.prevRank = prevRank;
     }
 
-    public Float getPrevSalary() {
+    public String getPrevSalary() {
         return prevSalary;
     }
 
-    public void setPrevSalary(Float prevSalary) {
+    public void setPrevSalary(String prevSalary) {
         this.prevSalary = prevSalary;
     }
 
