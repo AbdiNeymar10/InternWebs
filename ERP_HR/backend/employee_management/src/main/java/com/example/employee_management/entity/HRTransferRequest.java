@@ -104,6 +104,9 @@ public class HRTransferRequest {
     @Column(name = "SALARY", length = 500)
     private String salary;
 
+    @Column(name = "EMPLOYMENT_TYPE")
+    private Integer employmentType;
+
     // Constructors
     public HRTransferRequest() {
     }
@@ -136,7 +139,8 @@ public class HRTransferRequest {
             HrLuBranch biranchId,
             Integer icf,
             String salary,
-            String branchFrom) {
+            String branchFrom,
+            Integer employmentType) {
         this.transferRequesterId = transferRequesterId;
         this.transferType = transferType;
         this.transferFrom = transferFrom;
@@ -165,6 +169,7 @@ public class HRTransferRequest {
         this.branchFrom = branchFrom;
         this.icf = icf;
         this.salary = salary;
+        this.employmentType = employmentType;
     }
 
     // Getters and Setters
@@ -391,5 +396,12 @@ public class HRTransferRequest {
 
     public void setBranchFrom(String branchFrom) {
         this.branchFrom = branchFrom;
+    }
+
+    public Integer getEmploymentType() {
+        return employmentType;
+    }
+    public void setEmploymentType(Integer employmentType) {
+        this.employmentType = employmentType;
     }
 }

@@ -338,6 +338,10 @@ public class HrEmployeeServiceImpl implements HrEmployeeService {
         } catch (Exception e) {
 
         }
+        String employmentType = null;
+         if (employee.getEmploymentType() != null && employee.getEmploymentType().getType() != null) {
+        employmentType = employee.getEmploymentType().getType();
+        }
 
         String currentSalary = null;
         if (employee.getPayGrade() != null && employee.getPayGrade().getPayGradeId() != null) {
@@ -373,6 +377,8 @@ public class HrEmployeeServiceImpl implements HrEmployeeService {
                 fromDepartmentId,
                 approvedBy,
                 currentSalary,
-                toDepartmentId);
+                toDepartmentId,
+                employmentType
+          );
     }
 }

@@ -78,6 +78,9 @@ function HrPromotion() {
   const [icfList, setIcfList] = useState<string[]>([]);
   const employeeInfoRef = useRef<any>(null);
   const [selectedJobTitle, setSelectedJobTitle] = useState("");
+  const [employmentTypes, setEmploymentTypes] = useState<
+    { id: number; type: string }[]
+  >([]);
   const [stepNoToPayGradeId, setStepNoToPayGradeId] = useState<{
     [step: string]: number;
   }>({});
@@ -116,6 +119,7 @@ function HrPromotion() {
     setCurrentSalary("");
     setJobClass("");
     setRefNo("");
+    setChangeTo("");
     employeeInfoRef.current = null;
   };
 
@@ -144,6 +148,12 @@ function HrPromotion() {
     }
     const usedBranchNameToId =
       branches.find((b) => b.branchName === branchNameTo)?.id || null;
+    const selectedEmploymentType = employmentTypes.find(
+      (et) => et.type === changeTo
+    );
+    const employmentTypeId = selectedEmploymentType
+      ? selectedEmploymentType.id
+      : undefined;
 
     const foundPayGradeId = selectedIncrementStep
       ? stepNoToPayGradeId[selectedIncrementStep]
@@ -165,7 +175,6 @@ function HrPromotion() {
       id: selectedRequest ? Number(selectedRequest) : undefined,
       jobPositionId: jobPositionId ? Number(jobPositionId) : undefined,
       payGradeId: foundPayGradeId ? foundPayGradeId : undefined,
-
       jobResponsibilityId: jobResponsibilityId
         ? Number(jobResponsibilityId)
         : undefined,
@@ -174,6 +183,7 @@ function HrPromotion() {
       branchId: usedBranchNameToId ? Number(usedBranchNameToId) : undefined,
       branchFromId: branchFromId ? Number(branchFromId) : undefined,
       salary: currentSalary ? currentSalary : undefined,
+      employmentType: employmentTypeId,
     };
     console.log("Submitting transfer request payload:", transferRequestPayload);
     if (transferRequestPayload.id) {
@@ -355,6 +365,7 @@ function HrPromotion() {
                           ? payGradeData.stepNo
                           : "";
                       setIncrementStep(stepNo);
+                      setChangeTo(data.employmentType || "");
                       // Log all fetched employee info
                       console.log("Fetched employee info:", {
                         employeeName: data.employeeName,
@@ -598,6 +609,12 @@ function HrPromotion() {
       .then((data) => {
         setBranches(data);
       });
+  }, []);
+  useEffect(() => {
+    fetch("http://localhost:8080/api/employment-types")
+      .then((res) => res.json())
+      .then((data) => setEmploymentTypes(data))
+      .catch((err) => console.error("Failed to fetch employment types", err));
   }, []);
   useEffect(() => {
     fetch("http://localhost:8080/api/job_types/job-titles")
@@ -1316,8 +1333,11 @@ function HrPromotion() {
                   onChange={(e) => setChangeTo(e.target.value)}
                 >
                   <option value="">--Select One--</option>
-                  <option value="permanent">Permanent</option>
-                  <option value="project">Project</option>
+                  {employmentTypes.map((et) => (
+                    <option key={et.id} value={et.type}>
+                      {et.type}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>

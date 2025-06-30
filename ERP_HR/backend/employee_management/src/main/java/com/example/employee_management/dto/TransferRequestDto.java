@@ -29,6 +29,7 @@ public class TransferRequestDto {
     private String approveDate;
     private Integer icfId;
     private String salary;
+    private Integer employmentType;
 
     // Getters and Setters
 
@@ -255,5 +256,13 @@ public class TransferRequestDto {
     public void setSalary(String salary) {
         this.salary = salary;
     }
+
+    public Integer getEmploymentType() { 
+        return employmentType; 
+    }
+    
+    public void setEmploymentType(Integer employmentType) { 
+        this.employmentType = employmentType;
+     }
 
 }

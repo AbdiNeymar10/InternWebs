@@ -79,6 +79,7 @@ public class HRTransferRequestController {
             dto.setTransferRequesterId(entity.getTransferRequesterId());
             dto.setApproveDate(entity.getApproveDate());
             dto.setSalary(entity.getSalary());
+            dto.setEmploymentType(entity.getEmploymentType());
             // dto.setStepNo(entity.getStepNo());
             dtos.add(dto);
         }
@@ -139,6 +140,10 @@ public class HRTransferRequestController {
         if (dto.getSalary() != null) {
             request.setSalary(dto.getSalary());
         }
+        if (dto.getEmploymentType() != null) {
+        request.setEmploymentType(dto.getEmploymentType());
+      }
+
         return service.save(request);
     }
 
@@ -220,6 +225,9 @@ public class HRTransferRequestController {
         }
         if (dto.getSalary() != null) {
             request.setSalary(dto.getSalary());
+        }
+        if (dto.getEmploymentType() != null) {
+            request.setEmploymentType(dto.getEmploymentType());
         }
         return service.save(request);
     }

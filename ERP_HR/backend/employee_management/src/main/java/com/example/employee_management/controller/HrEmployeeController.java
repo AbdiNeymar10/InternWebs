@@ -12,6 +12,8 @@ import com.example.employee_management.repository.HrLuBranchRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.example.employee_management.repository.HrLuIcfRepository;
 import com.example.employee_management.repository.HrPayGradeRepository;
+import com.example.employee_management.entity.HrLuEmploymentType;
+import com.example.employee_management.repository.HrLuEmploymentTypeRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.Base64;
@@ -30,6 +32,8 @@ public class HrEmployeeController {
         this.hrEmployeeService = hrEmployeeService;
         this.departmentRepository = departmentRepository;
     }
+    @Autowired
+    private HrLuEmploymentTypeRepository employmentTypeRepository;
 
     @GetMapping
     public List<HrEmployee> getAllEmployees() {
@@ -166,6 +170,7 @@ public class HrEmployeeController {
         public Long branchId;
         public Long payGradeId;
         public String salary;
+        public Integer employmentType;
     }
 
     @Autowired
@@ -201,6 +206,11 @@ public class HrEmployeeController {
         if (dto.salary != null) {
             employee.setSalary(dto.salary);
         }
+        if (dto.employmentType != null) {
+    HrLuEmploymentType employmentType = employmentTypeRepository.findById(dto.employmentType)
+        .orElseThrow(() -> new RuntimeException("Employment type not found"));
+    employee.setEmploymentType(employmentType);
+  }
 
         hrEmployeeService.updateEmployee(empId, employee);
         return ResponseEntity.ok().build();

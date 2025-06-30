@@ -229,7 +229,7 @@ export default function Sidebar({ className, hidden = false }: SidebarProps) {
                   className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
                 >
                   <FiTrendingUp className="w-4 h-4" />
-                  Promotion Approve
+                  Hr Promotion Approve
                 </Link>
               </div>
             )}

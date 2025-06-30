@@ -84,6 +84,15 @@ function HrPromotionApprove() {
     if (branchId) jobUpdatePayload.branchId = Number(branchId);
     if (payGradeId) jobUpdatePayload.payGradeId = Number(payGradeId);
     if (currentSalary) jobUpdatePayload.salary = currentSalary;
+    const req = transferRequests.find(
+      (r) =>
+        (r.transferRequesterId &&
+          r.transferRequesterId.toString() === selectedRequest) ||
+        (r.empId && r.empId.toString() === selectedRequest)
+    );
+    if (req && req.employmentType) {
+      jobUpdatePayload.employmentType = req.employmentType;
+    }
 
     if (
       employeeId &&
@@ -91,7 +100,8 @@ function HrPromotionApprove() {
         jobUpdatePayload.icfId ||
         jobUpdatePayload.branchId ||
         jobUpdatePayload.payGradeId ||
-        jobUpdatePayload.salary)
+        jobUpdatePayload.salary ||
+        jobUpdatePayload.employmentType)
     ) {
       console.log("Submitting job update fields:", {
         jobResponsibilityId: jobUpdatePayload.jobResponsibilityId,
@@ -99,6 +109,7 @@ function HrPromotionApprove() {
         branchId: jobUpdatePayload.branchId,
         payGradeId: jobUpdatePayload.payGradeId,
         salary: jobUpdatePayload.salary,
+        employmentType: jobUpdatePayload.employmentType,
       });
       try {
         await fetch(
@@ -113,7 +124,6 @@ function HrPromotionApprove() {
         toast.error("Failed to update employee job info");
       }
     }
-    // ...existing code...
 
     const payload: any = {
       hiredDate,
@@ -316,7 +326,10 @@ function HrPromotionApprove() {
             r.transferRequesterId.toString() === selectedRequest) ||
           (r.empId && r.empId.toString() === selectedRequest)
       );
-      console.log("Selected Transfer Request:", req);
+      console.log("Selected Transfer Request:", {
+        ...req,
+        employmentType: req.employmentType,
+      });
       if (req) {
         setEmployeeId(req.empId || "");
         let fullName = "";

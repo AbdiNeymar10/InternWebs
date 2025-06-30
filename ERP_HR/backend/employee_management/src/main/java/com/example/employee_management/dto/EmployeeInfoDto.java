@@ -20,10 +20,11 @@ public class EmployeeInfoDto {
     private String approvedBy;
     private String currentSalary;
     private String toDepartmentId;
+    private String employmentType;
 
     public EmployeeInfoDto() {}
 
-    public EmployeeInfoDto(String employeeId, String employeeName, String gender, String hiredDate, String icf, String departmentName, String jobPosition, String jobPositionId, String jobCode, String branch, String branchId, String jobResponsibility, String jobResponsibilityId, String payGradeId, String directorateName, String fromDepartmentId, String approvedBy, String currentSalary, String toDepartmentId) {
+    public EmployeeInfoDto(String employeeId, String employeeName, String gender, String hiredDate, String icf, String departmentName, String jobPosition, String jobPositionId, String jobCode, String branch, String branchId, String jobResponsibility, String jobResponsibilityId, String payGradeId, String directorateName, String fromDepartmentId, String approvedBy, String currentSalary, String toDepartmentId, String employmentType) {
         this.employeeId = employeeId;
         this.employeeName = employeeName;
         this.gender = gender;
@@ -43,6 +44,7 @@ public class EmployeeInfoDto {
         this.approvedBy = approvedBy;
         this.currentSalary = currentSalary;
         this.toDepartmentId = toDepartmentId;
+        this.employmentType = employmentType;
     }
 
     public String getEmployeeId() { return employeeId; }
@@ -95,4 +97,7 @@ public class EmployeeInfoDto {
 
     public String getToDepartmentId() { return toDepartmentId; }
     public void setToDepartmentId(String toDepartmentId) { this.toDepartmentId = toDepartmentId; }
+
+    public String getEmploymentType() { return employmentType; }
+    public void setEmploymentType(String employmentType) { this.employmentType = employmentType; }
 }
