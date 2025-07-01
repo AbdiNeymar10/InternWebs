@@ -43,6 +43,10 @@ function TransferRequest() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const [loading, setLoading] = useState(true);
+  const [rejectedRequests, setRejectedRequests] = useState("");
+  const [showRejectedDropdown, setShowRejectedDropdown] = useState(false);
+  const [selectedRejectedRequestId, setSelectedRejectedRequestId] =
+    useState<string>("");
 
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -94,6 +98,37 @@ function TransferRequest() {
     if (branchId) payload.branchId = Number(branchId);
     if (jobCodeId) payload.jobCodeId = Number(jobCodeId);
     if (branchFromId) payload.branchFromId = Number(branchFromId);
+
+    if (selectedRejectedRequestId) {
+      fetch(
+        `http://localhost:8080/api/hr-transfer-requests/${selectedRejectedRequestId}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...payload,
+            transferRequesterId: Number(selectedRejectedRequestId),
+            transferType,
+            dateRequest: requestDate,
+            description: transferReason,
+            transferToId: toDepartmentId ? Number(toDepartmentId) : undefined,
+            status: "0",
+          }),
+        }
+      )
+        .then((res) => {
+          if (!res.ok)
+            throw new Error("Failed to update rejected transfer request");
+          return res.json();
+        })
+        .then(() => {
+          toast.success("Rejected transfer request updated successfully!");
+          clearForm();
+          setSelectedRejectedRequestId("");
+        })
+        .catch(() => toast.error("Failed to update rejected transfer request"));
+      return;
+    }
 
     const updateId = transferRequests.find(
       (r) =>
@@ -306,7 +341,7 @@ function TransferRequest() {
         setTransferReason(req.description || "");
         setRequestDate(req.dateRequest || "");
         setBranchFromId(req.branchId ? req.branchId.toString() : "");
-        setSelectedStatus(req.status || ""); // <-- ensure status is set
+        setSelectedStatus(req.status || "");
       }
     }
   }, [selectedRequest, transferRequests, departments]);
@@ -354,19 +389,18 @@ function TransferRequest() {
           <h2 className="text-lg font-semibold text-gray-700 mb-4">
             Search Requester Info:
           </h2>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div>
-              <div className="flex flex-row items-center gap-2 justify-start">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Update Request
                 </label>
                 <div className="flex-1 relative" ref={dropdownRef}>
                   <input
                     ref={inputRef}
                     type="text"
-                    className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
-                    placeholder="--Select One--"
+                    className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
+                    placeholder="--Select Request--"
                     value={searchValue}
                     onChange={(e) => {
                       setSearchValue(e.target.value);
@@ -465,9 +499,120 @@ function TransferRequest() {
                 </div>
               </div>
             </div>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start">
+              <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+                Rejected Requests
+              </label>
+              <div className="flex-1 relative">
+                <input
+                  type="text"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
+                  placeholder="Enter Employee ID"
+                  value={rejectedRequests}
+                  onChange={(e) => setRejectedRequests(e.target.value)}
+                  onFocus={() => setShowRejectedDropdown(true)}
+                  onBlur={() =>
+                    setTimeout(() => setShowRejectedDropdown(false), 150)
+                  }
+                />
+                {rejectedRequests && showRejectedDropdown && (
+                  <ul className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md max-h-48 overflow-y-auto">
+                    {transferRequests
+                      .filter(
+                        (req) =>
+                          req.empId &&
+                          String(req.empId).includes(rejectedRequests) &&
+                          (req.status === "-1" || req.status === -1)
+                      )
+                      .map((req, idx) => (
+                        <li
+                          key={req.transferRequesterId || req.empId || idx}
+                          className="p-2 hover:bg-gray-200 cursor-pointer"
+                          onMouseDown={() => {
+                            setSelectedRequest("");
+                            setSelectedRejectedRequestId(
+                              req.transferRequesterId
+                                ? String(req.transferRequesterId)
+                                : ""
+                            );
+                            setEmployeeId(req.empId || "");
+                            setEmployeeName(req.employeeName || "");
+                            setGender(req.gender || "");
+                            setHiredDate(req.hiredDate || "");
+                            seticf(req.icf || "");
+                            setDepartment(req.departmentName || "");
+                            setFromDepartment(req.departmentName || "");
+                            setJobPosition(req.jobPosition || "");
+                            setDirectorate(req.directorateName || "");
+                            setJobPositionId(
+                              req.jobPositionId
+                                ? req.jobPositionId.toString()
+                                : ""
+                            );
+                            setFromDepartmentId(
+                              req.transferFromId
+                                ? req.transferFromId.toString()
+                                : ""
+                            );
+                            setPayGradeId(
+                              req.payGradeId ? req.payGradeId.toString() : ""
+                            );
+                            setJobResponsibilityId(
+                              req.jobResponsibilityId
+                                ? req.jobResponsibilityId.toString()
+                                : ""
+                            );
+                            setBranchId(
+                              req.branchId ? req.branchId.toString() : ""
+                            );
+                            setJobCodeId(
+                              req.jobCodeId ? req.jobCodeId.toString() : ""
+                            );
+                            setTransferType(req.transferType || "");
+                            setToDepartmentId(
+                              req.transferToId
+                                ? req.transferToId.toString()
+                                : ""
+                            );
+                            const toDeptObj = departments.find(
+                              (d) =>
+                                d.deptId.toString() ===
+                                (req.transferToId
+                                  ? req.transferToId.toString()
+                                  : "")
+                            );
+                            setToDepartment(
+                              toDeptObj ? toDeptObj.deptName : ""
+                            );
+                            setTransferReason(req.description || "");
+                            setRequestDate(req.dateRequest || "");
+                            setBranchFromId(
+                              req.branchId ? req.branchId.toString() : ""
+                            );
+                            setSelectedStatus(req.status || "");
+                            setRejectedRequests(req.empId || "");
+                            setShowRejectedDropdown(false);
+                          }}
+                        >
+                          {req.empId} - {req.employeeName}
+                        </li>
+                      ))}
+                    {transferRequests.filter(
+                      (req) =>
+                        req.empId &&
+                        String(req.empId).includes(rejectedRequests) &&
+                        (req.status === "-1" || req.status === -1)
+                    ).length === 0 && (
+                      <li className="p-2 text-gray-400">
+                        No rejected request found
+                      </li>
+                    )}
+                  </ul>
+                )}
+              </div>
+            </div>
           </div>
         </div>
-
         <form
           onSubmit={handleSubmit}
           className="bg-white shadow rounded-lg p-6 w-full"
@@ -478,49 +623,49 @@ function TransferRequest() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             {/* Left Column */}
             <div className="space-y-4">
-              <div className="flex flex-row items-center gap-2 justify-start">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Employee Name
                 </label>
                 <input
                   type="text"
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={employeeName}
                   onChange={(e) => setEmployeeName(e.target.value)}
                   required
                 />
               </div>
-              <div className="flex flex-row items-center gap-2 justify-start">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Gender
                 </label>
                 <input
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={gender}
                   onChange={(e) => setGender(e.target.value)}
                   required
                   readOnly
                 />
               </div>
-              <div className="flex flex-row items-center gap-2 justify-start">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Job Position
                 </label>
                 <input
                   type="text"
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={jobPosition}
                   onChange={(e) => setJobPosition(e.target.value)}
                   readOnly
                 />
               </div>
-              <div className="flex flex-row items-center gap-2 justify-start">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Hired Date
                 </label>
                 <input
                   type="date"
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={hiredDate}
                   onChange={(e) => setHiredDate(e.target.value)}
                   readOnly
@@ -529,26 +674,26 @@ function TransferRequest() {
             </div>
             {/* Right Column */}
             <div className="space-y-4">
-              <div className="flex flex-row items-center gap-2 justify-end">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-end">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Employee ID
                 </label>
                 <input
                   type="text"
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={employeeId}
                   onChange={(e) => setEmployeeId(e.target.value)}
                   required
                 />
               </div>
-              <div className="flex flex-row items-center gap-2 justify-end">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-end">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Department
                 </label>
                 <div className="flex-1">
                   <input
                     type="text"
-                    className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                    className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                     value={department}
                     onChange={(e) => setDepartment(e.target.value)}
                     placeholder=""
@@ -556,25 +701,25 @@ function TransferRequest() {
                   />
                 </div>
               </div>
-              <div className="flex flex-row items-center gap-2 justify-end">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-end">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   ICF
                 </label>
                 <input
                   type="text"
-                  className="flex-1 border border-gray-300 rounded-md focus:outline-none p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={icf}
                   onChange={(e) => seticf(e.target.value)}
                   readOnly
                 />
               </div>
-              <div className="flex flex-row items-center gap-2 justify-end">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-end">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Directorate
                 </label>
                 <input
                   type="text"
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={directorate}
                   onChange={(e) => setDirectorate(e.target.value)}
                   readOnly
@@ -589,12 +734,12 @@ function TransferRequest() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             {/* Left Column */}
             <div className="space-y-4">
-              <div className="flex flex-row items-center gap-2 justify-start">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Transfer Type
                 </label>
                 <select
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={transferType}
                   onChange={(e) =>
                     setTransferType(e.target.value as TransferType)
@@ -607,14 +752,14 @@ function TransferRequest() {
                 </select>
               </div>
 
-              <div className="flex flex-row items-center gap-2 justify-start">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   To Department
                 </label>
                 <div className="flex-1">
                   <input
                     type="text"
-                    className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                    className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                     value={toDepartment}
                     readOnly
                     placeholder=""
@@ -625,12 +770,12 @@ function TransferRequest() {
                   />
                 </div>
               </div>
-              <div className="flex flex-row items-center gap-2 justify-start">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Transfer Reason
                 </label>
                 <textarea
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300 resize-y min-h-[40px] max-h-[200px]"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs resize-y min-h-[40px] max-h-[200px]"
                   value={transferReason}
                   onChange={(e) => setTransferReason(e.target.value)}
                   rows={2}
@@ -640,14 +785,14 @@ function TransferRequest() {
 
             {/* Right Column */}
             <div className="space-y-4">
-              <div className="flex flex-row items-center gap-2 justify-end">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-end">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   From Department
                 </label>
                 <div className="flex-1">
                   <input
                     type="text"
-                    className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                    className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                     value={fromDepartment}
                     onChange={(e) => setFromDepartment(e.target.value)}
                     placeholder=""
@@ -655,13 +800,13 @@ function TransferRequest() {
                   />
                 </div>
               </div>
-              <div className="flex flex-row items-center gap-2 justify-end">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-end">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Request Date
                 </label>
                 <input
                   type="date"
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={requestDate}
                   onChange={(e) => setRequestDate(e.target.value)}
                 />
@@ -669,18 +814,18 @@ function TransferRequest() {
             </div>
           </div>
 
-          <div className="flex justify-start">
+          <div className="flex flex-col sm:flex-row justify-start">
             {selectedRequest ? (
               <button
                 type="submit"
-                className="px-4 py-2 bg-[#3c8dbc] text-white rounded-lg hover:bg-[#367fa9] shadow-lg hover:shadow-xl"
+                className="px-4 py-2 bg-[#3c8dbc] text-white rounded-lg hover:bg-[#367fa9] shadow-lg hover:shadow-xl w-full sm:w-auto"
               >
                 Update
               </button>
             ) : (
               <button
                 type="submit"
-                className="px-4 py-2 bg-[#3c8dbc] text-white rounded-lg hover:bg-[#367fa9] shadow-lg hover:shadow-xl"
+                className="px-4 py-2 bg-[#3c8dbc] text-white rounded-lg hover:bg-[#367fa9] shadow-lg hover:shadow-xl w-full sm:w-auto"
               >
                 Create
               </button>

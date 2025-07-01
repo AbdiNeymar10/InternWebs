@@ -70,9 +70,24 @@ export default function Sidebar({ className, hidden = false }: SidebarProps) {
   if (hidden) return null;
 
   return (
-    <aside className={`bg-gray-800 text-white w-64 ${className || ""}`}>
-      <nav className="h-full flex flex-col">
-        <div className="overflow-y-auto flex-grow p-4">
+    <aside
+      className={`bg-gray-800 text-white w-64 shadow-lg ${
+        className || ""
+      } fixed left-0 z-50 md:static md:top-auto md:left-auto md:z-auto`}
+      style={{
+        top:
+          typeof window !== "undefined" && window.innerWidth < 768
+            ? "64px"
+            : undefined,
+        height:
+          typeof window !== "undefined" && window.innerWidth < 768
+            ? "calc(100vh - 64px)"
+            : undefined,
+        transition: "transform 0.3s ease",
+      }}
+    >
+      <nav className="h-full flex flex-col md:h-auto">
+        <div className="overflow-y-auto flex-grow p-4 md:overflow-visible md:p-4">
           {/* Dashboard Dropdown */}
           <div>
             <button

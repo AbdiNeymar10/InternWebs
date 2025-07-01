@@ -209,52 +209,54 @@ const JobFamily: React.FC = () => {
   };
 
   return (
-    <div className="p-4 bg-white">
+    <div className="p-2 sm:p-4 bg-white">
       {/* Top Label */}
       <Toaster />
       <h2 className="text-xl font-bold mb-4">Job Family</h2>
       <div className="mb-4 ml-0 md:ml-12">
-        <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4">
-          <label className="whitespace-nowrap w-full md:w-32 text-left md:text-right">
-            Job Family Name
-          </label>
-          <div className="flex-1 flex items-center gap-2 w-full">
-            <select
-              className="flex-1 p-2 border rounded-md w-full focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
-              value={selectedJobFamilyId ?? ""}
-              onChange={(e) => {
-                const selectedId = Number(e.target.value);
-                setSelectedJobFamilyId(selectedId);
+        <div className="flex flex-col gap-2 w-full">
+          <div className="flex flex-col md:flex-row items-stretch md:items-center gap-2 md:gap-4 w-full">
+            <label className="whitespace-nowrap w-full md:w-32 text-left text-sm md:text-right mb-1 md:mb-0">
+              Job Family Name
+            </label>
+            <div className="flex-1 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full">
+              <select
+                className="flex-1 p-2 border rounded-md text-xs w-full focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                value={selectedJobFamilyId ?? ""}
+                onChange={(e) => {
+                  const selectedId = Number(e.target.value);
+                  setSelectedJobFamilyId(selectedId);
 
-                const selectedJobFamily = jobFamilies.find(
-                  (jf) => jf.id === selectedId
-                );
-                setJobFamilyCodeInput(selectedJobFamily?.familyCode || "");
-              }}
-            >
-              <option value="">--Select One--</option>
-              {jobFamilies.map((jf) => (
-                <option key={jf.id} value={jf.id}>
-                  {jf.familyName}
-                </option>
-              ))}
-            </select>
-            <button
-              className="flex items-center bg-[#3c8dbc] bg-opacity-60 hover:bg-[#3c8dbc] hover:bg-opacity-70 text-white px-3 py-1 rounded-md shadow-md hover:shadow-lg transition-all duration-300 border border-[#3c8dbc] border-opacity-60 text-xs md:text-sm ring-2 ring-[#3c8dbc]/20 hover:ring-[#3c8dbc]/40 focus:outline-none focus:ring-4 focus:ring-[#3c8dbc]/50"
-              onClick={() => setShowJobFamilyModal(true)}
-            >
-              <FiPlus size={16} />
-            </button>
+                  const selectedJobFamily = jobFamilies.find(
+                    (jf) => jf.id === selectedId
+                  );
+                  setJobFamilyCodeInput(selectedJobFamily?.familyCode || "");
+                }}
+              >
+                <option value="">--Select One--</option>
+                {jobFamilies.map((jf) => (
+                  <option key={jf.id} value={jf.id}>
+                    {jf.familyName}
+                  </option>
+                ))}
+              </select>
+              <button
+                className="flex items-center bg-[#3c8dbc] bg-opacity-60 hover:bg-[#3c8dbc] hover:bg-opacity-70 text-white px-3 py-1 rounded-md shadow-md hover:shadow-lg transition-all duration-300 border border-[#3c8dbc] border-opacity-60 text-xs md:text-sm ring-2 ring-[#3c8dbc]/20 hover:ring-[#3c8dbc]/40 focus:outline-none focus:ring-4 focus:ring-[#3c8dbc]/50"
+                onClick={() => setShowJobFamilyModal(true)}
+              >
+                <FiPlus size={16} />
+              </button>
+            </div>
           </div>
         </div>
 
-        <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 mt-4">
-          <label className="whitespace-nowrap w-full md:w-32 text-left md:text-right">
+        <div className="flex flex-col md:flex-row items-stretch md:items-center gap-2 md:gap-4 mt-4 w-full">
+          <label className="whitespace-nowrap w-full md:w-32 text-left text-sm md:text-right mb-1 md:mb-0">
             Job Family Code
           </label>
           <input
             type="text"
-            className="flex-1 p-2 border rounded-md w-full focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+            className="flex-1 p-2 border rounded-md text-xs w-full focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
             value={jobFamilyCodeInput}
             readOnly
           />
@@ -284,10 +286,10 @@ const JobFamily: React.FC = () => {
                 </th>
               </tr>
               <tr>
-                <th className="p-2 border-r">No</th>
-                <th className="p-2 border-r">Job Title</th>
-                <th className="p-2 border-r">Job Code</th>
-                <th className="p-2">Action</th>
+                <th className="p-2 border-r text-sm">No</th>
+                <th className="p-2 border-r text-sm">Job Title</th>
+                <th className="p-2 border-r text-sm">Job Code</th>
+                <th className="p-2 text-sm">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -300,11 +302,15 @@ const JobFamily: React.FC = () => {
               ) : (
                 assignedJobs.map((job) => (
                   <tr key={job.no} className="border-b">
-                    <td className="p-2 border-r text-center">{job.no}</td>
-                    <td className="p-2 border-r text-center ">
+                    <td className="p-2 border-r text-center text-xs">
+                      {job.no}
+                    </td>
+                    <td className="p-2 border-r text-center text-xs ">
                       {job.jobTitle}
                     </td>
-                    <td className="p-2 border-r text-center">{job.jobCode}</td>
+                    <td className="p-2 border-r text-center text-xs">
+                      {job.jobCode}
+                    </td>
                     <td className="p-2 text-center">
                       <button
                         className="bg-gray-400 text-white px-2 py-1 rounded hover:bg-gray-500 transition"

@@ -272,36 +272,33 @@ function DepartmentSearch() {
     }
   };
   return (
-    <div className="p-6 font-sans bg-white min-h-screen">
+    <div className="p-2 sm:p-4 font-sans bg-white min-h-screen">
       <Toaster />
       <h1 className="text-2xl font-bold text-gray-800 mb-6">
         Department Search
       </h1>
-
       {/* Department Selection */}
       <div className="mb-8">
         <h2 className="text-xl font-semibold text-gray-700 mb-4">
           Select Department
         </h2>
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-8">
-          <div className="flex-1 flex">
-            <div className="flex-1 flex gap-2">
-              <input
-                type="text"
-                className="w-full p-2 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
-                placeholder="Select Department"
-                value={selectedDepartment}
-                readOnly
-              />
-              <button
-                className="flex items-center bg-[#3c8dbc] bg-opacity-60 hover:bg-[#3c8dbc] hover:bg-opacity-70 text-white px-3 py-1 rounded-md shadow-md hover:shadow-lg transition-all duration-300 border border-[#3c8dbc] border-opacity-60 text-xs md:text-sm ring-2 ring-[#3c8dbc]/20 hover:ring-[#3c8dbc]/40 focus:outline-none focus:ring-4 focus:ring-[#3c8dbc]/50"
-                onClick={() => setShowDepartmentTreeModal(true)}
-                type="button"
-                aria-label="Open department tree"
-              >
-                <FiPlus size={14} />
-              </button>
-            </div>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-8 w-full">
+          <div className="flex-1 flex flex-col sm:flex-row gap-2 w-full">
+            <input
+              type="text"
+              className="w-full p-2 border border-gray-300 text-sm rounded-md focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+              placeholder="Select Department"
+              value={selectedDepartment}
+              readOnly
+            />
+            <button
+              className="flex items-center bg-[#3c8dbc] bg-opacity-60 hover:bg-[#3c8dbc] hover:bg-opacity-70 text-white px-2 py-1 rounded-md shadow-md hover:shadow-lg transition-all duration-300 border border-[#3c8dbc] border-opacity-60 text-xs md:text-sm ring-2 ring-[#3c8dbc]/20 hover:ring-[#3c8dbc]/40 focus:outline-none focus:ring-4 focus:ring-[#3c8dbc]/50"
+              onClick={() => setShowDepartmentTreeModal(true)}
+              type="button"
+              aria-label="Open department tree"
+            >
+              <FiPlus size={14} />
+            </button>
           </div>
         </div>
       </div>
@@ -312,9 +309,9 @@ function DepartmentSearch() {
           Add New Jobs To Department
         </h2>
 
-        <div className="flex flex-col lg:flex-row items-stretch gap-4">
+        <div className="flex flex-col lg:flex-row items-stretch gap-4 w-full">
           {/* Available Jobs */}
-          <div className="border border-gray-300 rounded-md p-4 flex-1">
+          <div className="border border-gray-300 rounded-md p-4 flex-1 min-w-0">
             <h3 className="font-medium text-gray-700 mb-3">Available Jobs</h3>
             <div className="max-h-36 overflow-y-auto">
               <ul>
@@ -322,7 +319,7 @@ function DepartmentSearch() {
                   availableJobs.map((job, index) => (
                     <li
                       key={job.id}
-                      className="flex items-center gap-3 mb-2 last:mb-0"
+                      className="flex items-center text-sm gap-3 mb-2 last:mb-0"
                     >
                       <input
                         type="checkbox"
@@ -340,8 +337,7 @@ function DepartmentSearch() {
             </div>
           </div>
           {/* Arrow Controls */}
-          <div className="flex lg:flex-col justify-center gap-4 py-2 lg:py-0">
-            {/* Single right arrow for assigning selected */}
+          <div className="flex flex-row lg:flex-col justify-center gap-2 lg:gap-4 py-2 lg:py-0 w-full lg:w-auto">
             <button
               onClick={assignSelectedJobs}
               disabled={selectedAvailableJobs.length === 0}
@@ -351,7 +347,6 @@ function DepartmentSearch() {
               <ArrowForwardIcon className="h-5 w-6" />
             </button>
 
-            {/* Double right arrow for assigning all */}
             <button
               onClick={assignAllJobs}
               disabled={availableJobs.length === 0}
@@ -361,7 +356,6 @@ function DepartmentSearch() {
               <KeyboardTabIcon className="h-5 w-6" />
             </button>
 
-            {/* Single left arrow for removing selected */}
             <button
               onClick={removeSelectedJobs}
               disabled={selectedAssignedJobs.length === 0}
@@ -371,7 +365,6 @@ function DepartmentSearch() {
               <ArrowBackIcon className="h-5 w-6" />
             </button>
 
-            {/* Double left arrow for removing all */}
             <button
               onClick={removeAllJobs}
               disabled={assignedJobs.length === 0}
@@ -382,7 +375,7 @@ function DepartmentSearch() {
             </button>
           </div>
           {/* Assigned Jobs */}
-          <div className="border border-gray-300 rounded-md p-4 flex-1">
+          <div className="border border-gray-300 rounded-md p-4 flex-1 min-w-0">
             <h3 className="font-medium text-gray-700 mb-3">
               New Assigned Jobs
             </h3>
@@ -392,7 +385,7 @@ function DepartmentSearch() {
                   assignedJobs.map((job) => (
                     <li
                       key={job.id}
-                      className="flex items-center gap-3 mb-2 last:mb-0"
+                      className="flex items-center text-sm gap-3 mb-2 last:mb-0"
                     >
                       <input
                         type="checkbox"
@@ -480,22 +473,22 @@ function DepartmentSearch() {
                 [...departmentJobs, ...assignedJobs].map(
                   (job: Job, index: number) => (
                     <tr key={job.id}>
-                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap text text-gray-900">
+                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {index + 1}
                       </td>
-                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap text text-gray-900">
+                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {job.title}
                       </td>
                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {job.code}
                       </td>
-                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap text text-gray-900">
+                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {job.family}
                       </td>
-                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap text text-gray-900">
+                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {job.employees}
                       </td>
-                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap text text-gray-900">
+                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         <button
                           className="bg-gray-400 text-white px-2 py-1 rounded hover:bg-gray-500"
                           onClick={() => handleDeleteJob(job.id)}

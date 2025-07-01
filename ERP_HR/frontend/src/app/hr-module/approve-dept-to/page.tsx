@@ -492,18 +492,17 @@ function ApproveDeptTo() {
           <h2 className="text-lg font-semibold text-gray-700 mb-4">
             Search Requester Info:
           </h2>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div>
-              <div className="flex flex-row items-center gap-2 justify-start">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Available Requests:
                 </label>
                 <div className="flex-1 relative" ref={dropdownRef}>
                   <input
                     ref={inputRef}
                     type="text"
-                    className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                    className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                     placeholder="--Select One--"
                     value={searchValue}
                     onChange={(e) => {
@@ -594,12 +593,12 @@ function ApproveDeptTo() {
                 </div>
               </div>
             </div>
-            <div className="flex flex-row items-center gap-2">
-              <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start">
+              <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                 Approved Lists
               </label>
               <select
-                className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                 value={approvedLists}
                 onChange={(e) => setApprovedLists(e.target.value)}
                 onFocus={() => setApprovedDropdownFocused(true)}
@@ -614,7 +613,6 @@ function ApproveDeptTo() {
                 )}
                 {!approvedLoading &&
                   approvedRequests.map((req) => {
-                    // Use top-level empId and employeeName if available, else fallback to employee object
                     const empId = req.empId || req.employee?.empId || "N/A";
                     const fullName =
                       req.employeeName ||
@@ -653,51 +651,51 @@ function ApproveDeptTo() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             {/* Left Column */}
             <div className="space-y-4">
-              <div className="flex flex-row items-center gap-2 justify-start">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Employee Name
                 </label>
                 <input
                   type="text"
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={employeeName}
                   onChange={(e) => setEmployeeName(e.target.value)}
                   required
                   readOnly
                 />
               </div>
-              <div className="flex flex-row items-center gap-2 justify-start">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Job Position
                 </label>
                 <input
                   type="text"
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={jobPosition}
                   onChange={(e) => setJobPosition(e.target.value)}
                   readOnly
                 />
               </div>
-              <div className="flex flex-row items-center gap-2 justify-start">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Hired Date
                 </label>
                 <input
                   type="date"
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={hiredDate}
                   onChange={(e) => setHiredDate(e.target.value)}
                   readOnly
                 />
               </div>
-              <div className="flex flex-row items-center gap-2 justify-end">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-end">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   From Department
                 </label>
                 <div className="flex-1">
                   <input
                     type="text"
-                    className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                    className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                     value={fromDepartment}
                     onChange={(e) => setFromDepartment(e.target.value)}
                     placeholder=""
@@ -705,24 +703,24 @@ function ApproveDeptTo() {
                   />
                 </div>
               </div>
-              <div className="flex flex-row items-center gap-2 justify-start">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Transfer Reason
                 </label>
                 <textarea
-                  className="flex-1 border border-gray-300 rounded-md p-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300 resize-y min-h-[40px] max-h-[200px]"
+                  className="flex-1 border border-gray-300 rounded-md text-xs p-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300 resize-y min-h-[40px] max-h-[200px]"
                   value={transferReason}
                   onChange={(e) => setTransferReason(e.target.value)}
                   rows={2}
                   readOnly
                 />
               </div>
-              <div className="flex flex-row items-center gap-2 justify-end">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-end">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Approver Remark
                 </label>
                 <textarea
-                  className="flex-1 border border-gray-300 rounded-md p-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300 resize-y min-h-[40px] max-h-[200px]"
+                  className="flex-1 border border-gray-300 rounded-md p-1 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300 resize-y min-h-[40px] max-h-[200px]"
                   value={remark}
                   onChange={(e) => setRemark(e.target.value)}
                   rows={2}
@@ -732,75 +730,75 @@ function ApproveDeptTo() {
             </div>
             {/* Right Column */}
             <div className="space-y-4">
-              <div className="flex flex-row items-center gap-2 justify-end">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-end">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Employee ID
                 </label>
                 <input
                   type="text"
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={employeeId}
                   onChange={(e) => setEmployeeId(e.target.value)}
                   required
                   readOnly
                 />
               </div>
-              <div className="flex flex-row items-center gap-2 justify-end">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-end">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   ICF
                 </label>
                 <input
                   type="text"
-                  className="flex-1 border border-gray-300 rounded-md focus:outline-none p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={icf}
                   onChange={(e) => seticf(e.target.value)}
                   readOnly
                 />
               </div>
-              <div className="flex flex-row items-center gap-2 justify-end">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-end">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Request Date
                 </label>
                 <input
                   type="date"
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={requestDate}
                   onChange={(e) => setRequestDate(e.target.value)}
                   readOnly
                 />
               </div>
-              <div className="flex flex-row items-center gap-2 justify-start">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   To Department
                 </label>
                 <div className="flex-1">
                   <input
                     type="text"
-                    className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                    className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                     value={toDepartment}
                     onChange={(e) => setToDepartment(e.target.value)}
                     readOnly
                   />
                 </div>
               </div>
-              <div className="flex flex-row items-center gap-2 justify-end">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-end">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Approved Date
                 </label>
                 <input
                   type="date"
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={approvedDate}
                   onChange={(e) => setApprovedDate(e.target.value)}
                 />
               </div>
-              <div className="flex flex-row items-center gap-2 justify-start">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Approver Decision
                 </label>
                 <input
                   type="text"
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={approverDecision}
                   onChange={(e) => setApproverDecision(e.target.value)}
                   required
@@ -814,33 +812,32 @@ function ApproveDeptTo() {
             {/* Left Column */}
             <div className="space-y-4">
               <div className="space-y-4"></div>
-              <div className="flex flex-row items-center gap-2 justify-start">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Decision
                 </label>
                 <select
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={decision}
                   onChange={(e) => setDecision(e.target.value)}
                   required
                 >
                   <option value="">--Select One--</option>
-                  <option value="2">Approved</option>
-                  <option value="1">Rejected</option>
+                  <option value="2">Approve</option>
+                  <option value="-1">Reject</option>
                 </select>
               </div>
             </div>
-
             {/* Right Column */}
             <div className="space-y-4">
               {/* <div className="h-2" /> */}
-              <div className="flex flex-row items-center gap-2 justify-end">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-end">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Checked Date
                 </label>
                 <input
                   type="date"
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={checkedDate}
                   onChange={(e) => setCheckedDate(e.target.value)}
                 />
@@ -852,19 +849,18 @@ function ApproveDeptTo() {
             <div className="space-y-4">
               <div className="h-4" />
               {/* Progress by  */}
-              <div className="flex flex-row items-center gap-2 justify-start mt-2">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start mt-2">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Processed by:
                 </label>
                 <span className="text-gray-800 font-semibold">Abdi Tolesa</span>
               </div>
             </div>
           </div>
-
-          <div className="flex justify-start">
+          <div className="flex flex-col sm:flex-row justify-start">
             <button
               type="submit"
-              className="px-4 py-2 bg-[#3c8dbc] text-white rounded-lg hover:bg-[#367fa9] shadow-lg hover:shadow-xl"
+              className="px-4 py-2 bg-[#3c8dbc] text-white rounded-lg hover:bg-[#367fa9] shadow-lg hover:shadow-xl w-full sm:w-auto"
             >
               Save
             </button>

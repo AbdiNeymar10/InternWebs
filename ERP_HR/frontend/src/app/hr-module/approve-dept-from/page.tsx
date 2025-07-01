@@ -389,15 +389,15 @@ function ApproveDeptFrom() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div>
-              <div className="flex flex-row items-center gap-2 justify-start">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Available Requests:
                 </label>
                 <div className="flex-1 relative" ref={dropdownRef}>
                   <input
                     ref={inputRef}
                     type="text"
-                    className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                    className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                     placeholder="--Select One--"
                     value={searchValue}
                     onChange={(e) => {
@@ -418,7 +418,6 @@ function ApproveDeptFrom() {
                       ×
                     </button>
                   )}
-                  {/* Dropdown logic: robust filtering, display, and selection */}
                   {showDropdown && (
                     <ul className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md max-h-48 overflow-y-auto">
                       {loading ? (
@@ -427,7 +426,6 @@ function ApproveDeptFrom() {
                         <>
                           {transferRequests
                             .filter((req) => {
-                              // Use flat DTO fields
                               const empId = req.empId?.toString?.() || "";
                               const empName = req.employeeName || "";
                               if (!empId || !empName) return false;
@@ -504,50 +502,50 @@ function ApproveDeptFrom() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             {/* Left Column */}
             <div className="space-y-4">
-              <div className="flex flex-row items-center gap-2 justify-start">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Employee Name
                 </label>
                 <input
                   type="text"
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={employeeName}
                   onChange={(e) => setEmployeeName(e.target.value)}
                   required
                   readOnly
                 />
               </div>
-              <div className="flex flex-row items-center gap-2 justify-start">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Gender
                 </label>
                 <input
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={gender}
                   onChange={(e) => setGender(e.target.value)}
                   required
                   readOnly
                 />
               </div>
-              <div className="flex flex-row items-center gap-2 justify-start">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Job Position
                 </label>
                 <input
                   type="text"
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={jobPosition}
                   onChange={(e) => setJobPosition(e.target.value)}
                   readOnly
                 />
               </div>
-              <div className="flex flex-row items-center gap-2 justify-start">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Hired Date
                 </label>
                 <input
                   type="date"
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={hiredDate}
                   onChange={(e) => setHiredDate(e.target.value)}
                   readOnly
@@ -556,27 +554,27 @@ function ApproveDeptFrom() {
             </div>
             {/* Right Column */}
             <div className="space-y-4">
-              <div className="flex flex-row items-center gap-2 justify-end">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-end">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Employee ID
                 </label>
                 <input
                   type="text"
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={employeeId}
                   onChange={(e) => setEmployeeId(e.target.value)}
                   required
                   readOnly
                 />
               </div>
-              <div className="flex flex-row items-center gap-2 justify-end">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-end">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Department
                 </label>
                 <div className="flex-1">
                   <input
                     type="text"
-                    className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                    className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                     value={department}
                     onChange={(e) => setDepartment(e.target.value)}
                     placeholder=""
@@ -584,25 +582,25 @@ function ApproveDeptFrom() {
                   />
                 </div>
               </div>
-              <div className="flex flex-row items-center gap-2 justify-end">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-end">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   ICF
                 </label>
                 <input
                   type="text"
-                  className="flex-1 border border-gray-300 rounded-md focus:outline-none p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={icf}
                   onChange={(e) => seticf(e.target.value)}
                   readOnly
                 />
               </div>
-              <div className="flex flex-row items-center gap-2 justify-end">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-end">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Directorate
                 </label>
                 <input
                   type="text"
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={directorate}
                   onChange={(e) => setDirectorate(e.target.value)}
                   readOnly
@@ -617,12 +615,12 @@ function ApproveDeptFrom() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             {/* Left Column */}
             <div className="space-y-4">
-              <div className="flex flex-row items-center gap-2 justify-start">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Transfer Type
                 </label>
                 <select
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={transferType}
                   onChange={(e) =>
                     setTransferType(e.target.value as TransferType)
@@ -635,26 +633,26 @@ function ApproveDeptFrom() {
                 </select>
               </div>
 
-              <div className="flex flex-row items-center gap-2 justify-start">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   To Department
                 </label>
                 <div className="flex-1">
                   <input
                     type="text"
-                    className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                    className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                     value={toDepartment}
                     onChange={(e) => setToDepartment(e.target.value)}
                     readOnly
                   />
                 </div>
               </div>
-              <div className="flex flex-row items-center gap-2 justify-start">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Transfer Reason
                 </label>
                 <textarea
-                  className="flex-1 border border-gray-300 rounded-md p-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300 resize-y min-h-[40px] max-h-[200px]"
+                  className="flex-1 border border-gray-300 rounded-md p-1 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300 resize-y min-h-[40px] max-h-[200px]"
                   value={transferReason}
                   onChange={(e) => setTransferReason(e.target.value)}
                   rows={2}
@@ -665,14 +663,14 @@ function ApproveDeptFrom() {
 
             {/* Right Column */}
             <div className="space-y-4">
-              <div className="flex flex-row items-center gap-2 justify-end">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-end">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   From Department
                 </label>
                 <div className="flex-1">
                   <input
                     type="text"
-                    className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                    className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                     value={fromDepartment}
                     onChange={(e) => setFromDepartment(e.target.value)}
                     placeholder=""
@@ -680,25 +678,25 @@ function ApproveDeptFrom() {
                   />
                 </div>
               </div>
-              <div className="flex flex-row items-center gap-2 justify-end">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-end">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Request Date
                 </label>
                 <input
                   type="date"
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={requestDate}
                   onChange={(e) => setRequestDate(e.target.value)}
                   readOnly
                 />
               </div>
-              <div className="flex flex-row items-center gap-2 justify-end">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-end">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Prepared Date
                 </label>
                 <input
                   type="date"
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={preparedDate}
                   onChange={(e) => setPreparedDate(e.target.value)}
                 />
@@ -708,40 +706,37 @@ function ApproveDeptFrom() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div className="space-y-4">
-              <div className="flex flex-row items-center gap-2 justify-start">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Decision
                 </label>
                 <select
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={decision}
                   onChange={(e) => setDecision(e.target.value)}
                   required
                 >
                   <option value="">--Select One--</option>
-                  {/* <option value="DirectChanged">Direct Changed</option>
-                  <option value="rejectFromDept">Reject From Dept</option>
-                  <option value="approvedFromDept">Approved From Dept</option>
-                  <option value="Changed">Changed</option> */}
-                  <option value="1">1</option>
+                  <option value="1">Approve</option>
+                  <option value="-1">Reject</option>
                 </select>
               </div>
               <div className="h-4" />
               {/* Progress by  */}
-              <div className="flex flex-row items-center gap-2 justify-start mt-2">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start mt-2">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Processed by:
                 </label>
                 <span className="text-gray-800 font-semibold">Abdi Neymar</span>
               </div>
             </div>
             <div className="space-y-4">
-              <div className="flex flex-row items-center gap-2 justify-end">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-end">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Remark
                 </label>
                 <textarea
-                  className="flex-1 border border-gray-300 rounded-md p-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300 resize-y min-h-[40px] max-h-[200px]"
+                  className="flex-1 border border-gray-300 rounded-md p-1 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300 resize-y min-h-[40px] max-h-[200px]"
                   value={remark}
                   onChange={(e) => setRemark(e.target.value)}
                   rows={2}
@@ -750,10 +745,10 @@ function ApproveDeptFrom() {
             </div>
           </div>
 
-          <div className="flex justify-start">
+          <div className="flex flex-col sm:flex-row justify-start">
             <button
               type="submit"
-              className="px-4 py-2 bg-[#3c8dbc] text-white rounded-lg hover:bg-[#367fa9] shadow-lg hover:shadow-xl"
+              className="px-4 py-2 bg-[#3c8dbc] text-white rounded-lg hover:bg-[#367fa9] shadow-lg hover:shadow-xl w-full sm:w-auto"
             >
               Save
             </button>

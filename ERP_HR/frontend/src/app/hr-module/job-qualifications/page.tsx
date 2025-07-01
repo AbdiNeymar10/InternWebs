@@ -335,16 +335,16 @@ function JobQualification() {
 
   return (
     <>
-      <div className="p-6 font-sans bg-white min-h-screen">
+      <div className="p-2 sm:p-4 font-sans bg-white min-h-screen">
         <Toaster />
         {/* Search Job Position */}
         <h1 className="text-2xl font-bold mb-4">Search Job Position</h1>
         <div className="bg-white p-4 shadow rounded mb-6">
           <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 w-full">
               <span className="text-gray-700 sm:w-16">Jobs:</span>
               <select
-                className="w-full sm:flex-1 border rounded p-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                className="w-full sm:flex-1 border rounded p-2 text-xs focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
                 value={selectedJob}
                 onChange={(e) => {
                   const selectedId =
@@ -366,10 +366,10 @@ function JobQualification() {
                 ))}
               </select>
             </div>
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 w-full">
               <span className="text-gray-700 sm:w-16">ICF:</span>
               <select
-                className="w-full sm:flex-1 border rounded p-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                className="w-full sm:flex-1 border rounded p-2 text-xs focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
                 value={selectedICF}
                 onChange={(e) => setSelectedICF(e.target.value)}
               >
@@ -413,7 +413,7 @@ function JobQualification() {
           </div>
           {/* Qualifications Table */}
           <div className="overflow-x-auto mt-6">
-            <table className="w-full border border-gray-300 bg-white">
+            <table className="w-full border border-gray-300 bg-white text-xs md:text-sm">
               <thead className="bg-gray-100">
                 <tr>
                   <th colSpan={9} className="text-center py-2">
@@ -492,10 +492,10 @@ function JobQualification() {
             </table>
           </div>
           {/* Save Button */}
-          <div className="flex justify-start mt-4">
+          <div className="flex flex-col sm:flex-row justify-start mt-4 gap-2">
             <button
               onClick={handleSaveQualifications}
-              className="px-4 py-2 bg-[#3c8dbc] text-white rounded-lg hover:bg-[#367fa9] shadow-lg hover:shadow-xl"
+              className="px-4 py-2 bg-[#3c8dbc] text-white rounded-lg hover:bg-[#367fa9] shadow-lg hover:shadow-xl w-full sm:w-auto"
             >
               Save
             </button>

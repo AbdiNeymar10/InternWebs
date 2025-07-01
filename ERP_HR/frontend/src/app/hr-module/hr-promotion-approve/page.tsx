@@ -564,7 +564,7 @@ function HrPromotionApprove() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div>
-              <div className="flex flex-row items-center gap-2 justify-start">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start">
                 <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Approve Available Requests:
                 </label>
@@ -572,7 +572,7 @@ function HrPromotionApprove() {
                   <input
                     ref={inputRef}
                     type="text"
-                    className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                    className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                     placeholder="--Select One--"
                     value={searchValue}
                     onChange={(e) => {
@@ -677,63 +677,63 @@ function HrPromotionApprove() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             {/* Left Column */}
             <div className="space-y-4">
-              <div className="flex flex-row items-center gap-2 justify-start">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Employee Name
                 </label>
                 <input
                   type="text"
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={employeeName}
                   onChange={(e) => setEmployeeName(e.target.value)}
                   required
                   readOnly
                 />
               </div>
-              <div className="flex flex-row items-center gap-2 justify-start">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Job Title:
                 </label>
                 <input
                   type="text"
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={jobPosition}
                   onChange={(e) => setJobPosition(e.target.value)}
                   readOnly
                 />
               </div>
-              <div className="flex flex-row items-center gap-2 justify-start">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Hired Date
                 </label>
                 <input
                   type="date"
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={hiredDate}
                   onChange={(e) => setHiredDate(e.target.value)}
                   readOnly
                 />
               </div>
-              <div className="flex flex-row items-center gap-2 justify-end">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-end">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Department From:
                 </label>
                 <div className="flex-1">
                   <input
                     type="text"
-                    className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                    className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                     value={fromDepartment}
                     onChange={(e) => setFromDepartment(e.target.value)}
                     readOnly
                   />
                 </div>
               </div>
-              <div className="flex flex-row items-center gap-2 justify-start">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Transfer Reason
                 </label>
                 <textarea
-                  className="flex-1 border border-gray-300 rounded-md p-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300 resize-y min-h-[40px] max-h-[200px]"
+                  className="flex-1 border border-gray-300 text-xs rounded-md p-1 resize-y min-h-[40px] max-h-[200px]"
                   value={transferReason}
                   onChange={(e) => setTransferReason(e.target.value)}
                   rows={2}
@@ -743,63 +743,63 @@ function HrPromotionApprove() {
             </div>
             {/* Right Column */}
             <div className="space-y-4">
-              <div className="flex flex-row items-center gap-2 justify-end">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-end">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Employee ID
                 </label>
                 <input
                   type="text"
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={employeeId}
                   onChange={(e) => setEmployeeId(e.target.value)}
                   required
                   readOnly
                 />
               </div>
-              <div className="flex flex-row items-center gap-2 justify-end">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-end">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   ICF
                 </label>
                 <input
                   type="text"
-                  className="flex-1 border border-gray-300 rounded-md focus:outline-none p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={icf}
                   onChange={(e) => seticf(e.target.value)}
                   readOnly
                 />
               </div>
-              <div className="flex flex-row items-center gap-2 justify-start">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Start Date
                 </label>
                 <input
                   type="date"
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
                 />
               </div>
-              <div className="flex flex-row items-center gap-2 justify-start">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Department To:
                 </label>
                 <div className="flex-1">
                   <input
                     type="text"
-                    className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                    className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                     value={toDepartment}
                     onChange={(e) => setToDepartment(e.target.value)}
                     readOnly
                   />
                 </div>
               </div>
-              <div className="flex flex-row items-center gap-2 justify-end">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-end">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Increment Step
                 </label>
                 <input
                   type="text"
-                  className="flex-1 border border-gray-300 rounded-md focus:outline-none p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={selectedIncrementStep}
                   readOnly
                 />
@@ -813,50 +813,50 @@ function HrPromotionApprove() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             {/* Left Column */}
             <div className="space-y-4">
-              <div className="flex flex-row items-center gap-2 justify-start">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Job Title:
                 </label>
                 <input
                   type="text"
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={jobPosition}
                   onChange={(e) => setJobPosition(e.target.value)}
                   readOnly
                 />
               </div>
-              <div className="flex flex-row items-center gap-2 justify-end">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-end">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   ICF
                 </label>
                 <input
                   type="text"
-                  className="flex-1 border border-gray-300 rounded-md focus:outline-none p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={icf}
                   onChange={(e) => seticf(e.target.value)}
                   readOnly
                 />
               </div>
-              <div className="flex flex-row items-center gap-2 justify-start">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Salary
                 </label>
                 <input
                   type="text"
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={currentSalary}
                   onChange={(e) => setCurrentSalary(e.target.value)}
                   required
                   readOnly
                 />
               </div>
-              <div className="flex flex-row items-center gap-2 justify-start">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Request From:
                 </label>
                 <input
                   type="text"
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={employeeName}
                   onChange={(e) => setEmployeeName(e.target.value)}
                   readOnly
@@ -866,49 +866,49 @@ function HrPromotionApprove() {
             </div>
             {/* Right Column */}
             <div className="space-y-4">
-              <div className="flex flex-row items-center gap-2 justify-start mt-2">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start mt-2">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Job Class
                 </label>
                 <input
                   type="text"
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={jobClass}
                   onChange={(e) => setJobClass(e.target.value)}
                   readOnly
                 />
               </div>
-              <div className="flex flex-row items-center gap-2 justify-end">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-end">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Increment Step
                 </label>
                 <input
                   type="text"
-                  className="flex-1 border border-gray-300 rounded-md focus:outline-none p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={selectedIncrementStep}
                   onChange={(e) => setSelectedIncrementStep(e.target.value)}
                   readOnly
                 />
               </div>
-              <div className="flex flex-row items-center gap-2 justify-end">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-end">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Branch
                 </label>
                 <input
                   type="text"
-                  className="flex-1 border border-gray-300 rounded-md focus:outline-none p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={branch}
                   onChange={(e) => setBranch(e.target.value)}
                   readOnly
                 />
               </div>
-              <div className="flex flex-row items-center gap-2 justify-start">
-                <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Request From:
                 </label>
                 <input
                   type="text"
-                  className="flex-1 border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={employeeName}
                   onChange={(e) => setEmployeeName(e.target.value)}
                   readOnly
@@ -916,10 +916,10 @@ function HrPromotionApprove() {
               </div>
             </div>
           </div>
-          <div className="flex justify-start">
+          <div className="flex flex-col sm:flex-row justify-start">
             <button
               type="submit"
-              className="px-4 py-2 bg-[#3c8dbc] text-white rounded-lg hover:bg-[#367fa9] shadow-lg hover:shadow-xl"
+              className="px-4 py-2 bg-[#3c8dbc] text-white rounded-lg hover:bg-[#367fa9] shadow-lg hover:shadow-xl w-full sm:w-auto"
             >
               Change Profile
             </button>

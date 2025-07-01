@@ -317,17 +317,17 @@ const SalarySettings = () => {
     }
   };
   return (
-    <div className="p-6 bg-white">
+    <div className="p-2 sm:p-4 md:p-6 bg-white">
       <Toaster />
       <h2 className="text-2xl font-bold mb-4">Pay Grade</h2>
       <div className="space-y-4">
         {/* Class Dropdown */}
-        <div className="flex items-center gap-4">
-          <label className="w-40 text-right">Class:</label>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center text-xs gap-2 sm:gap-4 w-full">
+          <label className="w-full sm:w-40 text-left sm:text-right mb-1 sm:mb-0">Class:</label>
           <select
             value={classDropdown}
             onChange={(e) => setClassDropdown(e.target.value)}
-            className="flex-1 p-2 border rounded-md w-full focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+            className="w-full sm:flex-1 p-2 border rounded-md focus:border-blue-500 text-xs focus:ring-2 focus:ring-blue-200 outline-none"
           >
             <option value="">--Select One--</option>
             {classOptions.map((classOption) => (
@@ -339,12 +339,12 @@ const SalarySettings = () => {
         </div>
 
         {/* ICF Dropdown */}
-        <div className="flex items-center gap-4">
-          <label className="w-40 text-right">ICF:</label>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center text-xs gap-2 sm:gap-4 w-full">
+          <label className="w-full sm:w-40 text-left sm:text-right mb-1 sm:mb-0">ICF:</label>
           <select
             value={icfDropdown}
             onChange={(e) => setIcfDropdown(e.target.value)}
-            className="flex-1 p-2 border rounded-md w-full focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+            className="w-full sm:flex-1 p-2 border rounded-md focus:border-blue-500 text-xs focus:ring-2 focus:ring-blue-200 outline-none"
           >
             <option value="">--Select One--</option>
             {icfOptions.map((icfOption) => (
@@ -356,25 +356,25 @@ const SalarySettings = () => {
         </div>
 
         {/* Beginning Salary */}
-        <div className="flex items-center gap-4">
-          <label className="w-40 text-right">Beginning Salary:</label>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center text-sm gap-2 sm:gap-4 w-full">
+          <label className="w-full sm:w-40 text-left sm:text-right mb-1 sm:mb-0">Beginning Salary:</label>
           <input
             type="number"
             value={beginningSalary}
             onChange={(e) => setBeginningSalary(e.target.value)}
-            className="flex-1 p-2 border rounded-md w-full focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+            className="w-full sm:flex-1 p-2 border rounded-md focus:border-blue-500 text-xs focus:ring-2 focus:ring-blue-200 outline-none"
             placeholder="Beginning Salary"
           />
         </div>
 
         {/* Max Salary */}
-        <div className="flex items-center gap-4 mb-6">
-          <label className="w-40 text-right">Max Salary:</label>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center text-sm gap-2 sm:gap-4 w-full mb-6">
+          <label className="w-full sm:w-40 text-left sm:text-right mb-1 sm:mb-0">Max Salary:</label>
           <input
             type="number"
             value={maxSalary}
             onChange={(e) => setMaxSalary(e.target.value)}
-            className="flex-1 p-2 border rounded-md w-full focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+            className="w-full sm:flex-1 p-2 border rounded-md text-xs focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
             placeholder="Max Salary"
           />
         </div>

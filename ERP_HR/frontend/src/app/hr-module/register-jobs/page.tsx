@@ -349,137 +349,136 @@ const RegisterJob = () => {
     }
   };
   return (
-    <div className="p-6 font-sans bg-white min-h-screen">
+    <div className="p-2 sm:p-4 md:p-6 font-sans bg-white min-h-screen">
       <div className="space-y-6">
         {/* Job Title  */}
         <h3 className="text-xl font-bold text-gray-800 mb-4">Job Type</h3>
-        <div className="flex items-center gap-4 relative">
-          <label className="w-32 text-right font-semibold">Job Title:</label>
-
-          <div className="flex-grow relative">
-            <input
-              type="text"
-              className="w-full p-2  border border-gray-300 rounded-md focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
-              placeholder="--Select One--"
-              value={selectedJobTitle}
-              onChange={(e) => {
-                setSelectedJobTitle(e.target.value);
-                setShowDropdown(true);
-              }}
-              onFocus={() => setShowDropdown(true)}
-            />
-
-            {selectedJobTitle && (
-              <button
-                type="button"
-                className="absolute right-2 top-2 text-gray-500 hover:text-red-500"
-                onClick={() => {
-                  setSelectedJobTitle("");
-                  setShowDropdown(false);
+        {/* Job Title */}
+        <div className="flex flex-col gap-2 w-full mb-4">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full">
+            <label className="w-full sm:w-32 text-left sm:text-right font-semibold mb-1 sm:mb-0">Job Title:</label>
+            <div className="flex-grow relative w-full">
+              <input
+                type="text"
+                className="w-full p-2 border border-gray-300 text-xs rounded-md focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                placeholder="--Select One--"
+                value={selectedJobTitle}
+                onChange={(e) => {
+                  setSelectedJobTitle(e.target.value);
+                  setShowDropdown(true);
                 }}
-              >
-                ×
-              </button>
-            )}
-
-            {showDropdown && (
-              <ul className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md max-h-48 overflow-y-auto">
-                {jobTypes
-                  .filter(
-                    (jobType) =>
-                      jobType.jobTitle &&
-                      jobType.jobTitle
-                        .toLowerCase()
-                        .includes(selectedJobTitle.toLowerCase())
-                  )
-                  .map((jobType) => (
-                    <li
-                      key={jobType.id}
-                      className="p-2 hover:bg-gray-400"
-                      onClick={() => {
-                        setSelectedJobTitle(jobType.jobTitle || "");
-                        setShowDropdown(false);
-                      }}
-                    >
-                      {jobType.jobTitle}
-                    </li>
-                  ))}
-              </ul>
-            )}
+                onFocus={() => setShowDropdown(true)}
+              />
+              {selectedJobTitle && (
+                <button
+                  type="button"
+                  className="absolute right-2 top-2 text-gray-500 hover:text-red-500"
+                  onClick={() => {
+                    setSelectedJobTitle("");
+                    setShowDropdown(false);
+                  }}
+                >
+                  ×
+                </button>
+              )}
+              {showDropdown && (
+                <ul className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md max-h-48 overflow-y-auto">
+                  {jobTypes
+                    .filter(
+                      (jobType) =>
+                        jobType.jobTitle &&
+                        jobType.jobTitle
+                          .toLowerCase()
+                          .includes(selectedJobTitle.toLowerCase())
+                    )
+                    .map((jobType) => (
+                      <li
+                        key={jobType.id}
+                        className="p-2 hover:bg-gray-400"
+                        onClick={() => {
+                          setSelectedJobTitle(jobType.jobTitle || "");
+                          setShowDropdown(false);
+                        }}
+                      >
+                        {jobType.jobTitle}
+                      </li>
+                    ))}
+                </ul>
+              )}
+            </div>
+            <button
+              type="button"
+              className="flex items-center bg-[#3c8dbc] bg-opacity-60 hover:bg-[#3c8dbc] hover:bg-opacity-70 text-white px-3 py-1 rounded-md shadow-md hover:shadow-lg transition-all duration-300 border border-[#3c8dbc] border-opacity-60 text-xs md:text-sm ring-2 ring-[#3c8dbc]/20 hover:ring-[#3c8dbc]/40 focus:outline-none focus:ring-4 focus:ring-[#3c8dbc]/50 mt-2 sm:mt-0"
+              onClick={() => setModalType("job")}
+            >
+              <FiPlus size={16} />
+            </button>
           </div>
-
-          <button
-            type="button"
-            className="flex items-center bg-[#3c8dbc] bg-opacity-60 hover:bg-[#3c8dbc] hover:bg-opacity-70 text-white px-3 py-1 rounded-md shadow-md hover:shadow-lg transition-all duration-300 border border-[#3c8dbc] border-opacity-60 text-xs md:text-sm ring-2 ring-[#3c8dbc]/20 hover:ring-[#3c8dbc]/40 focus:outline-none focus:ring-4 focus:ring-[#3c8dbc]/50"
-            onClick={() => setModalType("job")}
-          >
-            <FiPlus size={16} />
-          </button>
         </div>
-
         {/* Class */}
-        <div className="flex items-center gap-4">
-          <label className="w-32 text-right font-semibold">Class:</label>
-          <div
-            className="flex-grow relative"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <input
-              type="text"
-              placeholder="--Select One--"
-              className="w-full p-2 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
-              value={selectedClass}
-              onChange={(e) => {
-                setSelectedClass(e.target.value);
-                setShowClassDropdown(true);
-              }}
-              onFocus={() => setShowClassDropdown(true)}
-            />
-            {selectedClass && (
-              <button
-                type="button"
-                className="absolute right-2 top-2 text-gray-500 hover:text-red-500"
-                onClick={() => {
-                  setSelectedClass("");
-                  setShowClassDropdown(false);
+        <div className="flex flex-col gap-2 w-full mb-4">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full">
+            <label className="w-full sm:w-32 text-left sm:text-right font-semibold mb-1 sm:mb-0">Class:</label>
+            <div
+              className="flex-grow relative w-full"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <input
+                type="text"
+                placeholder="--Select One--"
+                className="w-full p-2 border border-gray-300 rounded-md text-xs focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none"
+                value={selectedClass}
+                onChange={(e) => {
+                  setSelectedClass(e.target.value);
+                  setShowClassDropdown(true);
                 }}
-              >
-                ×
-              </button>
-            )}
-            {showClassDropdown && (
-              <ul className="absolute z-10 w-full bg-white border border-gray-300 rounded-md max-h-48 overflow-y-auto mt-1">
-                {records
-                  .filter(
-                    (record) =>
-                      record.grade &&
-                      record.grade
-                        .toLowerCase()
-                        .includes(selectedClass.toLowerCase())
-                  )
-                  .map((record) => (
-                    <li
-                      key={record.id}
-                      className="p-2 text-sm hover:bg-gray-400"
-                      onClick={() => {
-                        setSelectedClass(record.grade || "");
-                        setShowClassDropdown(false);
-                      }}
-                    >
-                      {record.grade}
-                    </li>
-                  ))}
-              </ul>
-            )}
+                onFocus={() => setShowClassDropdown(true)}
+              />
+              {selectedClass && (
+                <button
+                  type="button"
+                  className="absolute right-2 top-2 text-gray-500 hover:text-red-500"
+                  onClick={() => {
+                    setSelectedClass("");
+                    setShowClassDropdown(false);
+                  }}
+                >
+                  ×
+                </button>
+              )}
+              {showClassDropdown && (
+                <ul className="absolute z-10 w-full bg-white border border-gray-300 rounded-md max-h-48 overflow-y-auto mt-1">
+                  {records
+                    .filter(
+                      (record) =>
+                        record.grade &&
+                        record.grade
+                          .toLowerCase()
+                          .includes(selectedClass.toLowerCase())
+                    )
+                    .map((record) => (
+                      <li
+                        key={record.id}
+                        className="p-2 text-sm hover:bg-gray-400"
+                        onClick={() => {
+                          setSelectedClass(record.grade || "");
+                          setShowClassDropdown(false);
+                        }}
+                      >
+                        {record.grade}
+                      </li>
+                    ))}
+                </ul>
+              )}
+            </div>
+            <button
+              className="flex items-center bg-[#3c8dbc] bg-opacity-60 hover:bg-[#3c8dbc] hover:bg-opacity-70 text-white px-3 py-1 rounded-md shadow-md hover:shadow-lg transition-all duration-300 border border-[#3c8dbc] border-opacity-60 text-xs md:text-sm ring-2 ring-[#3c8dbc]/20 hover:ring-[#3c8dbc]/40 focus:outline-none focus:ring-4 focus:ring-[#3c8dbc]/50 mt-2 sm:mt-0"
+              onClick={() => setModalType("class")}
+            >
+              <FiPlus size={16} />
+            </button>
           </div>
-          <button
-            className="flex items-center bg-[#3c8dbc] bg-opacity-60 hover:bg-[#3c8dbc] hover:bg-opacity-70 text-white px-3 py-1 rounded-md shadow-md hover:shadow-lg transition-all duration-300 border border-[#3c8dbc] border-opacity-60 text-xs md:text-sm ring-2 ring-[#3c8dbc]/20 hover:ring-[#3c8dbc]/40 focus:outline-none focus:ring-4 focus:ring-[#3c8dbc]/50"
-            onClick={() => setModalType("class")}
-          >
-            <FiPlus size={16} />
-          </button>
         </div>
-
         {/* Position */}
         <div className="mt-10">
           {/* Position Modal */}
@@ -646,9 +645,9 @@ const RegisterJob = () => {
         </div>
 
         {/* Save Button */}
-        <div className="flex justify-start pt-8">
+        <div className="flex flex-col sm:flex-row justify-start pt-8">
           <button
-            className="px-4 py-2 bg-[#3c8dbc] text-white rounded-lg hover:bg-[#367fa9] shadow-lg hover:shadow-xl"
+            className="px-4 py-2 bg-[#3c8dbc] text-white rounded-lg hover:bg-[#367fa9] shadow-lg hover:shadow-xl w-full sm:w-auto"
             onClick={async () => {
               if (newPositions.length === 0) {
                 toast.error("No new positions to save.");

@@ -3,7 +3,7 @@ import { faBars, faSearch } from "@fortawesome/free-solid-svg-icons";
 
 export default function Header({ toggleSidebar }) {
   return (
-    <header className="bg-gray-800 text-white p-4 flex justify-between items-center sticky top-0 z-10">
+    <header className="bg-gray-800 text-white p-4 flex justify-between items-center sticky top-0 z-10 w-full">
       {/* Left Section: Logo and Menu Icon */}
       <div className="flex items-center">
         <button className="mr-4 focus:outline-none" onClick={toggleSidebar}>
