@@ -560,7 +560,6 @@ function HrApprove() {
                   readOnly
                 />
               </div>
-
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-end">
                 <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   ICF

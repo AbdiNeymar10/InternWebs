@@ -144,7 +144,7 @@ function ApproveDeptTo() {
           return res.json();
         })
         .then(() => {
-          toast.success("Transfer request updated successfully!");
+          toast.success("Transfer request saved successfully!");
           clearForm();
         })
         .catch(() => toast.error("Failed to update transfer request"));

@@ -37,9 +37,6 @@ export default function Home() {
     }
     if (currentView === "jobs-by-department") {
       return <DepartmentJobsPage />;
-      if (currentView === "job-qualifications") {
-        return <QualificationPage />;
-      }
     }
 
     return (

@@ -323,7 +323,9 @@ const SalarySettings = () => {
       <div className="space-y-4">
         {/* Class Dropdown */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center text-xs gap-2 sm:gap-4 w-full">
-          <label className="w-full sm:w-40 text-left sm:text-right mb-1 sm:mb-0">Class:</label>
+          <label className="w-full sm:w-40 text-left sm:text-right mb-1 sm:mb-0">
+            Class:
+          </label>
           <select
             value={classDropdown}
             onChange={(e) => setClassDropdown(e.target.value)}
@@ -340,7 +342,9 @@ const SalarySettings = () => {
 
         {/* ICF Dropdown */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center text-xs gap-2 sm:gap-4 w-full">
-          <label className="w-full sm:w-40 text-left sm:text-right mb-1 sm:mb-0">ICF:</label>
+          <label className="w-full sm:w-40 text-left sm:text-right mb-1 sm:mb-0">
+            ICF:
+          </label>
           <select
             value={icfDropdown}
             onChange={(e) => setIcfDropdown(e.target.value)}
@@ -357,7 +361,9 @@ const SalarySettings = () => {
 
         {/* Beginning Salary */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center text-sm gap-2 sm:gap-4 w-full">
-          <label className="w-full sm:w-40 text-left sm:text-right mb-1 sm:mb-0">Beginning Salary:</label>
+          <label className="w-full sm:w-40 text-left sm:text-right mb-1 sm:mb-0">
+            Beginning Salary:
+          </label>
           <input
             type="number"
             value={beginningSalary}
@@ -369,7 +375,9 @@ const SalarySettings = () => {
 
         {/* Max Salary */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center text-sm gap-2 sm:gap-4 w-full mb-6">
-          <label className="w-full sm:w-40 text-left sm:text-right mb-1 sm:mb-0">Max Salary:</label>
+          <label className="w-full sm:w-40 text-left sm:text-right mb-1 sm:mb-0">
+            Max Salary:
+          </label>
           <input
             type="number"
             value={maxSalary}
@@ -408,9 +416,11 @@ const SalarySettings = () => {
           <tbody>
             {records.map((record, index) => (
               <tr key={record.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 border-b">{index + 1}</td>
-                <td className="px-6 py-4 border-b">{record.incrementStep}</td>
-                <td className="px-6 py-4 border-b">{record.salary}</td>
+                <td className="px-6 py-4 border-b text-sm">{index + 1}</td>
+                <td className="px-6 py-4 border-b text-sm">
+                  {record.incrementStep}
+                </td>
+                <td className="px-6 py-4 border-b text-sm">{record.salary}</td>
                 <td className="px-6 py-4 border-b">
                   <button
                     onClick={() => editDetail(record)}

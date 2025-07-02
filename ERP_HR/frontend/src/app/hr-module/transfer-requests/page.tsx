@@ -47,6 +47,7 @@ function TransferRequest() {
   const [showRejectedDropdown, setShowRejectedDropdown] = useState(false);
   const [selectedRejectedRequestId, setSelectedRejectedRequestId] =
     useState<string>("");
+  const [loadingRejected, setLoadingRejected] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -377,6 +378,20 @@ function TransferRequest() {
     };
   }, [showDropdown]);
 
+  useEffect(() => {
+    if (rejectedRequests) {
+      setLoadingRejected(true);
+    } else {
+      setLoadingRejected(false);
+    }
+  }, [rejectedRequests]);
+
+  useEffect(() => {
+    if (loadingRejected) {
+      setLoadingRejected(false);
+    }
+  }, [transferRequests]);
+
   return (
     <div className="min-h-screen bg-gray-100">
       <Head>
@@ -471,27 +486,30 @@ function TransferRequest() {
                                 </li>
                               );
                             })}
-                          {transferRequests.filter((req) => {
-                            const empId =
-                              req.employee?.empId?.toString?.() || "";
-                            const empName = [
-                              req.employee?.firstName,
-                              req.employee?.middleName,
-                              req.employee?.lastName,
-                            ]
-                              .filter(Boolean)
-                              .join(" ")
-                              .toLowerCase();
-                            return (
-                              searchValue.trim() === "" ||
-                              empId.includes(searchValue.trim()) ||
-                              empName.includes(searchValue.trim().toLowerCase())
-                            );
-                          }).length === 0 && (
-                            <li className="p-2 text-gray-400">
-                              No results found
-                            </li>
-                          )}
+                          {!loading &&
+                            transferRequests
+                              .filter(
+                                (req) =>
+                                  req.transferRequesterId != null ||
+                                  (req.empId && req.employeeName)
+                              )
+                              .filter((req) => {
+                                const empId = req.empId || "";
+                                const empName = req.employeeName
+                                  ? req.employeeName.toLowerCase()
+                                  : "";
+                                return (
+                                  searchValue.trim() === "" ||
+                                  empId.includes(searchValue.trim()) ||
+                                  empName.includes(
+                                    searchValue.trim().toLowerCase()
+                                  )
+                                );
+                              }).length === 0 && (
+                              <li className="p-2 text-gray-400">
+                                No results found
+                              </li>
+                            )}
                         </>
                       )}
                     </ul>
@@ -509,7 +527,9 @@ function TransferRequest() {
                   className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   placeholder="Enter Employee ID"
                   value={rejectedRequests}
-                  onChange={(e) => setRejectedRequests(e.target.value)}
+                  onChange={(e) => {
+                    setRejectedRequests(e.target.value);
+                  }}
                   onFocus={() => setShowRejectedDropdown(true)}
                   onBlur={() =>
                     setTimeout(() => setShowRejectedDropdown(false), 150)
@@ -517,95 +537,105 @@ function TransferRequest() {
                 />
                 {rejectedRequests && showRejectedDropdown && (
                   <ul className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md max-h-48 overflow-y-auto">
-                    {transferRequests
-                      .filter(
-                        (req) =>
-                          req.empId &&
-                          String(req.empId).includes(rejectedRequests) &&
-                          (req.status === "-1" || req.status === -1)
-                      )
-                      .map((req, idx) => (
-                        <li
-                          key={req.transferRequesterId || req.empId || idx}
-                          className="p-2 hover:bg-gray-200 cursor-pointer"
-                          onMouseDown={() => {
-                            setSelectedRequest("");
-                            setSelectedRejectedRequestId(
-                              req.transferRequesterId
-                                ? String(req.transferRequesterId)
-                                : ""
-                            );
-                            setEmployeeId(req.empId || "");
-                            setEmployeeName(req.employeeName || "");
-                            setGender(req.gender || "");
-                            setHiredDate(req.hiredDate || "");
-                            seticf(req.icf || "");
-                            setDepartment(req.departmentName || "");
-                            setFromDepartment(req.departmentName || "");
-                            setJobPosition(req.jobPosition || "");
-                            setDirectorate(req.directorateName || "");
-                            setJobPositionId(
-                              req.jobPositionId
-                                ? req.jobPositionId.toString()
-                                : ""
-                            );
-                            setFromDepartmentId(
-                              req.transferFromId
-                                ? req.transferFromId.toString()
-                                : ""
-                            );
-                            setPayGradeId(
-                              req.payGradeId ? req.payGradeId.toString() : ""
-                            );
-                            setJobResponsibilityId(
-                              req.jobResponsibilityId
-                                ? req.jobResponsibilityId.toString()
-                                : ""
-                            );
-                            setBranchId(
-                              req.branchId ? req.branchId.toString() : ""
-                            );
-                            setJobCodeId(
-                              req.jobCodeId ? req.jobCodeId.toString() : ""
-                            );
-                            setTransferType(req.transferType || "");
-                            setToDepartmentId(
-                              req.transferToId
-                                ? req.transferToId.toString()
-                                : ""
-                            );
-                            const toDeptObj = departments.find(
-                              (d) =>
-                                d.deptId.toString() ===
-                                (req.transferToId
-                                  ? req.transferToId.toString()
-                                  : "")
-                            );
-                            setToDepartment(
-                              toDeptObj ? toDeptObj.deptName : ""
-                            );
-                            setTransferReason(req.description || "");
-                            setRequestDate(req.dateRequest || "");
-                            setBranchFromId(
-                              req.branchId ? req.branchId.toString() : ""
-                            );
-                            setSelectedStatus(req.status || "");
-                            setRejectedRequests(req.empId || "");
-                            setShowRejectedDropdown(false);
-                          }}
-                        >
-                          {req.empId} - {req.employeeName}
-                        </li>
-                      ))}
-                    {transferRequests.filter(
-                      (req) =>
-                        req.empId &&
-                        String(req.empId).includes(rejectedRequests) &&
-                        (req.status === "-1" || req.status === -1)
-                    ).length === 0 && (
-                      <li className="p-2 text-gray-400">
-                        No rejected request found
-                      </li>
+                    {loadingRejected ? (
+                      <li className="p-2 text-gray-400">Loading...</li>
+                    ) : (
+                      <>
+                        {transferRequests
+                          .filter(
+                            (req) =>
+                              req.empId &&
+                              String(req.empId).includes(rejectedRequests) &&
+                              (req.status === "-1" || req.status === -1)
+                          )
+                          .map((req, idx) => (
+                            <li
+                              key={req.transferRequesterId || req.empId || idx}
+                              className="p-2 hover:bg-gray-200 cursor-pointer"
+                              onMouseDown={() => {
+                                setSelectedRequest("");
+                                setSelectedRejectedRequestId(
+                                  req.transferRequesterId
+                                    ? String(req.transferRequesterId)
+                                    : ""
+                                );
+                                setEmployeeId(req.empId || "");
+                                setEmployeeName(req.employeeName || "");
+                                setGender(req.gender || "");
+                                setHiredDate(req.hiredDate || "");
+                                seticf(req.icf || "");
+                                setDepartment(req.departmentName || "");
+                                setFromDepartment(req.departmentName || "");
+                                setJobPosition(req.jobPosition || "");
+                                setDirectorate(req.directorateName || "");
+                                setJobPositionId(
+                                  req.jobPositionId
+                                    ? req.jobPositionId.toString()
+                                    : ""
+                                );
+                                setFromDepartmentId(
+                                  req.transferFromId
+                                    ? req.transferFromId.toString()
+                                    : ""
+                                );
+                                setPayGradeId(
+                                  req.payGradeId
+                                    ? req.payGradeId.toString()
+                                    : ""
+                                );
+                                setJobResponsibilityId(
+                                  req.jobResponsibilityId
+                                    ? req.jobResponsibilityId.toString()
+                                    : ""
+                                );
+                                setBranchId(
+                                  req.branchId ? req.branchId.toString() : ""
+                                );
+                                setJobCodeId(
+                                  req.jobCodeId ? req.jobCodeId.toString() : ""
+                                );
+                                setTransferType(req.transferType || "");
+                                setToDepartmentId(
+                                  req.transferToId
+                                    ? req.transferToId.toString()
+                                    : ""
+                                );
+                                const toDeptObj = departments.find(
+                                  (d) =>
+                                    d.deptId.toString() ===
+                                    (req.transferToId
+                                      ? req.transferToId.toString()
+                                      : "")
+                                );
+                                setToDepartment(
+                                  toDeptObj ? toDeptObj.deptName : ""
+                                );
+                                setTransferReason(req.description || "");
+                                setRequestDate(req.dateRequest || "");
+                                setBranchFromId(
+                                  req.branchId ? req.branchId.toString() : ""
+                                );
+                                setSelectedStatus(req.status || "");
+                                setRejectedRequests(req.empId || "");
+                                setShowRejectedDropdown(false);
+                                setLoadingRejected(false);
+                              }}
+                            >
+                              {req.empId} - {req.employeeName}
+                            </li>
+                          ))}
+                        {!loadingRejected &&
+                          transferRequests.filter(
+                            (req) =>
+                              req.empId &&
+                              String(req.empId).includes(rejectedRequests) &&
+                              (req.status === "-1" || req.status === -1)
+                          ).length === 0 && (
+                            <li className="p-2 text-gray-400">
+                              No rejected request found
+                            </li>
+                          )}
+                      </>
                     )}
                   </ul>
                 )}

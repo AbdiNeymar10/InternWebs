@@ -447,28 +447,28 @@ function JobQualification() {
                 ) : (
                   qualifications.map((qualification, index) => (
                     <tr key={index} className="text-gray-900">
-                      <td className="border px-2 py-2 text-center">
+                      <td className="border px-2 py-2 text-xs text-center">
                         {index + 1}
                       </td>
-                      <td className="border px-2 py-2">
+                      <td className="border px-2 py-2 text-xs">
                         {qualification.educationCategory}
                       </td>
-                      <td className="border px-2 py-2">
+                      <td className="border px-2 py-2 text-xs">
                         {qualification.educationLevel}
                       </td>
                       <td className="border px-2 py-2">
                         {qualification.fieldsOfStudy.join(", ")}
                       </td>
-                      <td className="border px-2 py-2">
+                      <td className="border px-2 py-2 text-xs">
                         {qualification.minExperience}
                       </td>
-                      <td className="border px-2 py-2">
+                      <td className="border px-2 py-2 text-xs">
                         {qualification.skill}
                       </td>
-                      <td className="border px-2 py-2">
+                      <td className="border px-2 py-2 text-xs">
                         {qualification.knowledge}
                       </td>
-                      <td className="border px-2 py-2">
+                      <td className="border px-2 py-2 text-xs">
                         {qualification.competency}
                       </td>
                       <td className="border px-2 py-2 text-center">
@@ -501,7 +501,6 @@ function JobQualification() {
             </button>
           </div>
         </div>
-
         {/* Modal: Add Qualification */}
         {showModal && (
           <div className="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center z-50 p-4">
@@ -553,7 +552,6 @@ function JobQualification() {
                     <label className="block">
                       <input type="checkbox" value="" /> --Select One--
                     </label>
-
                     {/* Filtered Fields of Study */}
                     {filteredFieldsOfStudy.length === 0 ? (
                       <p>No fields of study found.</p>
