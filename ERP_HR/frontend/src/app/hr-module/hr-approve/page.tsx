@@ -17,9 +17,8 @@ function HrApprove() {
   const [toDepartment, setToDepartment] = useState("");
   const [fromDepartment, setFromDepartment] = useState("");
   const [transferReason, setTransferReason] = useState("");
-  const [requestDate, setRequestDate] = useState("2017-09-15");
+  const [requestDate, setRequestDate] = useState("");
   const [selectedRequest, setSelectedRequest] = useState("");
-  const [approveDate, setApproveDate] = useState("");
   const [departments, setDepartments] = useState<
     { deptId: number; deptName: string }[]
   >([]);
@@ -39,6 +38,7 @@ function HrApprove() {
   const [loading, setLoading] = useState(true);
   const [approvedBy, setApprovedBy] = useState("");
   const [authorizedDate, setAuthorizedDate] = useState("");
+  const [currentSalary, setCurrentSalary] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -52,7 +52,7 @@ function HrApprove() {
     setToDepartment("");
     setFromDepartment("");
     setTransferReason("");
-    setRequestDate("2017-09-15");
+    setRequestDate("");
     setSelectedRequest("");
     setJobPositionId("");
     setFromDepartmentId("");
@@ -65,6 +65,7 @@ function HrApprove() {
     setApproverDecision("");
     setRemark("");
     setApprovedBy("");
+    setCurrentSalary("");
     setAuthorizedDate("");
   };
 
@@ -183,7 +184,7 @@ function HrApprove() {
           setJobCodeId(data.jobCode || "");
           setApprovedBy(data.approvedBy || "");
           setToDepartmentId(data.toDepartmentId ?? "");
-          setApproveDate(data.approveDate || "");
+          setCurrentSalary(data.currentSalary || "");
 
           if (data.jobPositionId) {
             fetch(
@@ -214,7 +215,6 @@ function HrApprove() {
                   approvedBy: data.approvedBy,
                   currentSalary: data.currentSalary,
                   toDepartmentId: data.toDepartmentId ?? "",
-                  approveDate: data.approveDate,
                 });
               })
               .catch((err) => {
@@ -236,7 +236,6 @@ function HrApprove() {
           setBranchId("");
           setJobCodeId("");
           setToDepartmentId("");
-          setApproveDate("");
         });
     } else {
       setEmployeeName("");
@@ -251,7 +250,6 @@ function HrApprove() {
       setBranchId("");
       setJobCodeId("");
       setToDepartmentId("");
-      setApproveDate("");
     }
   }, [employeeId]);
 
@@ -293,13 +291,6 @@ function HrApprove() {
         setFromDepartment(req.departmentName || "");
         setJobPosition(req.jobPosition || "");
         setJobPositionId(req.jobPositionId?.toString() || "");
-        const approveDateValue =
-          typeof req.approveDate === "string"
-            ? req.approveDate.trim()
-            : req.approveDate
-            ? String(req.approveDate)
-            : "";
-        setApproveDate(approveDateValue);
         const toDeptId =
           req.toDepartmentId || req.transferToId || req.transferTo?.deptId;
         const toDeptObj = departments.find(
@@ -317,6 +308,7 @@ function HrApprove() {
         setRemark(req.remark || "");
         setApproverDecision(req.status || "");
         setApprovedBy(req.approvedBy || "");
+        setCurrentSalary(req.currentSalary || "");
         setAuthorizedDate(req.authorizedDate || "");
       }
     }
@@ -600,18 +592,6 @@ function HrApprove() {
               </div>
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-end">
                 <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
-                  Approved Date
-                </label>
-                <input
-                  type="date"
-                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
-                  value={approveDate}
-                  onChange={(e) => setApproveDate(e.target.value)}
-                  readOnly
-                />
-              </div>
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-end">
-                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Authorized Date
                 </label>
                 <input
@@ -619,6 +599,19 @@ function HrApprove() {
                   className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={authorizedDate}
                   onChange={(e) => setAuthorizedDate(e.target.value)}
+                />
+              </div>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start">
+                <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
+                  Current Salary
+                </label>
+                <input
+                  type="text"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
+                  value={currentSalary}
+                  onChange={(e) => setCurrentSalary(e.target.value)}
+                  required
+                  readOnly
                 />
               </div>
             </div>

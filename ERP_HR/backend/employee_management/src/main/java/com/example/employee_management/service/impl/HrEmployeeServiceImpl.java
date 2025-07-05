@@ -343,20 +343,8 @@ public class HrEmployeeServiceImpl implements HrEmployeeService {
         employmentType = employee.getEmploymentType().getType();
         }
 
-        String currentSalary = null;
-        if (employee.getPayGrade() != null && employee.getPayGrade().getPayGradeId() != null) {
-            try {
-                Object result = entityManager.createNativeQuery(
-                        "SELECT SALARY FROM HR_PAY_GRAD WHERE PAY_GRADE_ID = :id")
-                        .setParameter("id", employee.getPayGrade().getPayGradeId())
-                        .getSingleResult();
-                if (result != null) {
-                    currentSalary = result.toString();
-                }
-            } catch (Exception e) {
-                currentSalary = null;
-            }
-        }
+        // Always fetch decrypted salary from employee table, not from pay grade
+        String currentSalary = employee.getSalary();
 
         return new EmployeeInfoDto(
                 employee.getEmpId(),

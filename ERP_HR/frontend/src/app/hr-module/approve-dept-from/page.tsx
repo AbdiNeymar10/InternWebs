@@ -20,7 +20,7 @@ function ApproveDeptFrom() {
   const [toDepartment, setToDepartment] = useState("");
   const [fromDepartment, setFromDepartment] = useState("");
   const [transferReason, setTransferReason] = useState("");
-  const [requestDate, setRequestDate] = useState("2017-09-15");
+  const [requestDate, setRequestDate] = useState("");
   const [preparedDate, setPreparedDate] = useState("");
   const [selectedRequest, setSelectedRequest] = useState("");
   const [departments, setDepartments] = useState<
@@ -57,7 +57,7 @@ function ApproveDeptFrom() {
     setToDepartment("");
     setFromDepartment("");
     setTransferReason("");
-    setRequestDate("2017-09-15");
+    setRequestDate("");
     setSelectedRequest("");
     setJobPositionId("");
     setFromDepartmentId("");

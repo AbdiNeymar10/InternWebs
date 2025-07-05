@@ -404,16 +404,15 @@ function DepartmentSearch() {
           </div>
         </div>
       </div>
-
       {/* Department Tree Modal */}
       {showDepartmentTreeModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-gradient-to-br from-blue-50/80 to-purple-50/80 border border-white/30 rounded-2xl shadow-2xl backdrop-blur-sm p-6 w-full max-w-md max-h-[80vh] flex flex-col">
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex justify-between items-center mb-1">
               <h2 className="text-lg font-semibold text-gray-700">
-                {departments.find((d) => d.id === 61)?.name ||
-                  "All Departments"}
-              </h2>
+                {/* {departments.find((d) => d.id === 1)?.name ||
+                  ""} */}
+              </h2>.
               <button
                 className="text-gray-700 hover:text-gray-800 text-2xl"
                 onClick={() => setShowDepartmentTreeModal(false)}
@@ -421,14 +420,13 @@ function DepartmentSearch() {
                 ✕
               </button>
             </div>
-
             <div className="flex-grow overflow-y-auto">
               <DepartmentTree
                 dept={{
-                  deptId: 61,
+                  deptId: 1,
                   deptName:
-                    departments.find((d) => d.id === 61)?.name ||
-                    "All Departments",
+                    departments.find((d) => d.id === 1)?.name ||
+                    "No Departments",
                   deptLevel: 0,
                   parentDeptId: null,
                 }}

@@ -72,6 +72,8 @@ function HrPromotionApprove() {
     setSearchValue("");
     setApproverDecision("");
     setRemark("");
+    setIncrementStep(""); 
+    setSelectedIncrementStep("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

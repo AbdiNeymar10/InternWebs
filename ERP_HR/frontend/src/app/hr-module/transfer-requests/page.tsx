@@ -21,7 +21,7 @@ function TransferRequest() {
   const [toDepartment, setToDepartment] = useState("");
   const [fromDepartment, setFromDepartment] = useState("");
   const [transferReason, setTransferReason] = useState("");
-  const [requestDate, setRequestDate] = useState("2017-09-15");
+  const [requestDate, setRequestDate] = useState("");
   const [selectedRequest, setSelectedRequest] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
   const [showDepartmentTreeModal, setShowDepartmentTreeModal] = useState(false);
@@ -65,7 +65,7 @@ function TransferRequest() {
     setToDepartment("");
     setFromDepartment("");
     setTransferReason("");
-    setRequestDate("2017-09-15");
+    setRequestDate("");
     setSelectedRequest("");
     setSelectedStatus("");
     setJobPositionId("");
@@ -378,20 +378,6 @@ function TransferRequest() {
     };
   }, [showDropdown]);
 
-  useEffect(() => {
-    if (rejectedRequests) {
-      setLoadingRejected(true);
-    } else {
-      setLoadingRejected(false);
-    }
-  }, [rejectedRequests]);
-
-  useEffect(() => {
-    if (loadingRejected) {
-      setLoadingRejected(false);
-    }
-  }, [transferRequests]);
-
   return (
     <div className="min-h-screen bg-gray-100">
       <Head>
@@ -529,6 +515,7 @@ function TransferRequest() {
                   value={rejectedRequests}
                   onChange={(e) => {
                     setRejectedRequests(e.target.value);
+                    setLoadingRejected(false); // Immediately stop loading when input changes
                   }}
                   onFocus={() => setShowRejectedDropdown(true)}
                   onBlur={() =>

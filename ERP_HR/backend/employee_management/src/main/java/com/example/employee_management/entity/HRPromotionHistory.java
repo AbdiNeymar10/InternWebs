@@ -1,6 +1,7 @@
 package com.example.employee_management.entity;
 
 import jakarta.persistence.*;
+// import com.example.employee_management.util.SalaryEncryptor;
 import java.util.Date;
 
 @Entity
@@ -22,8 +23,9 @@ public class HRPromotionHistory {
     @Column(name = "PREV_RANK")
     private String prevRank;
 
+    // @Convert(converter = SalaryEncryptor.class)
     @Column(name = "PREV_SALARY")
-    private String prevSalary;
+    private Float prevSalary;
 
     @Column(name = "PROM_LETTER_NUMBER")
     private String promLetterNumber;
@@ -102,11 +104,11 @@ public class HRPromotionHistory {
         this.prevRank = prevRank;
     }
 
-    public String getPrevSalary() {
+    public Float getPrevSalary() {
         return prevSalary;
     }
 
-    public void setPrevSalary(String prevSalary) {
+    public void setPrevSalary(Float prevSalary) {
         this.prevSalary = prevSalary;
     }
 
