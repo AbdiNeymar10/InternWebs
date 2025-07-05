@@ -72,7 +72,7 @@ function HrPromotionApprove() {
     setSearchValue("");
     setApproverDecision("");
     setRemark("");
-    setIncrementStep(""); 
+    setIncrementStep("");
     setSelectedIncrementStep("");
   };
 
@@ -552,6 +552,10 @@ function HrPromotionApprove() {
     }
   }, [branchId, branches]);
 
+  const approveAvailableRequestsCount = transferRequests.filter(
+    (req) => req.status === "2" || req.status === 2
+  ).length;
+
   return (
     <div className="min-h-screen bg-gray-100">
       {/* <Head>
@@ -569,6 +573,9 @@ function HrPromotionApprove() {
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start">
                 <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Approve Available Requests:
+                  <span className="ml-2 text-xs text-red-500 font-bold">
+                    ({approveAvailableRequestsCount})
+                  </span>
                 </label>
                 <div className="flex-1 relative" ref={dropdownRef}>
                   <input

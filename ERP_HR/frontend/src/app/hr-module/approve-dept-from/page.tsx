@@ -353,6 +353,10 @@ function ApproveDeptFrom() {
     }
   }, [selectedRequest, transferRequests, departments]);
 
+  const availableRequestsCount = transferRequests.filter(
+    (req) => req.status === "0" || req.status === 0
+  ).length;
+
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -392,6 +396,9 @@ function ApproveDeptFrom() {
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start">
                 <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Available Requests:
+                  <span className="ml-2 text-xs text-red-500 font-bold">
+                    ({availableRequestsCount})
+                  </span>
                 </label>
                 <div className="flex-1 relative" ref={dropdownRef}>
                   <input

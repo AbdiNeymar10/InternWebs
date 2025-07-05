@@ -303,6 +303,10 @@ function TransferRequest() {
     fetchRequests();
   }, []);
 
+  const rejectedRequestsCount = transferRequests.filter(
+    (req) => req.status === "-1" || req.status === -1
+  ).length;
+
   useEffect(() => {
     if (selectedRequest) {
       const req = transferRequests.find(
@@ -506,6 +510,9 @@ function TransferRequest() {
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start">
               <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                 Rejected Requests
+                <span className="ml-2 text-xs text-red-500 font-bold">
+                  ({rejectedRequestsCount})
+                </span>
               </label>
               <div className="flex-1 relative">
                 <input
@@ -515,7 +522,7 @@ function TransferRequest() {
                   value={rejectedRequests}
                   onChange={(e) => {
                     setRejectedRequests(e.target.value);
-                    setLoadingRejected(false); // Immediately stop loading when input changes
+                    setLoadingRejected(false);
                   }}
                   onFocus={() => setShowRejectedDropdown(true)}
                   onBlur={() =>

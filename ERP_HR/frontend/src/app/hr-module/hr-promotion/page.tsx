@@ -261,7 +261,7 @@ function HrPromotion() {
       jobTitleChanged:
         jobTitleChanged !== undefined ? Number(jobTitleChanged) : undefined,
       promLetterNumber: refNo,
-     prevSalary: originalSalary ? Number(originalSalary) : undefined,
+      prevSalary: originalSalary ? Number(originalSalary) : undefined,
     };
     if (usedStatus && usedStatus !== "") {
       payload.status = usedStatus;
@@ -468,13 +468,11 @@ function HrPromotion() {
       );
       if (req) {
         setEmployeeId(req.empId || "");
-        setEmployeeName([
-          req.firstName,
-          req.middleName,
-          req.lastName,
-        ]
-          .filter(Boolean)
-          .join(" "));
+        setEmployeeName(
+          [req.firstName, req.middleName, req.lastName]
+            .filter(Boolean)
+            .join(" ")
+        );
         setGender(req.gender || "");
         setHiredDate(req.hiredDate || "");
         seticf(req.icf || "");
@@ -485,25 +483,32 @@ function HrPromotion() {
         setSelectedJobTitle(req.jobPosition || "");
         setDirectorate(req.directorateName || "");
         setJobPositionId(req.jobPositionId ? req.jobPositionId.toString() : "");
-        setFromDepartmentId(req.transferFromId ? req.transferFromId.toString() : "");
+        setFromDepartmentId(
+          req.transferFromId ? req.transferFromId.toString() : ""
+        );
         setToDepartmentId(req.transferToId ? req.transferToId.toString() : "");
         setPayGradeId(req.payGradeId ? req.payGradeId.toString() : "");
-        setJobResponsibilityId(req.jobResponsibilityId ? req.jobResponsibilityId.toString() : "");
+        setJobResponsibilityId(
+          req.jobResponsibilityId ? req.jobResponsibilityId.toString() : ""
+        );
         setJobResponsibility(req.jobResponsibility || "");
         setBranchId(req.branchId ? req.branchId.toString() : "");
         const foundBranch = branches.find(
-          (b) => b.id.toString() === (req.branchId ? req.branchId.toString() : "")
+          (b) =>
+            b.id.toString() === (req.branchId ? req.branchId.toString() : "")
         );
         setBranch(foundBranch ? foundBranch.branchName : "");
         setBranchNameTo(foundBranch ? foundBranch.branchName : "");
         setJobCodeId(req.jobCodeId ? req.jobCodeId.toString() : "");
-        //setPrevSalary(""); 
+        //setPrevSalary("");
         setStatus(req.status || "");
         setEmpId(req.empId || "");
         setTransferType(req.transferType || "");
         setToDepartmentId(req.transferToId ? req.transferToId.toString() : "");
         const foundToDepartment = departments.find(
-          (d) => d.deptId.toString() === (req.transferToId ? req.transferToId.toString() : "")
+          (d) =>
+            d.deptId.toString() ===
+            (req.transferToId ? req.transferToId.toString() : "")
         );
         setToDepartment(foundToDepartment ? foundToDepartment.deptName : "");
         setTransferReason(req.description || "");
@@ -727,6 +732,10 @@ function HrPromotion() {
     }
   }, [incrementSteps]);
 
+  const updateRequestsCount = transferRequests.filter(
+    (req) => req.status === "2" || req.status === 2
+  ).length;
+
   return (
     <div className="min-h-screen bg-gray-100">
       {/* <Head>
@@ -743,7 +752,10 @@ function HrPromotion() {
             <div>
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start">
                 <label className="block text-sm font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
-                  Update Request
+                  Update Request:
+                  <span className="ml-2 text-xs text-red-500 font-bold">
+                    ({updateRequestsCount})
+                  </span>
                 </label>
                 <div className="flex-1 relative" ref={dropdownRef}>
                   <input
