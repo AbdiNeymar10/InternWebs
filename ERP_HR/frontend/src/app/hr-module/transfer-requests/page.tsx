@@ -656,7 +656,7 @@ function TransferRequest() {
                   className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={employeeName}
                   onChange={(e) => setEmployeeName(e.target.value)}
-                  required
+                  readOnly
                 />
               </div>
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start">
@@ -667,7 +667,6 @@ function TransferRequest() {
                   className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={gender}
                   onChange={(e) => setGender(e.target.value)}
-                  required
                   readOnly
                 />
               </div>
@@ -707,6 +706,7 @@ function TransferRequest() {
                   className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                   value={employeeId}
                   onChange={(e) => setEmployeeId(e.target.value)}
+                  placeholder="Enter Employee ID"
                   required
                 />
               </div>
@@ -863,8 +863,8 @@ function TransferRequest() {
           <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md max-h-[80vh] flex flex-col">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-semibold text-gray-700">
-                {departments.find((d) => d.deptId === 2)?.deptName ||
-                  "All Departments"}
+                {/* {departments.find((d) => d.deptId === 2)?.deptName ||
+                  "All Departments"} */}
               </h2>
               <button
                 className="text-gray-700 hover:text-gray-800 text-2xl"
@@ -882,7 +882,7 @@ function TransferRequest() {
                   deptId: 2,
                   deptName:
                     departments.find((d) => d.deptId === 2)?.deptName ||
-                    "All Departments",
+                    "No Departments",
                   deptLevel: 0,
                   parentDeptId: null,
                 }}
