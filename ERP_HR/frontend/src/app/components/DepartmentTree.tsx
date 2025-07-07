@@ -35,7 +35,7 @@ const DepartmentTree = ({
 
   // 👇 Auto-expand root department (e.g., deptId === 61)
   useEffect(() => {
-    if (!disableExpand && dept.deptId === 61) {
+    if (!disableExpand && dept.deptId === 2) {
       toggle();
     }
   }, [dept]);
