@@ -1141,7 +1141,7 @@ function HrPromotion() {
                   >
                     {selectedJobTitle &&
                       !jobTitles.some(
-                        (jt) => jt.jobTitle === selectedJobTitle
+                        (jt) => String(jt.jobTitle) === String(selectedJobTitle)
                       ) && (
                         <option value={selectedJobTitle}>
                           {selectedJobTitle} (from request)
