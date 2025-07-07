@@ -775,7 +775,6 @@ function TransferRequest() {
                   <option value="transfer">transfer</option>
                 </select>
               </div>
-
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 justify-start">
                 <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   To Department
