@@ -42,6 +42,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { MdOutlineCancel } from "react-icons/md";
+import ApprovalIcon from "@mui/icons-material/Approval";
 
 interface SidebarProps {
   className?: string;
@@ -180,6 +181,31 @@ export default function Sidebar({ className, hidden = false }: SidebarProps) {
             )}
           </div>
 
+          {/* Employee Profile Dropdown */}
+          <div>
+            <button
+              onClick={() => toggleMenu("employee")}
+              className="flex items-center justify-between w-full p-2 hover:bg-gray-700 rounded"
+            >
+              <div className="flex items-center gap-2">
+                <FiUser className="w-4 h-4" />
+                <span>Employee Profile</span>
+              </div>
+              {openMenus.employee ? <FiChevronUp /> : <FiChevronDown />}
+            </button>
+            {openMenus.employee && (
+              <div className="ml-6 mt-1 space-y-2">
+                <Link
+                  href="/hr-module/Employee-Profile"
+                  className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
+                >
+                  <FiUser className="w-4 h-4" />
+                  Employee Info
+                </Link>
+              </div>
+            )}
+          </div>
+
           {/* Transfer Request Dropdown */}
           <div>
             <button
@@ -243,33 +269,8 @@ export default function Sidebar({ className, hidden = false }: SidebarProps) {
                   href="/hr-module/hr-promotion-approve"
                   className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
                 >
-                  <FiTrendingUp className="w-4 h-4" />
+                  <ApprovalIcon className="w-4 h-4" />
                   Hr Promotion Approve
-                </Link>
-              </div>
-            )}
-          </div>
-
-          {/* Employee Profile Dropdown */}
-          <div>
-            <button
-              onClick={() => toggleMenu("employee")}
-              className="flex items-center justify-between w-full p-2 hover:bg-gray-700 rounded"
-            >
-              <div className="flex items-center gap-2">
-                <FiUser className="w-4 h-4" />
-                <span>Employee Profile</span>
-              </div>
-              {openMenus.employee ? <FiChevronUp /> : <FiChevronDown />}
-            </button>
-            {openMenus.employee && (
-              <div className="ml-6 mt-1 space-y-2">
-                <Link
-                  href="/hr-module/Employee-Profile"
-                  className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
-                >
-                  <FiUser className="w-4 h-4" />
-                  Employee Info
                 </Link>
               </div>
             )}

@@ -785,7 +785,7 @@ function TransferRequest() {
                     className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                     value={toDepartment}
                     readOnly
-                    placeholder=""
+                    placeholder="select department"
                     onClick={() => {
                       setDepartmentFieldBeingEdited("to");
                       setShowDepartmentTreeModal(true);

@@ -38,7 +38,7 @@ export default function AppModuleLayout({ children }: Props) {
       <Toaster />
       <Header toggleSidebar={toggleSidebar} />
       <div className="flex flex-1 flex-col sm:flex-row">
-        <Sidebar hidden={!isSidebarOpen} isMobile={isMobile} />
+        <Sidebar hidden={!isSidebarOpen} />
         <div className="flex-1 p-4 transition-all duration-300 w-full">
           {children}
         </div>

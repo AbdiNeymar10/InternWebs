@@ -29,16 +29,6 @@ export default function Home() {
       return <RegisterJobsPage />;
     }
 
-    if (currentView === "salary-settings") {
-      return <SalarySettingsPage />;
-    }
-    if (currentView === "job-family") {
-      return <JobFamilyPage />;
-    }
-    if (currentView === "jobs-by-department") {
-      return <DepartmentJobsPage />;
-    }
-
     return (
       <>
         <DashboardCards />

@@ -15,7 +15,7 @@ export default function Header({ toggleSidebar }) {
       {/* Right Section: Search and Profile */}
       <div className="flex items-center">
         {/* Search Input */}
-        <div className="relative mr-4">
+        {/* <div className="relative mr-4">
           <input
             className="border rounded px-4 py-2 pl-10 text-gray-800"
             placeholder="Search"
@@ -25,7 +25,7 @@ export default function Header({ toggleSidebar }) {
             icon={faSearch}
             className="absolute left-3 top-3 text-gray-500"
           />
-        </div>
+        </div> */}
 
         {/* User Profile Picture */}
         <img
