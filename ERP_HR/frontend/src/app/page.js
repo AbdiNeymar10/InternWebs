@@ -8,15 +8,11 @@ import DashboardCards from "../app/components/DashboardCards";
 import Sidebar from "../app/components/Sidebar";
 import EmployeeTable from "../app/components/EmployeeTable";
 import RegisterJobsPage from "../app/hr-module/register-jobs/page";
-import SalarySettingsPage from "../app/hr-module/salary-settings/page";
-import JobFamilyPage from "../app/hr-module/jobs-by-family/page";
-import DepartmentJobsPage from "../app/hr-module/jobs-by-department/page";
-import QualificationPage from "../app/hr-module/job-qualifications/page";
 
 // Main page component
 export default function Home() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true); // State for sidebar toggle
-  const [currentView, setCurrentView] = useState("dashboard"); // State for controlling which view to render
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true); 
+  const [currentView, setCurrentView] = useState("dashboard"); 
 
   // Function to toggle the sidebar
   const toggleSidebar = () => {
