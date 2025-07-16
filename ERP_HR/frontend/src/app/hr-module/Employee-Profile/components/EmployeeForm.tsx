@@ -112,72 +112,74 @@ interface EmployeeFormData {
   department: string | number;
 }
 
+interface EmployeeData {
+  empId: string;
+  firstName: string;
+  middleName: string;
+  lastName: string;
+  efirstName: string;
+  emiddleName: string;
+  elastName: string;
+  dateOfBirth: string;
+  sex: string;
+  maritalStatus: string;
+  salary?: string | { salary?: number };
+  hiredDate: string;
+  birthDate: string;
+  accountNo: string;
+  positionStatus: string;
+  terminationDate: string;
+  tinNumer: string;
+  rankId: string;
+  pensionNumber: string;
+  tess: string;
+  dedactionDescriptive: string;
+  contractEnd: string;
+  department?: {
+    deptId: number;
+    depName: string;
+  };
+  nationality?: {
+    nationalityId: number;
+  };
+  religion?: {
+    id: number;
+  };
+  nation?: {
+    nationCode: number;
+  };
+  jobType?: {
+    id: number;
+  };
+  icf?: {
+    id: number;
+  };
+  jobResponsibility?: {
+    id: number;
+  };
+  position?: {
+    id: number;
+  };
+  title?: {
+    titleId: number;
+  };
+  employmentType?: {
+    id: number;
+  };
+  recruitmentType?: {
+    recruitmentType: string;
+  };
+  jobFamily?: {
+    id: number;
+  };
+  branch?: {
+    id: number;
+  };
+  retirementNo?: string | number;
+}
+
 interface EmployeeFormProps {
-  employeeData: {
-    empId: string;
-    firstName: string;
-    middleName: string;
-    lastName: string;
-    efirstName: string;
-    emiddleName: string;
-    elastName: string;
-    dateOfBirth: string;
-    sex: string;
-    maritalStatus: string;
-    salary: string | { salary: number };
-    hiredDate: string;
-    birthDate: string;
-    accountNo: string;
-    positionStatus: string;
-    terminationDate: string;
-    tinNumer: string;
-    rankId: string;
-    pensionNumber: string;
-    tess: string;
-    dedactionDescriptive: string;
-    contractEnd: string;
-    retirementNo?: string;
-    department?: {
-      deptId: number;
-      depName: string;
-    };
-    nationality?: {
-      nationalityId: number;
-    };
-    religion?: {
-      id: number;
-    };
-    nation?: {
-      nationCode: number;
-    };
-    jobType?: {
-      id: number;
-    };
-    icf?: {
-      id: number;
-    };
-    jobResponsibility?: {
-      id: number;
-    };
-    position?: {
-      id: number;
-    };
-    title?: {
-      titleId: number;
-    };
-    employmentType?: {
-      id: number;
-    };
-    recruitmentType?: {
-      recruitmentType: string;
-    };
-    jobFamily?: {
-      id: number;
-    };
-    branch?: {
-      id: number;
-    };
-  } | null;
+  employeeData: EmployeeData | null;
   isEditMode: boolean;
   onSubmit: (formData: any) => void;
   onCancel: () => void;
@@ -210,7 +212,7 @@ export default function EmployeeForm({
       employeeData?.salary &&
       typeof employeeData.salary === "object" &&
       "salary" in employeeData.salary
-        ? String(employeeData.salary.salary ?? "")
+        ? String((employeeData.salary as { salary?: number }).salary ?? "")
         : String(employeeData?.salary ?? ""),
     pensionNumber: employeeData?.pensionNumber || "",
     jobResponsibility: employeeData?.jobResponsibility?.id || "",
@@ -221,7 +223,10 @@ export default function EmployeeForm({
     recruitmentType: employeeData?.recruitmentType?.recruitmentType || "",
     jobFamily: employeeData?.jobFamily?.id || "",
     jobGrade: employeeData?.birthDate || "",
-    retirementNo: employeeData?.retirementNo || "",
+    retirementNo:
+      employeeData?.retirementNo !== undefined
+        ? String(employeeData.retirementNo)
+        : "",
     rankId: employeeData?.rankId || "",
     tinNumer: employeeData?.tinNumer || "",
     hiredDate: employeeData?.hiredDate || "",
@@ -312,36 +317,22 @@ export default function EmployeeForm({
               `Error fetching increment steps: ${response.status} ${response.statusText}`,
               errorText
             );
-            alert("Failed to fetch increment steps: " + errorText);
             throw new Error(
               `Failed to fetch increment steps. Status: ${response.status}`
             );
           }
           const steps = await response.json();
-          if (
-            Array.isArray(steps) &&
-            steps.length > 0 &&
-            steps[0].stepNo !== undefined
-          ) {
-            setIncrementSteps(steps);
-            if (steps.length === 1) {
-              setFormData((prev) => ({
-                ...prev,
-                retirementNo: steps[0].stepNo.toString(),
-              }));
-              fetchSalaryForStep(steps[0].stepNo);
-            }
-          } else {
-            setIncrementSteps([]);
-            console.warn("No valid increment steps received:", steps);
-            alert(
-              "No increment steps available for the selected Job Title and ICF."
-            );
+          setIncrementSteps(steps);
+          if (steps.length === 1) {
+            setFormData((prev) => ({
+              ...prev,
+              retirementNo: steps[0].stepNo.toString(),
+            }));
+            fetchSalaryForStep(steps[0].stepNo);
           }
         } catch (error) {
           console.error("Error fetching increment steps:", error);
           setIncrementSteps([]);
-          alert("Error fetching increment steps: " + error);
         }
       };
       fetchIncrementSteps();
@@ -1087,11 +1078,6 @@ export default function EmployeeForm({
                   className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
                 >
                   <option value="">--Select Increment Step--</option>
-                  {incrementSteps.length === 0 && (
-                    <option value="" disabled>
-                      No increment steps available
-                    </option>
-                  )}
                   {incrementSteps.map((step) => (
                     <option key={step.stepNo} value={step.stepNo}>
                       Step {step.stepNo}
