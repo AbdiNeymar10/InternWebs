@@ -387,7 +387,7 @@ function JobQualification() {
           Update Position Qualification
         </h2>
         <div className="bg-white p-4 shadow rounded mb-6 animate-fade-in">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div className="grid grid-cols-1 text-sm md:grid-cols-2 gap-4 mb-4">
             <div>
               <label>Job Title:</label> {selectedJobTitle || ""}
             </div>
