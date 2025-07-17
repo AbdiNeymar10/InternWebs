@@ -339,11 +339,10 @@ public class HrEmployeeServiceImpl implements HrEmployeeService {
 
         }
         String employmentType = null;
-         if (employee.getEmploymentType() != null && employee.getEmploymentType().getType() != null) {
-        employmentType = employee.getEmploymentType().getType();
+        if (employee.getEmploymentType() != null && employee.getEmploymentType().getType() != null) {
+            employmentType = employee.getEmploymentType().getType();
         }
 
-        // Always fetch decrypted salary from employee table, not from pay grade
         String currentSalary = employee.getSalary();
 
         return new EmployeeInfoDto(
@@ -366,7 +365,6 @@ public class HrEmployeeServiceImpl implements HrEmployeeService {
                 approvedBy,
                 currentSalary,
                 toDepartmentId,
-                employmentType
-          );
+                employmentType);
     }
 }
