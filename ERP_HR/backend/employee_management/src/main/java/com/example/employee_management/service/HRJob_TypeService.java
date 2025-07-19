@@ -18,9 +18,11 @@ public class HRJob_TypeService {
     public HRJob_TypeService(HRJob_TypeRepository repository) {
         this.repository = repository;
     }
+
     public boolean existsById(Long id) {
         return repository.existsById(id);
     }
+
     // Fetch all job types
     public List<HRJob_Type> findAll() {
         return repository.findAll();
@@ -36,28 +38,34 @@ public class HRJob_TypeService {
         return repository.findByJobTitle_JobTitle(jobTitle)
                 .orElseThrow(() -> new RuntimeException("Job Type not found with title: " + jobTitle));
     }
+
     public List<HRJob_Type> findByJobTitleIds(List<Long> jobTitleIds) {
-    return repository.findByJobTitleIds(jobTitleIds);
-}
+        return repository.findByJobTitleIds(jobTitleIds);
+    }
 
     // Create or Update job type
     public HRJob_Type save(HRJob_Type jobType) {
         return repository.save(jobType);
     }
+
     // Fetch job type by job family and job title
-public HRJob_Type findByJobFamilyAndJobTitle(Long jobFamilyId, Long jobTitleId) {
-    List<HRJob_Type> jtList = hrJobTypeRepository.findByJobFamilyAndJobTitle_Id(jobFamilyId, jobTitleId);
-    if (!jtList.isEmpty()) return jtList.get(0);
-    List<HRJob_Type> fallbackList = hrJobTypeRepository.findByJobTitle_IdAndJobFamilyIsNull(jobTitleId);
-    if (!fallbackList.isEmpty()) return fallbackList.get(0);
-    List<HRJob_Type> anyList = hrJobTypeRepository.findByJobTitle_Id(jobTitleId);
-    if (!anyList.isEmpty()) return anyList.get(0);
-    return null;
-}
+    public HRJob_Type findByJobFamilyAndJobTitle(Long jobFamilyId, Long jobTitleId) {
+        List<HRJob_Type> jtList = hrJobTypeRepository.findByJobFamilyAndJobTitle_Id(jobFamilyId, jobTitleId);
+        if (!jtList.isEmpty())
+            return jtList.get(0);
+        List<HRJob_Type> fallbackList = hrJobTypeRepository.findByJobTitle_IdAndJobFamilyIsNull(jobTitleId);
+        if (!fallbackList.isEmpty())
+            return fallbackList.get(0);
+        List<HRJob_Type> anyList = hrJobTypeRepository.findByJobTitle_Id(jobTitleId);
+        if (!anyList.isEmpty())
+            return anyList.get(0);
+        return null;
+    }
 
     public List<HRJob_Type> findByJobFamily(Long jobFamilyId) {
-    return hrJobTypeRepository.findByJobFamily(jobFamilyId);
-}
+        return hrJobTypeRepository.findByJobFamily(jobFamilyId);
+    }
+
     // Delete job type by ID
     public void deleteById(Long id) {
         if (!repository.existsById(id)) {

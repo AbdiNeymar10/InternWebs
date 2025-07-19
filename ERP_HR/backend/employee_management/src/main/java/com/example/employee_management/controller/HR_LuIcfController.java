@@ -8,7 +8,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/icf")
-@CrossOrigin(origins = "http://localhost:3000") 
+@CrossOrigin(origins = "http://localhost:3000")
 public class HR_LuIcfController {
 
     private final HR_LuIcfService service;
@@ -27,17 +27,18 @@ public class HR_LuIcfController {
         return service.findById(id);
     }
 
-@PostMapping
-public HR_LuIcf create(@RequestBody HR_LuIcf entity) {
-   
-    try {
-        HR_LuIcf savedEntity = service.save(entity);
-        return savedEntity;
-    } catch (Exception e) {
-        e.printStackTrace();
-        throw new RuntimeException("Error saving ICF: " + e.getMessage());
+    @PostMapping
+    public HR_LuIcf create(@RequestBody HR_LuIcf entity) {
+
+        try {
+            HR_LuIcf savedEntity = service.save(entity);
+            return savedEntity;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Error saving ICF: " + e.getMessage());
+        }
     }
-}
+
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
         service.deleteById(id);

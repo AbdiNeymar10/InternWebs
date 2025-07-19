@@ -30,56 +30,56 @@ public class HRDeptJobController {
         Optional<HRDeptJob> deptJob = hrDeptJobService.getDeptJobById(id);
         return deptJob.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
+
     @GetMapping("/by-department/{departmentId}")
-public ResponseEntity<List<HRDeptJob>> getJobsByDepartment(@PathVariable Long departmentId) {
-    List<HRDeptJob> jobs = hrDeptJobService.getJobsByDepartmentId(departmentId);
-    return ResponseEntity.ok(jobs);
-}
+    public ResponseEntity<List<HRDeptJob>> getJobsByDepartment(@PathVariable Long departmentId) {
+        List<HRDeptJob> jobs = hrDeptJobService.getJobsByDepartmentId(departmentId);
+        return ResponseEntity.ok(jobs);
+    }
 
     @PostMapping
     public HRDeptJob createDeptJob(@RequestBody HRDeptJob hrDeptJob) {
         return hrDeptJobService.saveDeptJob(hrDeptJob);
     }
 
- @PostMapping("/bulk")
-public ResponseEntity<?> saveDeptJobs(@RequestBody List<Map<String, Object>> deptJobs) {
-    try {
-        for (Map<String, Object> deptJob : deptJobs) {
-            // Validate departmentId
-            if (deptJob.get("departmentId") == null || !(deptJob.get("departmentId") instanceof Number)) {
-                return ResponseEntity.badRequest().body("Invalid departmentId: must be a number and cannot be null.");
+    @PostMapping("/bulk")
+    public ResponseEntity<?> saveDeptJobs(@RequestBody List<Map<String, Object>> deptJobs) {
+        try {
+            for (Map<String, Object> deptJob : deptJobs) {
+                // Validate departmentId
+                if (deptJob.get("departmentId") == null || !(deptJob.get("departmentId") instanceof Number)) {
+                    return ResponseEntity.badRequest()
+                            .body("Invalid departmentId: must be a number and cannot be null.");
+                }
+
+                // Validate jobTypeId
+
+                if (deptJob.get("jobTypeId") == null || !(deptJob.get("jobTypeId") instanceof Number)) {
+                    return ResponseEntity.badRequest().body("Invalid jobTypeId: must be a number and cannot be null.");
+                }
+
+                Long departmentId = ((Number) deptJob.get("departmentId")).longValue();
+                Long jobTypeId = ((Number) deptJob.get("jobTypeId")).longValue();
+                Integer noOfEmployees = ((Number) deptJob.get("noOfEmployees")).intValue();
+
+                HRDeptJob newDeptJob = new HRDeptJob();
+                Department department = new Department();
+                department.setDeptId(departmentId);
+                newDeptJob.setDepartment(department);
+
+                HRJob_Type jobType = new HRJob_Type();
+                jobType.setId(jobTypeId);
+                newDeptJob.setJobType(jobType);
+
+                newDeptJob.setNoOfEmployees(noOfEmployees);
+
+                hrDeptJobService.saveDeptJob(newDeptJob);
             }
-
-            // Validate jobTypeId
-            
-            if (deptJob.get("jobTypeId") == null || !(deptJob.get("jobTypeId") instanceof Number)) {
-                return ResponseEntity.badRequest().body("Invalid jobTypeId: must be a number and cannot be null.");
-            }
-
-            Long departmentId = ((Number) deptJob.get("departmentId")).longValue();
-            Long jobTypeId = ((Number) deptJob.get("jobTypeId")).longValue();
-            Integer noOfEmployees = ((Number) deptJob.get("noOfEmployees")).intValue();
-
-            HRDeptJob newDeptJob = new HRDeptJob();
-
-            // Set department and job type
-            Department department = new Department();
-            department.setDeptId(departmentId);
-            newDeptJob.setDepartment(department);
-
-            HRJob_Type jobType = new HRJob_Type();
-            jobType.setId(jobTypeId);
-            newDeptJob.setJobType(jobType);
-
-            newDeptJob.setNoOfEmployees(noOfEmployees);
-
-            hrDeptJobService.saveDeptJob(newDeptJob);
+            return ResponseEntity.ok("Jobs successfully saved to the department.");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error saving jobs: " + e.getMessage());
         }
-        return ResponseEntity.ok("Jobs successfully saved to the department.");
-    } catch (Exception e) {
-        return ResponseEntity.status(500).body("Error saving jobs: " + e.getMessage());
     }
-}
 
     @PutMapping("/{id}")
     public ResponseEntity<HRDeptJob> updateDeptJob(@PathVariable Long id, @RequestBody HRDeptJob hrDeptJob) {

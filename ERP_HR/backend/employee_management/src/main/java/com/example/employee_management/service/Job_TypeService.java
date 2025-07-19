@@ -20,14 +20,14 @@ public class Job_TypeService {
     }
 
     @Transactional
-public Job_Type saveJobType(Job_Type jobType) {
-    if (jobType.getCode() == null || jobType.getCode().isEmpty()) {
-        Integer maxCode = jobTypeRepository.findMaxCodeAsInt();
-        int nextCode = (maxCode != null) ? maxCode + 1 : 100;
-        jobType.setCode(String.valueOf(nextCode));
+    public Job_Type saveJobType(Job_Type jobType) {
+        if (jobType.getCode() == null || jobType.getCode().isEmpty()) {
+            Integer maxCode = jobTypeRepository.findMaxCodeAsInt();
+            int nextCode = (maxCode != null) ? maxCode + 1 : 100;
+            jobType.setCode(String.valueOf(nextCode));
+        }
+        return jobTypeRepository.saveAndFlush(jobType);
     }
-    return jobTypeRepository.saveAndFlush(jobType);
-}
 
     // Get a job type by its ID
     public Job_Type getJobTypeById(Long id) {

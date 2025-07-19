@@ -21,17 +21,18 @@ public class HRPay_GradController {
     public HRPay_GradController(HRPay_GradService payGradService) {
         this.payGradService = payGradService;
     }
+
     // Get all pay grades
     @GetMapping
-public ResponseEntity<List<HRPay_Grad>> getAllPayGrades() {
-    try {
-        List<HRPay_Grad> payGrades = payGradService.getAllPayGrades();
-        return ResponseEntity.ok(payGrades);
-    } catch (Exception e) {
-        e.printStackTrace(); 
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+    public ResponseEntity<List<HRPay_Grad>> getAllPayGrades() {
+        try {
+            List<HRPay_Grad> payGrades = payGradService.getAllPayGrades();
+            return ResponseEntity.ok(payGrades);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
-}
 
     // Get a specific pay grade by ID
     @GetMapping("/{id}")
@@ -39,28 +40,29 @@ public ResponseEntity<List<HRPay_Grad>> getAllPayGrades() {
         Optional<HRPay_Grad> payGrad = payGradService.getPayGradeById(id);
         return payGrad.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
-   @GetMapping("/filter")
-public ResponseEntity<List<HRPay_Grad>> getPayGradesByClassAndIcf(
-        @RequestParam Long classId,
-        @RequestParam Long icfId) {
-    try {
-        // Fetch all ranks based on classId and icfId
-        List<HR_Rank> ranks = payGradService.getRanksByClassAndIcf(classId, icfId);
 
-        if (ranks.isEmpty()) {
-            return ResponseEntity.ok(List.of()); 
+    @GetMapping("/filter")
+    public ResponseEntity<List<HRPay_Grad>> getPayGradesByClassAndIcf(
+            @RequestParam Long classId,
+            @RequestParam Long icfId) {
+        try {
+            // Fetch all ranks based on classId and icfId
+            List<HR_Rank> ranks = payGradService.getRanksByClassAndIcf(classId, icfId);
+
+            if (ranks.isEmpty()) {
+                return ResponseEntity.ok(List.of());
+            }
+
+            // Fetch pay grades for all matching rankIds
+            List<Long> rankIds = ranks.stream().map(HR_Rank::getRankId).toList();
+            List<HRPay_Grad> payGrades = payGradService.getPayGradesByRankIds(rankIds);
+
+            return ResponseEntity.ok(payGrades);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
-
-        // Fetch pay grades for all matching rankIds
-        List<Long> rankIds = ranks.stream().map(HR_Rank::getRankId).toList();
-        List<HRPay_Grad> payGrades = payGradService.getPayGradesByRankIds(rankIds);
-
-        return ResponseEntity.ok(payGrades);
-    } catch (Exception e) {
-        e.printStackTrace();
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
     }
-}
 
     // Save a single pay grade
     @PostMapping
@@ -74,41 +76,40 @@ public ResponseEntity<List<HRPay_Grad>> getPayGradesByClassAndIcf(
     }
 
     // Save multiple pay grades (bulk save)
-   @PostMapping("/bulk-save")
-public ResponseEntity<?> savePayGrades(@RequestBody List<HRPay_Grad> payGrades) {
-    try {
-        System.out.println("Received Pay Grades Payload: " + payGrades);
+    @PostMapping("/bulk-save")
+    public ResponseEntity<?> savePayGrades(@RequestBody List<HRPay_Grad> payGrades) {
+        try {
+            System.out.println("Received Pay Grades Payload: " + payGrades);
 
-        List<HRPay_Grad> savedPayGrades = new ArrayList<>();
+            List<HRPay_Grad> savedPayGrades = new ArrayList<>();
 
-        for (HRPay_Grad payGrad : payGrades) {
-            if (payGrad.getRank() == null || payGrad.getRank().getRankId() == null) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("Rank ID is missing for one or more pay grades.");
-            }
-
-            if (payGrad.getPayGradeId() != null) {
-                Optional<HRPay_Grad> existingPayGrad = payGradService.getPayGradeById(payGrad.getPayGradeId());
-                if (existingPayGrad.isPresent()) {
-                    HRPay_Grad existing = existingPayGrad.get();
-                    existing.setSalary(payGrad.getSalary());
-                    existing.setStepNo(payGrad.getStepNo());
-                    existing.setRank(payGrad.getRank());
-                    savedPayGrades.add(payGradService.savePayGrade(existing));
-                    continue;
+            for (HRPay_Grad payGrad : payGrades) {
+                if (payGrad.getRank() == null || payGrad.getRank().getRankId() == null) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body("Rank ID is missing for one or more pay grades.");
                 }
+
+                if (payGrad.getPayGradeId() != null) {
+                    Optional<HRPay_Grad> existingPayGrad = payGradService.getPayGradeById(payGrad.getPayGradeId());
+                    if (existingPayGrad.isPresent()) {
+                        HRPay_Grad existing = existingPayGrad.get();
+                        existing.setSalary(payGrad.getSalary());
+                        existing.setStepNo(payGrad.getStepNo());
+                        existing.setRank(payGrad.getRank());
+                        savedPayGrades.add(payGradService.savePayGrade(existing));
+                        continue;
+                    }
+                }
+                savedPayGrades.add(payGradService.savePayGrade(payGrad));
             }
-            savedPayGrades.add(payGradService.savePayGrade(payGrad));
+
+            return ResponseEntity.ok(savedPayGrades);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("{\"error\": \"Error saving pay grades: " + e.getMessage() + "\"}");
         }
-
-        return ResponseEntity.ok(savedPayGrades);
-    } catch (Exception e) {
-        e.printStackTrace();
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body("{\"error\": \"Error saving pay grades: " + e.getMessage() + "\"}");
     }
-}
-
 
     // Delete a pay grade by ID
     @DeleteMapping("/{id}")
