@@ -581,12 +581,13 @@ export default function EmployeeForm({
         department: formData.department
           ? { deptId: Number(formData.department) }
           : null,
-        salary: parseNumericInput(formData.salary),
+        salary: formData.salary,
         pensionNumber: parseNumericInput(formData.pensionNumber),
         retirementNo: parseNumericInput(formData.retirementNo),
         tinNumer: parseNumericInput(formData.tinNumer),
         accountNo: parseNumericInput(formData.accountNo),
       };
+      console.log("Employee info being sent to backend:", submittedData);
 
       onSubmit(submittedData);
     } catch (error) {
