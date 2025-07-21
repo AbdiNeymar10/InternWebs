@@ -12,14 +12,15 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/job-type-details")
-@CrossOrigin(origins = "http://localhost:3000") 
+@CrossOrigin(origins = "http://localhost:3000")
 public class HRJob_TypeDetailController {
 
     private final HRJob_TypeDetailService jobTypeDetailService;
     private final HRJob_TypeService jobTypeService;
     private final HR_LuIcfService icfService;
 
-    public HRJob_TypeDetailController(HRJob_TypeDetailService jobTypeDetailService, HRJob_TypeService jobTypeService, HR_LuIcfService icfService) {
+    public HRJob_TypeDetailController(HRJob_TypeDetailService jobTypeDetailService, HRJob_TypeService jobTypeService,
+            HR_LuIcfService icfService) {
         this.jobTypeDetailService = jobTypeDetailService;
         this.jobTypeService = jobTypeService;
         this.icfService = icfService;
@@ -40,78 +41,79 @@ public class HRJob_TypeDetailController {
             return ResponseEntity.status(404).body(e.getMessage());
         }
     }
-@GetMapping("/distinct-icf-values")
-public ResponseEntity<List<String>> getDistinctIcfValues() {
-    return ResponseEntity.ok(jobTypeDetailService.findDistinctIcfValues());
-}
 
-@GetMapping("/icfs-by-job-type-id")
-public ResponseEntity<List<String>> getIcfsByJobTypeId(@RequestParam Long jobTypeId) {
-    try {
-        List<String> icfs = jobTypeDetailService.findIcfValuesByJobTypeId(jobTypeId);
-        return ResponseEntity.ok(icfs);
-    } catch (Exception e) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body(List.of("Error fetching ICF values: " + e.getMessage()));
+    @GetMapping("/distinct-icf-values")
+    public ResponseEntity<List<String>> getDistinctIcfValues() {
+        return ResponseEntity.ok(jobTypeDetailService.findDistinctIcfValues());
     }
-}
+
+    @GetMapping("/icfs-by-job-type-id")
+    public ResponseEntity<List<String>> getIcfsByJobTypeId(@RequestParam Long jobTypeId) {
+        try {
+            List<String> icfs = jobTypeDetailService.findIcfValuesByJobTypeId(jobTypeId);
+            return ResponseEntity.ok(icfs);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(List.of("Error fetching ICF values: " + e.getMessage()));
+        }
+    }
 
     @GetMapping("/filter")
-public ResponseEntity<?> getByJobTitleAndClass(
-    @RequestParam String jobTitle,
-    @RequestParam String jobClass
-) {
-    try {
-        List<HRJob_TypeDetail> details = jobTypeDetailService.findByJobTitleAndClass(jobTitle, jobClass);
-        if (details.isEmpty()) {
-            return ResponseEntity.ok(details); 
+    public ResponseEntity<?> getByJobTitleAndClass(
+            @RequestParam String jobTitle,
+            @RequestParam String jobClass) {
+        try {
+            List<HRJob_TypeDetail> details = jobTypeDetailService.findByJobTitleAndClass(jobTitle, jobClass);
+            if (details.isEmpty()) {
+                return ResponseEntity.ok(details);
+            }
+            return ResponseEntity.ok(details);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error fetching data: " + e.getMessage());
         }
-        return ResponseEntity.ok(details);
-    } catch (Exception e) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error fetching data: " + e.getMessage());
     }
-}
 
     // Create a new job type detail
-@PostMapping("/save")
-public ResponseEntity<?> saveJobTypeDetails(@RequestBody List<HRJob_TypeDetail> jobTypeDetails) {
-    try {
-        for (HRJob_TypeDetail detail : jobTypeDetails) {
+    @PostMapping("/save")
+    public ResponseEntity<?> saveJobTypeDetails(@RequestBody List<HRJob_TypeDetail> jobTypeDetails) {
+        try {
+            for (HRJob_TypeDetail detail : jobTypeDetails) {
 
-            if (detail.getJobType() == null || detail.getJobType().getId() == null) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Job Type is missing or invalid.");
+                if (detail.getJobType() == null || detail.getJobType().getId() == null) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body("Job Type is missing or invalid.");
+                }
+
+                if (!jobTypeService.existsById(detail.getJobType().getId())) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body("Invalid jobType ID: " + detail.getJobType().getId());
+                }
+
+                if (detail.getIcf() == null || detail.getIcf().getId() == null) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body("ICF is missing or invalid.");
+                }
+
+                if (!icfService.existsById(detail.getIcf().getId())) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body("Invalid ICF ID: " + detail.getIcf().getId());
+                }
+
+                Long jobTypeId = detail.getJobType().getId();
+                detail.setJobType(jobTypeService.findById(jobTypeId));
+
+                Long icfId = detail.getIcf().getId();
+                detail.setIcf(icfService.findById(icfId));
             }
 
-            if (!jobTypeService.existsById(detail.getJobType().getId())) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Invalid jobType ID: " + detail.getJobType().getId());
-            }
-
-            if (detail.getIcf() == null || detail.getIcf().getId() == null) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("ICF is missing or invalid.");
-            }
-
-            if (!icfService.existsById(detail.getIcf().getId())) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Invalid ICF ID: " + detail.getIcf().getId());
-            }
-
-            Long jobTypeId = detail.getJobType().getId();
-            detail.setJobType(jobTypeService.findById(jobTypeId));
-
-            Long icfId = detail.getIcf().getId();
-            detail.setIcf(icfService.findById(icfId));
+            List<HRJob_TypeDetail> savedDetails = jobTypeDetailService.saveAll(jobTypeDetails);
+            return ResponseEntity.ok(savedDetails);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Invalid data: " + e.getMessage());
         }
-
-        List<HRJob_TypeDetail> savedDetails = jobTypeDetailService.saveAll(jobTypeDetails);
-        return ResponseEntity.ok(savedDetails);
-    } catch (Exception e) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-            .body("Invalid data: " + e.getMessage());
     }
-}
 
     // Update an existing job type detail
     @PutMapping("/{id}")

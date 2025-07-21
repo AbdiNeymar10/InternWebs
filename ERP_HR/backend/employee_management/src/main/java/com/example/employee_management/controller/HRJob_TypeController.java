@@ -16,14 +16,15 @@ import java.util.HashMap;
 @CrossOrigin(origins = "http://localhost:3000")
 public class HRJob_TypeController {
 
-    private final HRJob_TypeService service; 
-    private final HrLuJobFamilyService jobFamilyService; 
+    private final HRJob_TypeService service;
+    private final HrLuJobFamilyService jobFamilyService;
 
     // Constructor for dependency injection
     public HRJob_TypeController(HRJob_TypeService service, HrLuJobFamilyService jobFamilyService) {
         this.service = service;
         this.jobFamilyService = jobFamilyService;
     }
+
     // Fetch all job types
     @GetMapping
     public ResponseEntity<List<HRJob_Type>> getAll() {
@@ -39,63 +40,66 @@ public class HRJob_TypeController {
             return ResponseEntity.status(404).body(e.getMessage());
         }
     }
-@GetMapping("/by-job-family-and-title")
-public ResponseEntity<?> getByJobFamilyAndTitle(
-    @RequestParam Long jobFamilyId,
-    @RequestParam Long jobTitleId
-) {
-    try {
-        HRJob_Type jt = service.findByJobFamilyAndJobTitle(jobFamilyId, jobTitleId);
-        if (jt == null) return ResponseEntity.status(404).body("No job type found for this job title.");
-        Map<String, Object> map = new HashMap<>();
-        map.put("id", jt.getId());
-        map.put("jobTitle", jt.getJobTitle().getJobTitle());
-        map.put("jobCode", jt.getJobCode());
-        return ResponseEntity.ok(map);
-    } catch (Exception e) {
-        e.printStackTrace();
-        return ResponseEntity.status(500).body("Error: " + e.getMessage());
+
+    @GetMapping("/by-job-family-and-title")
+    public ResponseEntity<?> getByJobFamilyAndTitle(
+            @RequestParam Long jobFamilyId,
+            @RequestParam Long jobTitleId) {
+        try {
+            HRJob_Type jt = service.findByJobFamilyAndJobTitle(jobFamilyId, jobTitleId);
+            if (jt == null)
+                return ResponseEntity.status(404).body("No job type found for this job title.");
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", jt.getId());
+            map.put("jobTitle", jt.getJobTitle().getJobTitle());
+            map.put("jobCode", jt.getJobCode());
+            return ResponseEntity.ok(map);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error: " + e.getMessage());
+        }
     }
-}
+
     @GetMapping("/by-job-family/{jobFamilyId}")
-public ResponseEntity<List<Map<String, Object>>> getJobTypesByJobFamily(@PathVariable Long jobFamilyId) {
-    List<HRJob_Type> jobTypes = service.findByJobFamily(jobFamilyId);
-    List<Map<String, Object>> result = new ArrayList<>();
-    for (HRJob_Type jt : jobTypes) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("id", jt.getId());
-        map.put("jobTitle", jt.getJobTitle().getJobTitle());
-        map.put("jobTitleId", jt.getJobTitle().getId());
-        map.put("jobCode", jt.getJobCode());
-        result.add(map);
+    public ResponseEntity<List<Map<String, Object>>> getJobTypesByJobFamily(@PathVariable Long jobFamilyId) {
+        List<HRJob_Type> jobTypes = service.findByJobFamily(jobFamilyId);
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (HRJob_Type jt : jobTypes) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", jt.getId());
+            map.put("jobTitle", jt.getJobTitle().getJobTitle());
+            map.put("jobTitleId", jt.getJobTitle().getId());
+            map.put("jobCode", jt.getJobCode());
+            result.add(map);
+        }
+        return ResponseEntity.ok(result);
     }
-    return ResponseEntity.ok(result);
-}
 
     // Update job family
- @PutMapping("/update-job-family")
-public ResponseEntity<?> updateJobFamily(@RequestBody List<Map<String, Long>> jobTypeUpdates) {
-    try {
-        for (Map<String, Long> update : jobTypeUpdates) {
-            Long jobTitleId = update.get("jobTitleId");
-            Long jobFamilyId = update.get("jobFamilyId");
+    @PutMapping("/update-job-family")
+    public ResponseEntity<?> updateJobFamily(@RequestBody List<Map<String, Long>> jobTypeUpdates) {
+        try {
+            for (Map<String, Long> update : jobTypeUpdates) {
+                Long jobTitleId = update.get("jobTitleId");
+                Long jobFamilyId = update.get("jobFamilyId");
 
-            // Find all HRJobType rows for this job title
-            List<HRJob_Type> jobTypes = service.findByJobTitleIds(List.of(jobTitleId));
-            if (jobTypes.isEmpty()) {
-                return ResponseEntity.status(404).body("Job Type not found for Job Title ID: " + jobTitleId);
+                // Find all HRJobType rows for this job title
+                List<HRJob_Type> jobTypes = service.findByJobTitleIds(List.of(jobTitleId));
+                if (jobTypes.isEmpty()) {
+                    return ResponseEntity.status(404).body("Job Type not found for Job Title ID: " + jobTitleId);
+                }
+                for (HRJob_Type jobType : jobTypes) {
+                    jobType.setJobFamily(jobFamilyId);
+                    service.save(jobType);
+                }
             }
-            for (HRJob_Type jobType : jobTypes) {
-                jobType.setJobFamily(jobFamilyId);
-                service.save(jobType);
-            }
+
+            return ResponseEntity.ok("Job Family updated successfully.");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error updating Job Family: " + e.getMessage());
         }
-
-        return ResponseEntity.ok("Job Family updated successfully.");
-    } catch (Exception e) {
-        return ResponseEntity.status(500).body("Error updating Job Family: " + e.getMessage());
     }
-}
+
     // Create a new job type or save multiple job types
     @PostMapping("/save-job-types")
     public ResponseEntity<?> saveJobTypes(@RequestBody List<HRJob_Type> jobTypes) {
@@ -109,7 +113,7 @@ public ResponseEntity<?> updateJobFamily(@RequestBody List<Map<String, Long>> jo
                 HRJob_Type savedJobType = service.save(jobType);
                 savedJobTypeIds.add(savedJobType.getId());
             }
-            return ResponseEntity.ok(savedJobTypeIds); 
+            return ResponseEntity.ok(savedJobTypeIds);
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Error saving job types: " + e.getMessage());
         }
@@ -124,9 +128,9 @@ public ResponseEntity<?> updateJobFamily(@RequestBody List<Map<String, Long>> jo
                 return ResponseEntity.status(404).body("No job type found for the given job title ID.");
             }
             HRJob_Type jobType = jobTypes.stream()
-                .filter(jt -> jt.getJobTitle().getId().equals(jobTitleId))
-                .findFirst()
-                .orElse(jobTypes.get(0)); 
+                    .filter(jt -> jt.getJobTitle().getId().equals(jobTitleId))
+                    .findFirst()
+                    .orElse(jobTypes.get(0));
             Long jobFamilyId = jobType.getJobFamily();
             String jobFamilyName = "N/A";
             if (jobFamilyId != null) {
@@ -138,7 +142,7 @@ public ResponseEntity<?> updateJobFamily(@RequestBody List<Map<String, Long>> jo
             jobDetails.put("jobTypeId", jobType.getId());
             jobDetails.put("jobCode", jobType.getJobCode());
             jobDetails.put("jobTitle", jobType.getJobTitle().getJobTitle());
-            jobDetails.put("jobFamily", jobFamilyName); 
+            jobDetails.put("jobFamily", jobFamilyName);
             jobDetails.put("jobGrade", jobType.getJobGrade() != null ? jobType.getJobGrade().getGrade() : "N/A");
 
             return ResponseEntity.ok(jobDetails);

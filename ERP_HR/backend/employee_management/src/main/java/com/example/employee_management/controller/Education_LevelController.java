@@ -34,23 +34,26 @@ public class Education_LevelController {
         }
         return ResponseEntity.ok(educationLevel);
     }
-   @GetMapping("/education-categories")
+
+    @GetMapping("/education-categories")
     public ResponseEntity<List<String>> getEducationCategories() {
-    List<String> categories = service.findAll() 
-        .stream()
-        .map(Education_Level::getCatagory) 
-        .distinct()
-        .collect(Collectors.toList());
-    return ResponseEntity.ok(categories);
-}
+        List<String> categories = service.findAll()
+                .stream()
+                .map(Education_Level::getCatagory)
+                .distinct()
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(categories);
+    }
+
     @GetMapping("/education-level")
-public ResponseEntity<List<Education_Level>> getEducationLevels() {
-    List<Education_Level> educationLevels = service.findAll()
-        .stream()
-        .map(level -> new Education_Level(level.getId(), level.getCatagory(), level.getEduName(), level.getRank(), level.getEduLevel(), level.getCategory()))
-        .collect(Collectors.toList());
-    return ResponseEntity.ok(educationLevels);
-}
+    public ResponseEntity<List<Education_Level>> getEducationLevels() {
+        List<Education_Level> educationLevels = service.findAll()
+                .stream()
+                .map(level -> new Education_Level(level.getId(), level.getCatagory(), level.getEduName(),
+                        level.getRank(), level.getEduLevel(), level.getCategory()))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(educationLevels);
+    }
 
     // Create or update an education level record
     @PostMapping

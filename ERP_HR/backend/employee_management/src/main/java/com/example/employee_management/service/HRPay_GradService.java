@@ -32,21 +32,22 @@ public class HRPay_GradService {
 
     // Save a single pay grade
     public HRPay_Grad savePayGrade(HRPay_Grad payGrad) {
-    try {
-        if (payGrad.getRank() != null && payGrad.getRank().getRankId() != null) {
-            HR_Rank rank = rankRepository.findById(payGrad.getRank().getRankId())
-                    .orElseThrow(() -> new IllegalArgumentException("Invalid Rank ID: " + payGrad.getRank().getRankId()));
-            payGrad.setRank(rank);
-        } else {
-            throw new IllegalArgumentException("Rank is required for saving a pay grade.");
-        }
+        try {
+            if (payGrad.getRank() != null && payGrad.getRank().getRankId() != null) {
+                HR_Rank rank = rankRepository.findById(payGrad.getRank().getRankId())
+                        .orElseThrow(() -> new IllegalArgumentException(
+                                "Invalid Rank ID: " + payGrad.getRank().getRankId()));
+                payGrad.setRank(rank);
+            } else {
+                throw new IllegalArgumentException("Rank is required for saving a pay grade.");
+            }
 
-        return payGradRepository.save(payGrad);
-    } catch (Exception e) {
-        e.printStackTrace();
-        throw new RuntimeException("Error saving pay grade: " + e.getMessage(), e);
+            return payGradRepository.save(payGrad);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Error saving pay grade: " + e.getMessage(), e);
+        }
     }
-}
 
     // Save multiple pay grades
     public void saveAll(List<HRPay_Grad> payGrades) {
@@ -61,9 +62,10 @@ public class HRPay_GradService {
     public List<HR_Rank> getRanksByClassAndIcf(Long classId, Long icfId) {
         return rankRepository.findByIcfIdAndJobGradeId(icfId, classId);
     }
+
     public List<HRPay_Grad> getPayGradesByRankIds(List<Long> rankIds) {
-    return payGradRepository.findByRankRankIdIn(rankIds);
-   }
+        return payGradRepository.findByRankRankIdIn(rankIds);
+    }
 
     // Fetch pay grades by rankId
     public List<HRPay_Grad> getPayGradesByRankId(Long rankId) {
