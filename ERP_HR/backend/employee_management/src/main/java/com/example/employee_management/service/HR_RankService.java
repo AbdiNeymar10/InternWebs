@@ -18,7 +18,8 @@ public class HR_RankService {
     private final HrLuJobGradeRepository jobGradeRepository;
     private final HR_LuIcfRepository icfRepository;
 
-    public HR_RankService(HR_RankRepository rankRepository, HrLuJobGradeRepository jobGradeRepository, HR_LuIcfRepository icfRepository) {
+    public HR_RankService(HR_RankRepository rankRepository, HrLuJobGradeRepository jobGradeRepository,
+            HR_LuIcfRepository icfRepository) {
         this.rankRepository = rankRepository;
         this.jobGradeRepository = jobGradeRepository;
         this.icfRepository = icfRepository;
@@ -29,28 +30,30 @@ public class HR_RankService {
     }
 
     public HR_Rank save(HR_Rank rank) {
-    try {
-        HrLuJobGrade jobGrade = jobGradeRepository.findById(rank.getJobGrade().getId())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid Job Grade ID: " + rank.getJobGrade().getId()));
-        HR_LuIcf icf = icfRepository.findById(rank.getIcf().getId())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid ICF ID: " + rank.getIcf().getId()));
+        try {
+            HrLuJobGrade jobGrade = jobGradeRepository.findById(rank.getJobGrade().getId())
+                    .orElseThrow(
+                            () -> new IllegalArgumentException("Invalid Job Grade ID: " + rank.getJobGrade().getId()));
+            HR_LuIcf icf = icfRepository.findById(rank.getIcf().getId())
+                    .orElseThrow(() -> new IllegalArgumentException("Invalid ICF ID: " + rank.getIcf().getId()));
 
-        rank.setJobGrade(jobGrade);
-        rank.setIcf(icf);
+            rank.setJobGrade(jobGrade);
+            rank.setIcf(icf);
 
-        return rankRepository.save(rank);
-    } catch (Exception e) {
-        e.printStackTrace();
-        throw new RuntimeException("Error saving rank: " + e.getMessage(), e);
+            return rankRepository.save(rank);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Error saving rank: " + e.getMessage(), e);
+        }
     }
-}
 
     // Save multiple ranks
     public List<HR_Rank> saveAll(List<HR_Rank> ranks) {
         try {
             for (HR_Rank rank : ranks) {
                 HrLuJobGrade jobGrade = jobGradeRepository.findById(rank.getJobGrade().getId())
-                        .orElseThrow(() -> new IllegalArgumentException("Invalid Job Grade ID: " + rank.getJobGrade().getId()));
+                        .orElseThrow(() -> new IllegalArgumentException(
+                                "Invalid Job Grade ID: " + rank.getJobGrade().getId()));
                 HR_LuIcf icf = icfRepository.findById(rank.getIcf().getId())
                         .orElseThrow(() -> new IllegalArgumentException("Invalid ICF ID: " + rank.getIcf().getId()));
 
@@ -58,7 +61,7 @@ public class HR_RankService {
                 rank.setIcf(icf);
             }
 
-            return rankRepository.saveAll(ranks); 
+            return rankRepository.saveAll(ranks);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("Error saving ranks: " + e.getMessage(), e);
