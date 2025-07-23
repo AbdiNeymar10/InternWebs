@@ -356,7 +356,9 @@ const RegisterJob = () => {
         {/* Job Title */}
         <div className="flex flex-col gap-2 w-full mb-4">
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full">
-            <label className="w-full sm:w-32 text-left sm:text-right font-semibold mb-1 sm:mb-0">Job Title:</label>
+            <label className="w-full sm:w-32 text-left sm:text-right font-semibold mb-1 sm:mb-0">
+              Job Title:
+            </label>
             <div className="flex-grow relative w-full">
               <input
                 type="text"
@@ -418,7 +420,9 @@ const RegisterJob = () => {
         {/* Class */}
         <div className="flex flex-col gap-2 w-full mb-4">
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full">
-            <label className="w-full sm:w-32 text-left sm:text-right font-semibold mb-1 sm:mb-0">Class:</label>
+            <label className="w-full sm:w-32 text-left sm:text-right font-semibold mb-1 sm:mb-0">
+              Class:
+            </label>
             <div
               className="flex-grow relative w-full"
               onClick={(e) => e.stopPropagation()}

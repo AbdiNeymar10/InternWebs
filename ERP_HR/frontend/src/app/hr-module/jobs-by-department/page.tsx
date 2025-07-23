@@ -412,7 +412,8 @@ function DepartmentSearch() {
               <h2 className="text-lg font-semibold text-gray-700">
                 {/* {departments.find((d) => d.id === 1)?.name ||
                   ""} */}
-              </h2>.
+              </h2>
+              .
               <button
                 className="text-gray-700 hover:text-gray-800 text-2xl"
                 onClick={() => setShowDepartmentTreeModal(false)}
