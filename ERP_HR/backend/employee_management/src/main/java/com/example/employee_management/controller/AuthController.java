@@ -55,7 +55,8 @@ public class AuthController {
                     "token", token,
                     "email", user.getEmail(),
                     "empId", user.getEmpId(),
-                    "role", user.getRole()));
+                    "role", user.getRole(),
+                    "fullName", user.getFullName()));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
         }

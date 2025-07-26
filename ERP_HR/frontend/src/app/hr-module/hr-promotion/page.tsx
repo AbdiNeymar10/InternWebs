@@ -51,7 +51,18 @@ function HrPromotion() {
   const [jobResponsibility, setJobResponsibility] = useState("");
   const [refNo, setRefNo] = useState("");
   const [dateFrom, setDateFrom] = useState("");
-  const [progressBy, setProgressBy] = useState("Abdi Tolesa");
+  // Remove static progressBy, use logged-in user's full name
+  let loggedInFullName = "";
+  if (typeof window !== "undefined") {
+    try {
+      const userStr = localStorage.getItem("user");
+      if (userStr) {
+        const userObj = JSON.parse(userStr);
+        loggedInFullName =
+          userObj.fullName || userObj.name || userObj.email || "";
+      }
+    } catch {}
+  }
   const [loading, setLoading] = useState(true);
   const [branchNameTo, setBranchNameTo] = useState("");
   const [currentSalary, setCurrentSalary] = useState("");
@@ -185,6 +196,7 @@ function HrPromotion() {
       branchFromId: branchFromId ? Number(branchFromId) : undefined,
       salary: currentSalary ? currentSalary : undefined,
       employmentType: employmentTypeId,
+      approvedBy: loggedInFullName || undefined,
     };
     console.log("Submitting transfer request payload:", transferRequestPayload);
     if (transferRequestPayload.id) {
@@ -1236,8 +1248,7 @@ function HrPromotion() {
                 <input
                   type="text"
                   className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
-                  value={progressBy}
-                  onChange={(e) => setProgressBy(e.target.value)}
+                  value={loggedInFullName || "-"}
                   readOnly
                 />
               </div>

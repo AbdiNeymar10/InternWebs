@@ -39,11 +39,24 @@ function ApproveDeptFrom() {
   const [searchValue, setSearchValue] = useState("");
   const [decision, setDecision] = useState("");
   const [remark, setRemark] = useState("");
-  const [progressBy, setProgressBy] = useState("");
+  // Remove progressBy state, will use from user object
   const [loading, setLoading] = useState(true);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Get logged-in user's full name from localStorage
+  let loggedInFullName = "";
+  if (typeof window !== "undefined") {
+    try {
+      const userStr = localStorage.getItem("user");
+      if (userStr) {
+        const userObj = JSON.parse(userStr);
+        loggedInFullName =
+          userObj.fullName || userObj.name || userObj.email || "";
+      }
+    } catch {}
+  }
 
   const clearForm = () => {
     setEmployeeName("");
@@ -84,7 +97,7 @@ function ApproveDeptFrom() {
       transferType,
       decision,
       remark,
-      progressBy,
+      progressBy: loggedInFullName,
     };
     if (jobPositionId) payload.jobPositionId = Number(jobPositionId);
     if (fromDepartmentId) payload.transferFromId = Number(fromDepartmentId);
@@ -117,7 +130,7 @@ function ApproveDeptFrom() {
         jobCodeId: jobCodeId ? Number(jobCodeId) : undefined,
         transferToId: toDepartmentId ? Number(toDepartmentId) : undefined,
         status: decision,
-        approvedBy: "Abdi Neymar",
+        approvedBy: loggedInFullName,
       };
       Object.keys(updatePayload).forEach((key: string) => {
         if (updatePayload[key] === undefined) {
@@ -735,7 +748,9 @@ function ApproveDeptFrom() {
                 <label className="block text-xs font-medium text-gray-700 mb-0 whitespace-nowrap min-w-[120px]">
                   Processed by:
                 </label>
-                <span className="text-gray-800 font-semibold">Abdi Neymar</span>
+                <span className="text-gray-800 font-semibold">
+                  {loggedInFullName || "-"}
+                </span>
               </div>
             </div>
             <div className="space-y-4">

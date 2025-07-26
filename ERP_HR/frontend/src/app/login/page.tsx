@@ -26,7 +26,7 @@ export default function LoginPage() {
         if (data.token) {
           localStorage.setItem("token", data.token);
         }
-        // Store user object with role in localStorage if available
+        // Store user object with role and fullName in localStorage if available
         if (data.user || data.role) {
           // If backend returns user object, use it; else, build from available fields
           const userObj = data.user
@@ -35,6 +35,7 @@ export default function LoginPage() {
                 email: data.email || "",
                 role: data.role || "USER",
                 empId: data.empId || "",
+                fullName: data.fullName || "",
               };
           localStorage.setItem("user", JSON.stringify(userObj));
         }
