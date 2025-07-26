@@ -1,5 +1,6 @@
 "use client";
 
+import { authFetch } from "@/utils/authFetch";
 import { useState, useEffect, useRef } from "react";
 import Head from "next/head";
 import toast, { Toaster } from "react-hot-toast";
@@ -101,7 +102,7 @@ function TransferRequest() {
     if (branchFromId) payload.branchFromId = Number(branchFromId);
 
     if (selectedRejectedRequestId) {
-      fetch(
+      authFetch(
         `http://localhost:8080/api/hr-transfer-requests/${selectedRejectedRequestId}`,
         {
           method: "PUT",
@@ -141,7 +142,7 @@ function TransferRequest() {
     console.log("Submitting payload:", payload);
 
     if (selectedRequest && updateId) {
-      fetch(
+      authFetch(
         `http://localhost:8080/api/hr-transfer-requests/${Number(updateId)}`,
         {
           method: "PUT",
@@ -167,7 +168,7 @@ function TransferRequest() {
         .catch(() => toast.error("Failed to update transfer request"));
     } else {
       // Create new request
-      fetch("http://localhost:8080/api/hr-transfer-requests", {
+      authFetch("http://localhost:8080/api/hr-transfer-requests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -184,7 +185,7 @@ function TransferRequest() {
     }
   };
   useEffect(() => {
-    fetch("http://localhost:8080/api/departments")
+    authFetch("http://localhost:8080/api/departments")
       .then((res) => res.json())
       .then((data) => {
         setDepartments(data);
@@ -195,7 +196,7 @@ function TransferRequest() {
   // Fetch employee info when employeeId changes
   useEffect(() => {
     if (employeeId.trim() !== "") {
-      fetch(`http://localhost:8080/api/employees/${employeeId}/info`)
+      authFetch(`http://localhost:8080/api/employees/${employeeId}/info`)
         .then((res) => {
           if (!res.ok) throw new Error("Employee not found");
           return res.json();
@@ -217,7 +218,7 @@ function TransferRequest() {
           setBranchFromId(data.branchId ? data.branchId.toString() : "");
 
           if (data.jobPositionId) {
-            fetch(
+            authFetch(
               `http://localhost:8080/api/job-type-details/${data.jobPositionId}`
             )
               .then((res) => (res.ok ? res.json() : null))
@@ -288,7 +289,7 @@ function TransferRequest() {
   useEffect(() => {
     const fetchRequests = async () => {
       try {
-        const response = await fetch(
+        const response = await authFetch(
           "http://localhost:8080/api/hr-transfer-requests"
         );
         const data = await response.json();

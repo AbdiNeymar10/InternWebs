@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, ReactNode } from "react";
+import { useState, useEffect, ReactNode, useRef } from "react";
 import Header from "./Header";
 import Sidebar from "../hr-module/sidbar";
 import toast, { Toaster } from "react-hot-toast";
@@ -17,6 +17,7 @@ export default function AppModuleLayout({ children }: Props) {
     }
     return true;
   });
+  const sidebarRef = useRef<HTMLDivElement>(null);
 
   const toggleSidebar = () => setIsSidebarOpen((prev) => !prev);
 
@@ -33,12 +34,33 @@ export default function AppModuleLayout({ children }: Props) {
     }
   }, []);
 
+  useEffect(() => {
+    if (!isSidebarOpen || !isMobile) return;
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        sidebarRef.current &&
+        !sidebarRef.current.contains(event.target as Node)
+      ) {
+        setIsSidebarOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isSidebarOpen, isMobile]);
+
   return (
     <div className="flex flex-col min-h-screen">
       <Toaster />
       <Header toggleSidebar={toggleSidebar} />
-      <div className="flex flex-1 flex-col sm:flex-row">
-        <Sidebar hidden={!isSidebarOpen} />
+      <div className="flex flex-1 flex-col sm:flex-row min-h-0">
+        <div ref={sidebarRef} className="min-h-full h-auto flex flex-col">
+          <Sidebar
+            hidden={!isSidebarOpen}
+            className="flex-1 h-full min-h-full"
+          />
+        </div>
         <div className="flex-1 p-4 transition-all duration-300 w-full">
           {children}
         </div>

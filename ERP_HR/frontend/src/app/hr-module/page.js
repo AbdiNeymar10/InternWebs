@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import Chart from "chart.js/auto";
 import Header from "../components/Header";
 import Sidebar from "./sidbar";
-import RegisterJobs from "./register-jobs/page"; // Import the RegisterJobs page component
+import RegisterJobs from "./register-jobs/page"; 
 
 export default function HRModule() {
   const [sidebarHidden, setSidebarHidden] = useState(false);
@@ -11,16 +11,14 @@ export default function HRModule() {
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 3;
 
-  const [currentRoute, setCurrentRoute] = useState("dashboard"); // Track the current route
+  const [currentRoute, setCurrentRoute] = useState("dashboard"); 
 
   useEffect(() => {
-    // Initialize Pie Chart
     let pieChartInstance = null;
 
     if (pieChartRef.current) {
       const pieCtx = pieChartRef.current.getContext("2d");
 
-      // Destroy previous chart instance if it exists
       if (pieChartInstance) {
         pieChartInstance.destroy();
       }
@@ -64,7 +62,6 @@ export default function HRModule() {
       });
     }
 
-    // Cleanup the chart on component unmount
     return () => {
       if (pieChartInstance) {
         pieChartInstance.destroy();
@@ -115,7 +112,7 @@ export default function HRModule() {
   // Render content based on the current route
   const renderContent = () => {
     if (currentRoute === "register-jobs") {
-      return <RegisterJobs />; // Render the RegisterJobs page
+      return <RegisterJobs />; 
     }
 
     // Default dashboard content
@@ -206,12 +203,12 @@ export default function HRModule() {
         <div className="flex-1 p-6 overflow-auto">
           <h1 className="text-2xl font-bold mb-6">HR Module Dashboard</h1>
           <div className="mb-4">
-            <button
+            {/* <button
               className="bg-blue-500 text-white px-4 py-2 rounded mr-2"
               onClick={() => setCurrentRoute("dashboard")}
             >
               Dashboard
-            </button>
+            </button> */}
             {/* <button
               className="bg-blue-500 text-white px-4 py-2 rounded"
               onClick={() => setCurrentRoute("register-jobs")}

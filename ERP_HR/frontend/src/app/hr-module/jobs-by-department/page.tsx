@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import axios from "axios";
+import { authFetch } from "@/utils/authFetch";
 import DepartmentTree from "../../components/DepartmentTree";
 import toast, { Toaster } from "react-hot-toast";
 import AppModuleLayout from "../../components/AppModuleLayout";
@@ -45,19 +45,17 @@ function DepartmentSearch() {
   useEffect(() => {
     const fetchAvailableJobs = async () => {
       try {
-        const response = await axios.get("http://localhost:8080/api/jobtypes");
-        const jobs = response.data.map(
-          (job: { id: number; jobTitle: string }) => ({
-            id: job.id,
-            title: job.jobTitle,
-          })
-        );
+        const response = await authFetch("http://localhost:8080/api/jobtypes");
+        const data = await response.json();
+        const jobs = data.map((job: { id: number; jobTitle: string }) => ({
+          id: job.id,
+          title: job.jobTitle,
+        }));
         setAvailableJobs(jobs);
       } catch (error) {
         console.error("Error fetching available jobs:", error);
       }
     };
-
     fetchAvailableJobs();
   }, []);
 
@@ -65,10 +63,11 @@ function DepartmentSearch() {
   useEffect(() => {
     const fetchDepartments = async () => {
       try {
-        const response = await axios.get(
+        const response = await authFetch(
           "http://localhost:8080/api/departments"
         );
-        const departmentData = response.data.map(
+        const data = await response.json();
+        const departmentData = data.map(
           (dept: { deptId: number; deptName: string }) => ({
             id: dept.deptId,
             name: dept.deptName,
@@ -79,7 +78,6 @@ function DepartmentSearch() {
         console.error("Error fetching departments:", error);
       }
     };
-
     fetchDepartments();
   }, []);
 
@@ -109,11 +107,10 @@ function DepartmentSearch() {
     try {
       const jobDetailsPromises = selectedAvailableJobs.map(
         async (jobTitleId) => {
-          const response = await axios.get(
-            "http://localhost:8080/api/hr-job-types/details-by-job-title-id",
-            { params: { jobTitleId } }
+          const response = await authFetch(
+            `http://localhost:8080/api/hr-job-types/details-by-job-title-id?jobTitleId=${jobTitleId}`
           );
-          return response.data;
+          return await response.json();
         }
       );
 
@@ -142,11 +139,10 @@ function DepartmentSearch() {
     try {
       const jobDetailsPromises = availableJobs.map(async (job) => {
         try {
-          const response = await axios.get(
-            "http://localhost:8080/api/hr-job-types/details-by-job-title-id",
-            { params: { jobTitleId: job.id } }
+          const response = await authFetch(
+            `http://localhost:8080/api/hr-job-types/details-by-job-title-id?jobTitleId=${job.id}`
           );
-          return response.data;
+          return await response.json();
         } catch (error) {
           return null;
         }
@@ -197,7 +193,9 @@ function DepartmentSearch() {
         return;
       }
       try {
-        await axios.delete(`http://localhost:8080/api/hr-dept-jobs/${jobId}`);
+        await authFetch(`http://localhost:8080/api/hr-dept-jobs/${jobId}`, {
+          method: "DELETE",
+        });
         setDepartmentJobs(departmentJobs.filter((job) => job.id !== jobId));
         toast.success("Job removed.");
       } catch (error) {
@@ -216,10 +214,11 @@ function DepartmentSearch() {
     setShowDepartmentTreeModal(false);
 
     try {
-      const response = await axios.get(
+      const response = await authFetch(
         `http://localhost:8080/api/hr-dept-jobs/by-department/${departmentId}`
       );
-      const jobs = response.data.map((job: any) => ({
+      const data = await response.json();
+      const jobs = data.map((job: any) => ({
         id: job.id,
         jobTypeId: job.jobType?.id ?? null,
         title: job.jobType?.jobTitle?.jobTitle ?? job.title ?? "",
@@ -258,7 +257,11 @@ function DepartmentSearch() {
       }));
 
       // Send the payload to the backend
-      await axios.post("http://localhost:8080/api/hr-dept-jobs/bulk", payload);
+      await authFetch("http://localhost:8080/api/hr-dept-jobs/bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
       toast.success("Jobs successfully saved to the department.");
 

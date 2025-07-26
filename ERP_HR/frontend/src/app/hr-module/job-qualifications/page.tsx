@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import axios from "axios";
+import { authFetch } from "@/utils/authFetch";
 import toast, { Toaster } from "react-hot-toast";
 import AppModuleLayout from "../../components/AppModuleLayout";
 interface ICF {
@@ -59,10 +59,10 @@ function JobQualification() {
     }[]
   >([]);
   useEffect(() => {
-    axios
-      .get("http://localhost:8080/api/job_types/job-titles")
-      .then((response) => {
-        setJobs(response.data);
+    authFetch("http://localhost:8080/api/job_types/job-titles")
+      .then((response) => response.json())
+      .then((data) => {
+        setJobs(data);
       })
       .catch((error) => {
         console.error("Error fetching job titles:", error);
@@ -70,12 +70,10 @@ function JobQualification() {
   }, []);
 
   useEffect(() => {
-    axios
-      .get<string[]>(
-        "http://localhost:8080/api/job-type-details/distinct-icf-values"
-      )
-      .then((response) => {
-        const uniqueIcfs = Array.from(new Set(response.data));
+    authFetch("http://localhost:8080/api/job-type-details/distinct-icf-values")
+      .then((response) => response.json())
+      .then((data: string[]) => {
+        const uniqueIcfs = Array.from(new Set(data));
         setIcfs(
           uniqueIcfs.map((icf, index) => ({
             id: index,
@@ -91,12 +89,12 @@ function JobQualification() {
 
   useEffect(() => {
     if (selectedJobTypeId) {
-      axios
-        .get<string[]>(
-          `http://localhost:8080/api/job-type-details/icfs-by-job-type-id?jobTypeId=${selectedJobTypeId}`
-        )
-        .then((response) => {
-          const uniqueIcfs = Array.from(new Set(response.data));
+      authFetch(
+        `http://localhost:8080/api/job-type-details/icfs-by-job-type-id?jobTypeId=${selectedJobTypeId}`
+      )
+        .then((response) => response.json())
+        .then((data: string[]) => {
+          const uniqueIcfs = Array.from(new Set(data));
           setFilteredIcfs(
             uniqueIcfs.map((icf, index) => ({
               id: index,
@@ -115,13 +113,12 @@ function JobQualification() {
 
   useEffect(() => {
     if (selectedJob) {
-      axios
-        .get(
-          `http://localhost:8080/api/hr-job-types/details-by-job-title-id?jobTitleId=${selectedJob}`
-        )
-        .then((response) => {
-          console.log("API response:", response.data);
-          const { jobFamily, jobCode, jobGrade, jobTypeId } = response.data;
+      authFetch(
+        `http://localhost:8080/api/hr-job-types/details-by-job-title-id?jobTitleId=${selectedJob}`
+      )
+        .then((response) => response.json())
+        .then((data) => {
+          const { jobFamily, jobCode, jobGrade, jobTypeId } = data;
           setJobFamily(jobFamily);
           setJobCode(jobCode);
           setJobClass(jobGrade);
@@ -134,11 +131,11 @@ function JobQualification() {
   }, [selectedJob]);
   useEffect(() => {
     // Fetch fields of study from the backend
-    axios
-      .get("http://localhost:8080/api/fields-of-study")
-      .then((response) => {
-        setFieldsOfStudy(response.data);
-        setFilteredFieldsOfStudy(response.data);
+    authFetch("http://localhost:8080/api/fields-of-study")
+      .then((response) => response.json())
+      .then((data) => {
+        setFieldsOfStudy(data);
+        setFilteredFieldsOfStudy(data);
       })
       .catch((error) => {
         console.error("Error fetching fields of study:", error);
@@ -146,10 +143,10 @@ function JobQualification() {
   }, []);
 
   useEffect(() => {
-    axios
-      .get("http://localhost:8080/api/education-levels/education-categories")
-      .then((response) => {
-        setEducationCategories(response.data);
+    authFetch("http://localhost:8080/api/education-levels/education-categories")
+      .then((response) => response.json())
+      .then((data) => {
+        setEducationCategories(data);
       })
       .catch((error) => {
         console.error("Error fetching education categories:", error);
@@ -158,10 +155,10 @@ function JobQualification() {
 
   useEffect(() => {
     // Fetch education levels from the backend
-    axios
-      .get("http://localhost:8080/api/education-levels/education-level")
-      .then((response) => {
-        setEducationLevel(response.data);
+    authFetch("http://localhost:8080/api/education-levels/education-level")
+      .then((response) => response.json())
+      .then((data) => {
+        setEducationLevel(data);
       })
       .catch((error) => {
         console.error("Error fetching education levels:", error);
@@ -178,12 +175,12 @@ function JobQualification() {
     jobTypeId: number,
     icfValue: string
   ) => {
-    const response = await axios.get(
+    const response = await authFetch(
       `http://localhost:8080/api/qualifications/by-job-title-and-icf-value?jobTypeId=${jobTypeId}&icfValue=${encodeURIComponent(
         icfValue
       )}`
     );
-    const qualifications = response.data;
+    const qualifications = await response.json();
     setQualifications(
       qualifications.map((q: any) => ({
         id: q.id,
@@ -295,16 +292,19 @@ function JobQualification() {
         };
       });
 
-      const response = await axios.post(
+      const response = await authFetch(
         "http://localhost:8080/api/qualifications/bulk",
-        payload
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
       );
-
-      if (response.status === 200 || response.status === 201) {
+      if (response.ok) {
         toast.success("Qualifications saved successfully!");
         setQualifications([]);
 
-        const savedQualifications = response.data;
+        const savedQualifications = await response.json();
         let hrFieldOfStudyPayload: any[] = [];
         savedQualifications.forEach((qualification: any, idx: number) => {
           qualifications[idx].fieldsOfStudy.forEach((fieldName: string) => {
@@ -319,10 +319,11 @@ function JobQualification() {
         });
 
         if (hrFieldOfStudyPayload.length > 0) {
-          await axios.post(
-            "http://localhost:8080/api/hr-field-of-study/bulk",
-            hrFieldOfStudyPayload
-          );
+          await authFetch("http://localhost:8080/api/hr-field-of-study/bulk", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(hrFieldOfStudyPayload),
+          });
         }
       } else {
         toast.error("Failed to save qualifications.");

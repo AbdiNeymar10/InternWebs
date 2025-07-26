@@ -38,19 +38,34 @@ export default function MainContent() {
         areaChartInstance.current = new Chart(areaCtx, {
           type: "line",
           data: {
-            labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-            datasets: [{
-              label: "Series 1",
-              data: [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
-              backgroundColor: "rgba(54, 162, 235, 0.2)",
-              borderColor: "rgba(54, 162, 235, 1)",
-              borderWidth: 1,
-              fill: true,
-            }],
+            labels: [
+              "Jan",
+              "Feb",
+              "Mar",
+              "Apr",
+              "May",
+              "Jun",
+              "Jul",
+              "Aug",
+              "Sep",
+              "Oct",
+              "Nov",
+              "Dec",
+            ],
+            datasets: [
+              {
+                label: "Series 1",
+                data: [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+                backgroundColor: "rgba(54, 162, 235, 0.2)",
+                borderColor: "rgba(54, 162, 235, 1)",
+                borderWidth: 1,
+                fill: true,
+              },
+            ],
           },
           options: {
             responsive: true,
-            scales: { y: { beginAtZero: true } }
+            scales: { y: { beginAtZero: true } },
           },
         });
       }
@@ -61,11 +76,25 @@ export default function MainContent() {
         pieChartInstance.current = new Chart(pieCtx, {
           type: "pie",
           data: {
-            labels: ["Engineering", "Management", "Economics", "Marketing", "Others"],
-            datasets: [{
-              data: [14.8, 4.9, 2.6, 1.5, 5.5],
-              backgroundColor: ["#4CAF50", "#FF9800", "#F44336", "#2196F3", "#9C27B0"],
-            }],
+            labels: [
+              "Engineering",
+              "Management",
+              "Economics",
+              "Marketing",
+              "Others",
+            ],
+            datasets: [
+              {
+                data: [14.8, 4.9, 2.6, 1.5, 5.5],
+                backgroundColor: [
+                  "#4CAF50",
+                  "#FF9800",
+                  "#F44336",
+                  "#2196F3",
+                  "#9C27B0",
+                ],
+              },
+            ],
           },
           options: {
             responsive: true,
@@ -73,7 +102,8 @@ export default function MainContent() {
               legend: { position: "top" },
               tooltip: {
                 callbacks: {
-                  label: (tooltipItem) => `${tooltipItem.label}: ${tooltipItem.raw} %`,
+                  label: (tooltipItem) =>
+                    `${tooltipItem.label}: ${tooltipItem.raw} %`,
                 },
               },
             },
@@ -84,11 +114,36 @@ export default function MainContent() {
   }, []);
 
   const employees = [
-    { name: "John Doe", department: "Engineering", position: "Software Engineer", salary: "$100,000" },
-    { name: "Jane Smith", department: "Management", position: "Project Manager", salary: "$120,000" },
-    { name: "Bob Johnson", department: "Economics", position: "Economist", salary: "$90,000" },
-    { name: "Alice Brown", department: "Marketing", position: "Marketing Specialist", salary: "$80,000" },
-    { name: "Charlie Davis", department: "Others", position: "Administrative Assistant", salary: "$50,000" },
+    {
+      name: "John Doe",
+      department: "Engineering",
+      position: "Software Engineer",
+      salary: "$100,000",
+    },
+    {
+      name: "Jane Smith",
+      department: "Management",
+      position: "Project Manager",
+      salary: "$120,000",
+    },
+    {
+      name: "Bob Johnson",
+      department: "Economics",
+      position: "Economist",
+      salary: "$90,000",
+    },
+    {
+      name: "Alice Brown",
+      department: "Marketing",
+      position: "Marketing Specialist",
+      salary: "$80,000",
+    },
+    {
+      name: "Charlie Davis",
+      department: "Others",
+      position: "Administrative Assistant",
+      salary: "$50,000",
+    },
   ];
 
   const totalPages = Math.ceil(employees.length / rowsPerPage);
@@ -98,7 +153,7 @@ export default function MainContent() {
   );
 
   const navigateToHRModule = () => {
-    router.push("/hr-dashboard");
+    router.push("/hr-module");
   };
 
   return (
@@ -141,7 +196,9 @@ export default function MainContent() {
           <canvas ref={areaChartRef}></canvas>
         </div>
         <div className="bg-white p-4 rounded shadow">
-          <h2 className="text-xl font-bold mb-4">HR employees based on department</h2>
+          <h2 className="text-xl font-bold mb-4">
+            HR employees based on department
+          </h2>
           <canvas ref={pieChartRef}></canvas>
         </div>
       </div>
@@ -170,10 +227,18 @@ export default function MainContent() {
             <tbody>
               {currentRows.map((employee, index) => (
                 <tr key={index}>
-                  <td className="py-2 px-4 border-b border-gray-200">{employee.name}</td>
-                  <td className="py-2 px-4 border-b border-gray-200">{employee.department}</td>
-                  <td className="py-2 px-4 border-b border-gray-200">{employee.position}</td>
-                  <td className="py-2 px-4 border-b border-gray-200">{employee.salary}</td>
+                  <td className="py-2 px-4 border-b border-gray-200">
+                    {employee.name}
+                  </td>
+                  <td className="py-2 px-4 border-b border-gray-200">
+                    {employee.department}
+                  </td>
+                  <td className="py-2 px-4 border-b border-gray-200">
+                    {employee.position}
+                  </td>
+                  <td className="py-2 px-4 border-b border-gray-200">
+                    {employee.salary}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -192,7 +257,9 @@ export default function MainContent() {
           </span>
           <button
             className="bg-gray-800 text-white px-4 py-2 rounded"
-            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+            onClick={() =>
+              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+            }
             disabled={currentPage === totalPages}
           >
             Next

@@ -1,75 +1,98 @@
 "use client";
 import { useState } from "react";
-import { FiMail, FiLock, FiEye, FiEyeOff } from "react-icons/fi";
+import { FiMail, FiLock, FiUser, FiEye, FiEyeOff } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 
-export default function LoginPage() {
+export default function SignupPage() {
   const router = useRouter();
-  const [identifier, setIdentifier] = useState("");
+  const [email, setEmail] = useState("");
+  const [empId, setEmpId] = useState("");
+  const [fullName, setFullName] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [role] = useState("EMPLOYEE");
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      setLoading(false);
+      return;
+    }
     try {
-      const res = await fetch("http://localhost:8080/api/auth/login", {
+      const res = await fetch("http://localhost:8080/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ identifier, password }),
+        body: JSON.stringify({ email, empId, fullName, password, role }),
       });
       if (res.ok) {
-        const data = await res.json();
-        if (data.token) {
-          localStorage.setItem("token", data.token);
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("token");
         }
-        // Store user object with role in localStorage if available
-        if (data.user || data.role) {
-          // If backend returns user object, use it; else, build from available fields
-          const userObj = data.user
-            ? data.user
-            : {
-                email: data.email || "",
-                role: data.role || "USER",
-                empId: data.empId || "",
-              };
-          localStorage.setItem("user", JSON.stringify(userObj));
-        }
-        router.push("/dashboard");
+        router.push("/login");
       } else {
         const data = await res.text();
-        setError(data || "Invalid credentials");
+        setError(data || "Signup failed");
       }
     } catch {
-      setError("Login failed");
+      setError("Signup failed");
     }
     setLoading(false);
   };
 
-  const handleGoogleLogin = () => {
+  const handleGoogleSignup = () => {
     window.location.href = "/api/auth/google";
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center ">
+    <div className="min-h-screen flex items-center justify-center">
       <div className="bg-white p-8 rounded-2xl border-2 border-gray-300 shadow-lg w-full max-w-md">
         <h2 className="text-2xl font-bold mb-6 text-center text-blue-700">
-          Login
+          Sign Up
         </h2>
-        <form onSubmit={handleLogin} className="space-y-4">
+        <form onSubmit={handleSignup} className="space-y-4">
+          <div className="relative">
+            <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <FiUser className="w-5 h-5 text-gray-400" />
+            </span>
+            <input
+              type="text"
+              placeholder="Full Name"
+              className="w-full pl-10 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              required
+            />
+          </div>
           <div className="relative">
             <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
               <FiMail className="w-5 h-5 text-gray-400" />
             </span>
             <input
-              type="text"
-              placeholder="Email / EmpId"
+              type="email"
+              placeholder="Email"
               className="w-full pl-10 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-              value={identifier}
-              onChange={(e) => setIdentifier(e.target.value)}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+          <div className="relative">
+            <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <FiUser className="w-5 h-5 text-gray-400" />
+            </span>
+            <input
+              type="text"
+              placeholder="EmpId"
+              className="w-full pl-10 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+              value={empId}
+              onChange={(e) => setEmpId(e.target.value)}
               required
             />
           </div>
@@ -98,27 +121,43 @@ export default function LoginPage() {
               )}
             </button>
           </div>
+          <div className="relative">
+            <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <FiLock className="w-5 h-5 text-gray-400" />
+            </span>
+            <input
+              type={showConfirmPassword ? "text" : "password"}
+              placeholder="Confirm Password"
+              className="w-full pl-10 pr-10 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+            />
+            <button
+              type="button"
+              className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 focus:outline-none"
+              onClick={() => setShowConfirmPassword((prev) => !prev)}
+              tabIndex={-1}
+            >
+              {showConfirmPassword ? (
+                <FiEyeOff className="w-5 h-5" />
+              ) : (
+                <FiEye className="w-5 h-5" />
+              )}
+            </button>
+          </div>
           {error && <div className="text-red-500 text-sm">{error}</div>}
           <button
             type="submit"
             className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition"
             disabled={loading}
           >
-            {loading ? "Logging in..." : "Login"}
+            {loading ? "Signing up..." : "Sign Up"}
           </button>
-          <div className="flex justify-start mt-1">
-            <button
-              type="button"
-              onClick={() => router.push("/forgot-password")}
-              className="text-sm text-blue-600 hover:underline focus:outline-none"
-            >
-              Forgot password?
-            </button>
-          </div>
         </form>
         <div className="mt-6 flex flex-col gap-2">
           <button
-            onClick={handleGoogleLogin}
+            onClick={handleGoogleSignup}
             className="w-full bg-white border border-gray-300 text-gray-800 py-2 rounded-2xl hover:bg-gray-200 transition flex items-center justify-center gap-2 shadow-sm"
           >
             <svg
@@ -146,13 +185,13 @@ export default function LoginPage() {
                 />
               </g>
             </svg>
-            Login with Google
+            Sign Up with Google
           </button>
           <button
-            onClick={() => router.push("/signup")}
-            className="w-full bg-white border border-gray-300 text-purple-700 py-2 rounded-2xl hover:bg-gray-300 transition mt-2"
+            onClick={() => router.push("/login")}
+            className="w-full bg-white border border-gray-300 text-blue-700 py-2 rounded-2xl hover:bg-gray-300 transition mt-2"
           >
-            Don't have an account? Sign Up
+            Already have an account? Login
           </button>
         </div>
       </div>

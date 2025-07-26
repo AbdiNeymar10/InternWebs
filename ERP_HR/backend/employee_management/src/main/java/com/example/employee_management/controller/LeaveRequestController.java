@@ -34,8 +34,8 @@ public class LeaveRequestController {
 
     @Autowired
     public LeaveRequestController(LeaveRequestService leaveRequestService,
-                                  NotificationService notificationService,
-                                  LeaveScheduleService leaveScheduleService) { // Add to constructor
+            NotificationService notificationService,
+            LeaveScheduleService leaveScheduleService) { // Add to constructor
         this.leaveRequestService = leaveRequestService;
         this.notificationService = notificationService;
         this.leaveScheduleService = leaveScheduleService; // Initialize
@@ -54,7 +54,8 @@ public class LeaveRequestController {
             leaveTypeDetails.put("id", actualLeaveType.getId());
             leaveTypeDetails.put("leaveName", actualLeaveType.getLeaveName());
         } else {
-            logger.warn("LeaveRequest ID {} has a null leaveType object. LEAVE_TYPE_ID might be missing or invalid.", request.getId());
+            logger.warn("LeaveRequest ID {} has a null leaveType object. LEAVE_TYPE_ID might be missing or invalid.",
+                    request.getId());
             leaveTypeDetails.put("id", -1L); // Or some other indicator of missing data
             leaveTypeDetails.put("leaveName", "N/A (Type Not Loaded)");
         }
@@ -68,7 +69,8 @@ public class LeaveRequestController {
             employeeMap.put("empId", employee.getEmpId());
             employeeMap.put("firstName", employee.getFirstName());
             employeeMap.put("lastName", employee.getLastName());
-            // Include department if needed, ensure it's handled if deptId is an object or just an ID
+            // Include department if needed, ensure it's handled if deptId is an object or
+            // just an ID
             employeeMap.put("department", employee.getDeptId() != null ? employee.getDeptId().toString() : null);
             result.put("employee", employeeMap);
         } else {
@@ -85,7 +87,8 @@ public class LeaveRequestController {
         result.put("description", request.getDescription() != null ? request.getDescription() : "");
         result.put("deptStatus", request.getDeptStatus() != null ? request.getDeptStatus() : "Pending");
         result.put("hrStatus", request.getHrStatus() != null ? request.getHrStatus() : "Pending");
-        result.put("approvedDays", request.getApprovedDays() != null ? request.getApprovedDays() : 0.0); // Ensure this is double
+        result.put("approvedDays", request.getApprovedDays() != null ? request.getApprovedDays() : 0.0); // Ensure this
+                                                                                                         // is double
         result.put("remark", request.getRemark() != null ? request.getRemark() : "");
 
         // For overall status display on frontend if needed
@@ -102,7 +105,6 @@ public class LeaveRequestController {
         result.put("status", currentOverallStatus); // General status for easier frontend display
         result.put("employeeId", request.getEmployee() != null ? request.getEmployee().getEmpId() : null);
         result.put("leaveTypeId", request.getLeaveType() != null ? request.getLeaveType().getId() : null);
-
 
         return result;
     }
@@ -132,7 +134,10 @@ public class LeaveRequestController {
         } catch (Exception ex) {
             logger.error("Error creating leave request", ex);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("message", "Failed to create leave request: " + (ex.getMessage() != null ? ex.getMessage() : "Internal Server Error"), "status", "error"));
+                    .body(Map.of("message",
+                            "Failed to create leave request: "
+                                    + (ex.getMessage() != null ? ex.getMessage() : "Internal Server Error"),
+                            "status", "error"));
         }
     }
 
@@ -153,10 +158,12 @@ public class LeaveRequestController {
         } catch (Exception ex) {
             logger.error("Error fetching employee with empId {}", empId, ex);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("message", "Error fetching employee: " + (ex.getMessage() != null ? ex.getMessage() : "Internal Server Error"), "status", "error"));
+                    .body(Map.of("message",
+                            "Error fetching employee: "
+                                    + (ex.getMessage() != null ? ex.getMessage() : "Internal Server Error"),
+                            "status", "error"));
         }
     }
-
 
     @GetMapping("/employee/{empId}/requests")
     public ResponseEntity<?> getLeaveRequestsByEmployee(@PathVariable String empId) {
@@ -176,7 +183,8 @@ public class LeaveRequestController {
                     .body(Map.of("message", ex.getMessage(), "status", "error"));
         } catch (Exception ex) {
             logger.error("Error fetching leave requests for empId {}", empId, ex);
-            String errorMessage = ex.getMessage() != null ? ex.getMessage() : "An internal server error occurred while fetching leave requests.";
+            String errorMessage = ex.getMessage() != null ? ex.getMessage()
+                    : "An internal server error occurred while fetching leave requests.";
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("message", "Error fetching leave requests: " + errorMessage, "status", "error"));
         }
@@ -190,7 +198,8 @@ public class LeaveRequestController {
         } catch (Exception ex) {
             logger.error("Error fetching pending department approvals", ex);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Collections.singletonList(Map.of("error", "Failed to fetch pending department approvals: " + (ex.getMessage() != null ? ex.getMessage() : "Internal Server Error"))));
+                    .body(Collections.singletonList(Map.of("error", "Failed to fetch pending department approvals: "
+                            + (ex.getMessage() != null ? ex.getMessage() : "Internal Server Error"))));
         }
     }
 
@@ -202,7 +211,8 @@ public class LeaveRequestController {
         } catch (Exception ex) {
             logger.error("Error fetching pending HR approvals", ex);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Collections.singletonList(Map.of("error", "Failed to fetch pending HR approvals: " + (ex.getMessage() != null ? ex.getMessage() : "Internal Server Error"))));
+                    .body(Collections.singletonList(Map.of("error", "Failed to fetch pending HR approvals: "
+                            + (ex.getMessage() != null ? ex.getMessage() : "Internal Server Error"))));
         }
     }
 
@@ -215,7 +225,8 @@ public class LeaveRequestController {
         } catch (Exception ex) {
             logger.error("Error fetching approved and current/upcoming leaves", ex);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Collections.singletonList(Map.of("error", "Error fetching employees on leave: " + (ex.getMessage() != null ? ex.getMessage() : "Internal Server Error"))));
+                    .body(Collections.singletonList(Map.of("error", "Error fetching employees on leave: "
+                            + (ex.getMessage() != null ? ex.getMessage() : "Internal Server Error"))));
         }
     }
 
@@ -231,8 +242,7 @@ public class LeaveRequestController {
                     approvalDTO.getApprovedDays(),
                     approvalDTO.getLeaveStart(),
                     approvalDTO.getLeaveEnd(),
-                    approvalDTO.getRequestedDays()
-            );
+                    approvalDTO.getRequestedDays());
             return ResponseEntity.ok(convertLeaveRequestToMap(request));
         } catch (ResourceNotFoundException ex) {
             logger.warn("Leave request not found for department approval (ID {}): {}", requestId, ex.getMessage());
@@ -242,11 +252,13 @@ public class LeaveRequestController {
             logger.warn("Invalid argument for department approval (ID {}): {}", requestId, ex.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("message", ex.getMessage(), "status", "error"));
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             logger.error("Error updating department status for request ID {}", requestId, ex);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("message", "Failed to update department status: " + (ex.getMessage() != null ? ex.getMessage() : "Internal Server Error"), "status", "error"));
+                    .body(Map.of("message",
+                            "Failed to update department status: "
+                                    + (ex.getMessage() != null ? ex.getMessage() : "Internal Server Error"),
+                            "status", "error"));
         }
     }
 
@@ -259,8 +271,7 @@ public class LeaveRequestController {
                     requestId,
                     approvalDTO.getStatus(),
                     approvalDTO.getApprovedDays(),
-                    approvalDTO.getRemark()
-            );
+                    approvalDTO.getRemark());
             return ResponseEntity.ok(convertLeaveRequestToMap(request));
         } catch (ResourceNotFoundException ex) {
             logger.warn("Leave request not found for HR approval (ID {}): {}", requestId, ex.getMessage());
@@ -270,11 +281,13 @@ public class LeaveRequestController {
             logger.warn("Invalid argument for HR approval (ID {}): {}", requestId, ex.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("message", ex.getMessage(), "status", "error"));
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             logger.error("Error updating HR status for request ID {}", requestId, ex);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("message", "Failed to update HR status: " + (ex.getMessage() != null ? ex.getMessage() : "Internal Server Error"), "status", "error"));
+                    .body(Map.of("message",
+                            "Failed to update HR status: "
+                                    + (ex.getMessage() != null ? ex.getMessage() : "Internal Server Error"),
+                            "status", "error"));
         }
     }
 
@@ -286,7 +299,8 @@ public class LeaveRequestController {
         } catch (Exception ex) {
             logger.error("Error fetching department processed history", ex);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Collections.singletonList(Map.of("error", "Error fetching department history: " + (ex.getMessage() != null ? ex.getMessage() : "Internal Server Error"))));
+                    .body(Collections.singletonList(Map.of("error", "Error fetching department history: "
+                            + (ex.getMessage() != null ? ex.getMessage() : "Internal Server Error"))));
         }
     }
 
@@ -298,7 +312,8 @@ public class LeaveRequestController {
         } catch (Exception ex) {
             logger.error("Error fetching HR processed history", ex);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Collections.singletonList(Map.of("error", "Error fetching HR history: " + (ex.getMessage() != null ? ex.getMessage() : "Internal Server Error"))));
+                    .body(Collections.singletonList(Map.of("error", "Error fetching HR history: "
+                            + (ex.getMessage() != null ? ex.getMessage() : "Internal Server Error"))));
         }
     }
 
@@ -313,21 +328,24 @@ public class LeaveRequestController {
         try {
             List<LeaveScheduleDTO> schedules = leaveScheduleService.getLeaveSchedulesByEmployeeId(employeeId);
             if (schedules.isEmpty()) {
-                logger.info("No leave schedules found for employee {} via LeaveRequestController. Returning empty list.", employeeId);
+                logger.info(
+                        "No leave schedules found for employee {} via LeaveRequestController. Returning empty list.",
+                        employeeId);
                 return ResponseEntity.ok()
                         .contentType(MediaType.APPLICATION_JSON)
                         .body(Map.of(
                                 "status", "success",
                                 "message", "No leave schedules found for employee " + employeeId + ".",
-                                "data", List.of()
-                        ));
+                                "data", List.of()));
             }
-            logger.info("Found {} leave schedules for employee {} via LeaveRequestController", schedules.size(), employeeId);
+            logger.info("Found {} leave schedules for employee {} via LeaveRequestController", schedules.size(),
+                    employeeId);
             return ResponseEntity.ok()
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(Map.of("status", "success", "data", schedules));
         } catch (Exception e) {
-            logger.error("Error fetching leave schedules for employeeId {} via LeaveRequestController: Type: {}, Message: {}",
+            logger.error(
+                    "Error fetching leave schedules for employeeId {} via LeaveRequestController: Type: {}, Message: {}",
                     employeeId, e.getClass().getName(), e.getMessage(), e);
             String errorMessage = "An unexpected error occurred while fetching leave schedules.";
             if (e.getMessage() != null) {
@@ -347,7 +365,8 @@ public class LeaveRequestController {
         } catch (Exception e) {
             logger.error("Error processing email notification request for submission", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("status", "error", "message", "Failed to process email notification request: " + (e.getMessage() != null ? e.getMessage() : "Internal Server Error")));
+                    .body(Map.of("status", "error", "message", "Failed to process email notification request: "
+                            + (e.getMessage() != null ? e.getMessage() : "Internal Server Error")));
         }
     }
 }

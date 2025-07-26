@@ -1,5 +1,6 @@
 "use client";
 
+import { authFetch } from "@/utils/authFetch";
 import React, { useEffect, useState } from "react";
 import { fetchJobTypes } from "../../pages/api/jobTypeService";
 import toast, { Toaster } from "react-hot-toast";
@@ -48,7 +49,7 @@ const JobFamily: React.FC = () => {
   useEffect(() => {
     const fetchJobFamilies = async () => {
       try {
-        const res = await fetch("http://localhost:8080/api/job-families");
+        const res = await authFetch("http://localhost:8080/api/job-families");
         if (!res.ok) {
           throw new Error("Failed to fetch job families");
         }
@@ -78,7 +79,7 @@ const JobFamily: React.FC = () => {
       return;
     }
     try {
-      const res = await fetch("http://localhost:8080/api/job-families", {
+      const res = await authFetch("http://localhost:8080/api/job-families", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -117,7 +118,7 @@ const JobFamily: React.FC = () => {
       return;
 
     try {
-      const res = await fetch(
+      const res = await authFetch(
         `http://localhost:8080/api/hr-job-types/by-job-family-and-title?jobFamilyId=${selectedJobFamilyId}&jobTitleId=${selectedJobTitleId}`
       );
       if (!res.ok) {
@@ -150,7 +151,7 @@ const JobFamily: React.FC = () => {
   // Fetch assigned jobs when a job family is selected
   useEffect(() => {
     if (selectedJobFamilyId) {
-      fetch(
+      authFetch(
         `http://localhost:8080/api/hr-job-types/by-job-family/${selectedJobFamilyId}`
       )
         .then((res) => res.json())
@@ -186,7 +187,7 @@ const JobFamily: React.FC = () => {
       }));
 
       // Send the update request
-      const res = await fetch(
+      const res = await authFetch(
         "http://localhost:8080/api/hr-job-types/update-job-family",
         {
           method: "PUT",

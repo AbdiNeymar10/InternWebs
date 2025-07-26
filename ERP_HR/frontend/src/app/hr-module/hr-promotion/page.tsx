@@ -1,5 +1,6 @@
 "use client";
 
+import { authFetch } from "../../../utils/authFetch";
 import { useState, useEffect, useRef } from "react";
 import Head from "next/head";
 import toast, { Toaster } from "react-hot-toast";
@@ -187,7 +188,7 @@ function HrPromotion() {
     };
     console.log("Submitting transfer request payload:", transferRequestPayload);
     if (transferRequestPayload.id) {
-      await fetch(
+      await authFetch(
         `http://localhost:8080/api/hr-transfer-requests/${transferRequestPayload.id}`,
         {
           method: "PUT",
@@ -269,12 +270,12 @@ function HrPromotion() {
 
     console.log("Submitting promotion history payload:", payload);
 
-    fetch("http://localhost:8080/api/promotion-history", {
+    authFetch("http://localhost:8080/api/promotion-history", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     })
-      .then((res) => {
+      .then((res: Response) => {
         if (!res.ok) throw new Error("Failed to save promotion history");
         return res.json();
       })
@@ -286,23 +287,23 @@ function HrPromotion() {
   };
 
   useEffect(() => {
-    fetch("http://localhost:8080/api/departments")
-      .then((res) => res.json())
-      .then((data) => {
+    authFetch("http://localhost:8080/api/departments")
+      .then((res: Response) => res.json())
+      .then((data: any) => {
         setDepartments(data);
       })
-      .catch((err) => console.error("Failed to fetch departments", err));
+      .catch((err: any) => console.error("Failed to fetch departments", err));
   }, []);
 
   // Fetch employee info when employeeId changes
   useEffect(() => {
     if (employeeId.trim() !== "") {
-      fetch(`http://localhost:8080/api/employees/${employeeId}/info`)
-        .then((res) => {
+      authFetch(`http://localhost:8080/api/employees/${employeeId}/info`)
+        .then((res: Response) => {
           if (!res.ok) throw new Error("Employee not found");
           return res.json();
         })
-        .then((data) => {
+        .then((data: any) => {
           employeeInfoRef.current = data;
           setEmployeeName(data.employeeName || "");
           setGender(data.gender || "");
@@ -331,11 +332,11 @@ function HrPromotion() {
               : ""
           );
           if (data.jobPositionId) {
-            fetch(
+            authFetch(
               `http://localhost:8080/api/job-type-details/${data.jobPositionId}`
             )
-              .then((res) => (res.ok ? res.json() : null))
-              .then((jobTypeDetail) => {
+              .then((res: Response) => (res.ok ? res.json() : null))
+              .then((jobTypeDetail: any) => {
                 const icfValue =
                   jobTypeDetail && jobTypeDetail.icf && jobTypeDetail.icf.ICF
                     ? jobTypeDetail.icf.ICF
@@ -355,11 +356,11 @@ function HrPromotion() {
                 setJobClass(jobClassValue);
 
                 if (data.payGradeId) {
-                  fetch(
+                  authFetch(
                     `http://localhost:8080/api/hr-pay-grad/${data.payGradeId}`
                   )
-                    .then((res) => (res.ok ? res.json() : null))
-                    .then((payGradeData) => {
+                    .then((res: Response) => (res.ok ? res.json() : null))
+                    .then((payGradeData: any) => {
                       const stepNo =
                         payGradeData && payGradeData.stepNo
                           ? payGradeData.stepNo
@@ -434,7 +435,7 @@ function HrPromotion() {
   useEffect(() => {
     const fetchRequests = async () => {
       try {
-        const response = await fetch(
+        const response = await authFetch(
           "http://localhost:8080/api/hr-transfer-requests"
         );
         const contentType = response.headers.get("content-type");
@@ -513,9 +514,9 @@ function HrPromotion() {
         setToDepartment(foundToDepartment ? foundToDepartment.deptName : "");
         setTransferReason(req.description || "");
         if (req.empId) {
-          fetch(`http://localhost:8080/api/employees/${req.empId}/info`)
-            .then((res) => (res.ok ? res.json() : null))
-            .then((data) => {
+          authFetch(`http://localhost:8080/api/employees/${req.empId}/info`)
+            .then((res: Response) => (res.ok ? res.json() : null))
+            .then((data: any) => {
               if (data && data.currentSalary) {
                 setCurrentSalary(data.currentSalary);
                 setOriginalSalary(data.currentSalary);
@@ -533,11 +534,11 @@ function HrPromotion() {
           setOriginalSalary("");
         }
         if (req && req.payGrade?.payGradeId) {
-          fetch(
+          authFetch(
             `http://localhost:8080/api/hr-pay-grad/${req.payGrade.payGradeId}`
           )
-            .then((res) => (res.ok ? res.json() : null))
-            .then((payGradeData) => {
+            .then((res: Response) => (res.ok ? res.json() : null))
+            .then((payGradeData: any) => {
               const stepNo =
                 payGradeData && payGradeData.stepNo
                   ? payGradeData.stepNo.toString()
@@ -609,50 +610,54 @@ function HrPromotion() {
   }, [showDropdown]);
 
   useEffect(() => {
-    fetch("http://localhost:8080/api/responsibilities")
-      .then((res) => res.json())
-      .then((data) => {
+    authFetch("http://localhost:8080/api/responsibilities")
+      .then((res: Response) => res.json())
+      .then((data: any) => {
         setJobResponsibilities(data);
       })
-      .catch((err) =>
+      .catch((err: any) =>
         console.error("Failed to fetch job responsibilities", err)
       );
   }, []);
   useEffect(() => {
-    fetch("http://localhost:8080/api/hr-lu-branch")
-      .then((res) => {
+    authFetch("http://localhost:8080/api/hr-lu-branch")
+      .then((res: Response) => {
         if (!res.ok) throw new Error("Failed to fetch branches");
         return res.json();
       })
-      .then((data) => {
+      .then((data: any) => {
         setBranches(data);
       });
   }, []);
   useEffect(() => {
-    fetch("http://localhost:8080/api/employment-types")
-      .then((res) => res.json())
-      .then((data) => setEmploymentTypes(data))
-      .catch((err) => console.error("Failed to fetch employment types", err));
+    authFetch("http://localhost:8080/api/employment-types")
+      .then((res: Response) => res.json())
+      .then((data: any) => setEmploymentTypes(data))
+      .catch((err: any) =>
+        console.error("Failed to fetch employment types", err)
+      );
   }, []);
   useEffect(() => {
-    fetch("http://localhost:8080/api/job_types/job-titles")
-      .then((res) => res.json())
-      .then((data) => setJobTitles(data))
-      .catch((err) => console.error("Failed to fetch job titles", err));
+    authFetch("http://localhost:8080/api/job_types/job-titles")
+      .then((res: Response) => res.json())
+      .then((data: any) => setJobTitles(data))
+      .catch((err: any) => console.error("Failed to fetch job titles", err));
   }, []);
   useEffect(() => {
-    fetch("http://localhost:8080/api/hr-pay-grad/steps")
-      .then((res) => {
+    authFetch("http://localhost:8080/api/hr-pay-grad/steps")
+      .then((res: Response) => {
         if (!res.ok) {
           throw new Error("Failed to fetch increment steps");
         }
         return res.json();
       })
-      .then((data) => {
-        const steps = Array.isArray(data) ? data.map((s) => s.toString()) : [];
+      .then((data: any) => {
+        const steps = Array.isArray(data)
+          ? data.map((s: any) => s.toString())
+          : [];
         setIncrementSteps(steps);
       })
-      .catch((err) => {
+      .catch((err: any) => {
         setIncrementSteps([]);
         console.error("Failed to fetch increment steps", err);
       });
@@ -692,13 +697,13 @@ function HrPromotion() {
     const updatePayGradeId = async () => {
       if (employeeId && selectedIncrementStep) {
         try {
-          const res = await fetch(
+          const res = await authFetch(
             `http://localhost:8080/api/hr-pay-grad/step/${selectedIncrementStep}`
           );
           if (res.ok) {
             const payGrade = await res.json();
             if (payGrade && payGrade.payGradeId) {
-              await fetch(
+              await authFetch(
                 `http://localhost:8080/api/employees/${employeeId}/job-update`,
                 {
                   method: "POST",
@@ -717,9 +722,9 @@ function HrPromotion() {
 
   useEffect(() => {
     if (incrementSteps.length > 0) {
-      fetch("http://localhost:8080/api/hr-pay-grad")
-        .then((res) => res.json())
-        .then((data) => {
+      authFetch("http://localhost:8080/api/hr-pay-grad")
+        .then((res: Response) => res.json())
+        .then((data: any) => {
           const mapping: { [step: string]: number } = {};
           data.forEach((pg: any) => {
             if (pg.stepNo && pg.payGradeId) {
@@ -1102,14 +1107,14 @@ function HrPromotion() {
                       );
                       if (selected) {
                         try {
-                          const jobTypeRes = await fetch(
+                          const jobTypeRes = await authFetch(
                             `http://localhost:8080/api/hr-job-types/details-by-job-title-id?jobTitleId=${selected.id}`
                           );
                           if (jobTypeRes.ok) {
                             const jobTypeData = await jobTypeRes.json();
                             const jobTypeId = jobTypeData.jobTypeId;
                             if (jobTypeId) {
-                              const detailRes = await fetch(
+                              const detailRes = await authFetch(
                                 `http://localhost:8080/api/job-type-details/by-job-type/${jobTypeId}`
                               );
                               if (detailRes.ok) {

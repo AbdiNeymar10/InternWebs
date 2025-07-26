@@ -1,18 +1,11 @@
 "use client";
 import { useState } from "react";
-import Sidebar from "../../hr-module/sidbar";
-import Header from "../../components/Header";
+import AppModuleLayout from "../../components/AppModuleLayout";
 import DepartmentList from "../../components/DepartmentList";
 import DepartmentForm from "../../components/DepartmentForm";
 import { DepartmentDto } from "../../types/department";
 
 export default function DepartmentPage() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
-
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedDept, setSelectedDept] = useState<DepartmentDto | null>(null);
 
@@ -27,59 +20,43 @@ export default function DepartmentPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
-      {/* Header */}
-      <Header toggleSidebar={toggleSidebar} />
+    <AppModuleLayout>
+      <h1 className="text-xl font-bold mb-6">Organization Structure</h1>
 
-      <div className="flex flex-1">
-        {/* Sidebar */}
-        <Sidebar hidden={!isSidebarOpen} />{" "}
-        {/* Pass hidden instead of isOpen */}
-        {/* Main Content */}
-        <div className="flex-1 p-4 transition-all duration-300">
-          <h1 className="text-xl font-bold mb-6">Organization Structure</h1>
-
-          {/* Tabs */}
-          <div className="flex mb-6">
-            <button
-              className={`px-4 py-2 rounded-lg font-medium transition ${
-                !isFormOpen
-                  ? "bg-blue-600 text-white shadow"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
-              onClick={() => setIsFormOpen(false)}
-            >
-              View Structure
-            </button>
-            <button
-              className={`px-4 py-2 rounded-lg font-medium transition ${
-                isFormOpen
-                  ? "bg-green-600 text-white shadow"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
-              onClick={() => openForm(null)}
-            >
-              Add New Department
-            </button>
-          </div>
-
-          {/* Conditional Render: Form or List */}
-          {isFormOpen ? (
-            <DepartmentForm
-              dept={selectedDept}
-              onClose={closeForm}
-              onSave={closeForm}
-            />
-          ) : (
-            <DepartmentList onEdit={openForm} />
-          )}
-        </div>
+      {/* Tabs */}
+      <div className="flex mb-6">
+        <button
+          className={`px-4 py-2 rounded-lg font-medium transition ${
+            !isFormOpen
+              ? "bg-blue-600 text-white shadow"
+              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+          }`}
+          onClick={() => setIsFormOpen(false)}
+        >
+          View Structure
+        </button>
+        <button
+          className={`px-4 py-2 rounded-lg font-medium transition ${
+            isFormOpen
+              ? "bg-green-600 text-white shadow"
+              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+          }`}
+          onClick={() => openForm(null)}
+        >
+          Add New Department
+        </button>
       </div>
 
-      {/* Footer */}
-      <footer className="bg-gray-800 text-white p-4 text-center">
-        © {new Date().getFullYear()} INSA ERP. All rights reserved.
-      </footer>
-    </div>
+      {/* Conditional Render: Form or List */}
+      {isFormOpen ? (
+        <DepartmentForm
+          dept={selectedDept}
+          onClose={closeForm}
+          onSave={closeForm}
+        />
+      ) : (
+        <DepartmentList onEdit={openForm} />
+      )}
+    </AppModuleLayout>
   );
 }

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { fetchJobGrades } from "../../pages/api/jobGradeService";
 import { fetchICFs } from "../../pages/api/icfService";
+import { authFetch } from "@/utils/authFetch";
 import toast, { Toaster } from "react-hot-toast";
 import AppModuleLayout from "../../components/AppModuleLayout";
 
@@ -77,21 +78,17 @@ const SalarySettings = () => {
     }
 
     try {
-      const response = await fetch(
+      const response = await authFetch(
         `http://localhost:8080/api/hr-pay-grad/filter?classId=${classDropdown}&icfId=${icfDropdown}`
       );
-
       if (!response.ok) {
         toast.error("Failed to fetch pay grades.");
         return;
       }
-
       const data = await response.json();
-
       if (data.length === 0) {
         return;
       }
-
       const validRecords = data.map((item: any) => ({
         id: item.payGradeId || item.rank?.rankId || Date.now() + Math.random(),
         payGradeId: item.payGradeId,
@@ -103,9 +100,7 @@ const SalarySettings = () => {
         beginningSalary: item.rank?.beginningSalary || "",
         maxSalary: item.rank?.maxSalary || "",
       }));
-
       console.log("Valid Records:", validRecords);
-
       setRecords(validRecords);
     } catch (error) {
       toast.error("Failed to fetch pay grades.");
@@ -229,7 +224,7 @@ const SalarySettings = () => {
       let savedRanks: SavedRank[] = [];
 
       if (newRankPayload.length > 0) {
-        const response = await fetch(
+        const response = await authFetch(
           "http://localhost:8080/api/hr-rank/bulk-save",
           {
             method: "POST",
@@ -237,18 +232,15 @@ const SalarySettings = () => {
             body: JSON.stringify(newRankPayload),
           }
         );
-
         if (!response.ok) {
           throw new Error(await response.text());
         }
-
         const result = await response.json();
         savedRanks = result;
       }
-
       // Save existing ranks
       if (existingRankPayload.length > 0) {
-        const response = await fetch(
+        const response = await authFetch(
           "http://localhost:8080/api/hr-rank/bulk-save",
           {
             method: "POST",
@@ -256,15 +248,12 @@ const SalarySettings = () => {
             body: JSON.stringify(existingRankPayload),
           }
         );
-
         if (!response.ok) {
           throw new Error(await response.text());
         }
-
         const result = await response.json();
         savedRanks = [...savedRanks, ...result];
       }
-
       const payGradPayload = records.map((record) => {
         const rankId =
           record.rankId ||
@@ -275,7 +264,6 @@ const SalarySettings = () => {
               savedRank.jobGrade.id === record.jobGrade.id &&
               savedRank.icf.id === record.icf.id
           )?.rankId;
-
         return {
           payGradeId: record.payGradeId,
           rank: { rankId },
@@ -283,10 +271,8 @@ const SalarySettings = () => {
           salary: record.salary,
         };
       });
-
       console.log("Pay Grade Payload:", payGradPayload);
-
-      const payGradeResponse = await fetch(
+      const payGradeResponse = await authFetch(
         "http://localhost:8080/api/hr-pay-grad/bulk-save",
         {
           method: "POST",
@@ -294,16 +280,12 @@ const SalarySettings = () => {
           body: JSON.stringify(payGradPayload),
         }
       );
-
       if (!payGradeResponse.ok) {
         throw new Error(await payGradeResponse.text());
       }
-
       const payGradeResult = await payGradeResponse.json();
       console.log("Saved PayGrades:", payGradeResult);
-
       await loadPayGrades();
-
       setRecords([]);
       setClassDropdown("");
       setIcfDropdown("");

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { authFetch } from "@/utils/authFetch";
 import Head from "next/head";
 import toast, { Toaster } from "react-hot-toast";
 import AppModuleLayout from "../../components/AppModuleLayout";
@@ -93,7 +94,7 @@ function HrApprove() {
     console.log("Submitting payload:", payload);
     // If updating an existing request
     if (selectedRequest) {
-      fetch(
+      authFetch(
         `http://localhost:8080/api/hr-transfer-requests/${selectedRequest}`,
         {
           method: "PUT",
@@ -109,13 +110,13 @@ function HrApprove() {
           }),
         }
       )
-        .then((res) => {
+        .then((res: Response) => {
           if (!res.ok) throw new Error("Failed to update transfer request");
           return res.json();
         })
         .then(() => {
           if (employeeId && toDepartmentId) {
-            fetch(
+            authFetch(
               `http://localhost:8080/api/employees/${employeeId}/department`,
               {
                 method: "PUT",
@@ -123,7 +124,7 @@ function HrApprove() {
                 body: JSON.stringify({ toDepartmentId }),
               }
             )
-              .then((res) => {
+              .then((res: Response) => {
                 if (!res.ok)
                   throw new Error("Failed to update employee department");
                 toast.success("Hr request approved successfully!");
@@ -137,12 +138,12 @@ function HrApprove() {
         .catch(() => toast.error("Failed to update transfer request"));
     } else {
       // Create new request
-      fetch("http://localhost:8080/api/hr-transfer-requests", {
+      authFetch("http://localhost:8080/api/hr-transfer-requests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       })
-        .then((res) => {
+        .then((res: Response) => {
           if (!res.ok) throw new Error("Failed to save transfer request");
           return res.json();
         })
@@ -155,23 +156,23 @@ function HrApprove() {
   };
 
   useEffect(() => {
-    fetch("http://localhost:8080/api/departments")
-      .then((res) => res.json())
-      .then((data) => {
+    authFetch("http://localhost:8080/api/departments")
+      .then((res: Response) => res.json())
+      .then((data: any) => {
         setDepartments(data);
       })
-      .catch((err) => console.error("Failed to fetch departments", err));
+      .catch((err: any) => console.error("Failed to fetch departments", err));
   }, []);
 
   // Fetch employee info when employeeId changes
   useEffect(() => {
     if (employeeId.trim() !== "") {
-      fetch(`http://localhost:8080/api/employees/${employeeId}/info`)
-        .then((res) => {
+      authFetch(`http://localhost:8080/api/employees/${employeeId}/info`)
+        .then((res: Response) => {
           if (!res.ok) throw new Error("Employee not found");
           return res.json();
         })
-        .then((data) => {
+        .then((data: any) => {
           setEmployeeName(data.employeeName || "");
           setHiredDate(data.hiredDate || "");
           setFromDepartment(data.departmentName || "");
@@ -187,11 +188,11 @@ function HrApprove() {
           setCurrentSalary(data.currentSalary || "");
 
           if (data.jobPositionId) {
-            fetch(
+            authFetch(
               `http://localhost:8080/api/job-type-details/${data.jobPositionId}`
             )
-              .then((res) => (res.ok ? res.json() : null))
-              .then((jobTypeDetail) => {
+              .then((res: Response) => (res.ok ? res.json() : null))
+              .then((jobTypeDetail: any) => {
                 const icfValue =
                   jobTypeDetail && jobTypeDetail.icf && jobTypeDetail.icf.ICF
                     ? jobTypeDetail.icf.ICF
@@ -217,7 +218,7 @@ function HrApprove() {
                   toDepartmentId: data.toDepartmentId ?? "",
                 });
               })
-              .catch((err) => {
+              .catch((err: any) => {
                 seticf("");
                 console.log("Error fetching ICF ", data.jobPositionId, err);
               });
@@ -256,10 +257,10 @@ function HrApprove() {
   useEffect(() => {
     const fetchRequests = async () => {
       try {
-        const response = await fetch(
+        const response = await authFetch(
           "http://localhost:8080/api/hr-transfer-requests"
         );
-        const data = await response.json();
+        const data: any = await response.json();
         const filtered = data.filter((req: any) => {
           if (req.status === undefined || req.status === null) return false;
           return req.status === "2" || req.status === 2;

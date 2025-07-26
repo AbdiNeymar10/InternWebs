@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Header from "../app/components/Header";
 
 import Charts from "../app/components/Charts";
@@ -34,24 +35,9 @@ export default function Home() {
     );
   };
 
-  return (
-    <div className="flex flex-col min-h-screen">
-      {/* Header */}
-      <Header toggleSidebar={toggleSidebar} />
-
-      <div className="flex flex-1">
-        {/* Sidebar */}
-        <Sidebar isOpen={isSidebarOpen} /> {/* to render the main side bar*/}
-        {/* Main Content */}
-        <div className="flex-1 p-4 transition-all duration-300">
-          {renderContent()}
-        </div>
-      </div>
-
-      {/* Footer */}
-      <footer className="bg-gray-800 text-white p-4 text-center">
-        © {new Date().getFullYear()} INSA ERP. All rights reserved.
-      </footer>
-    </div>
-  );
+  const router = useRouter();
+  useEffect(() => {
+    router.replace("/login");
+  }, [router]);
+  return null;
 }

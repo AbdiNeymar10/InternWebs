@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import Swal from "sweetalert2";
 import {
   FiHome,
   FiPieChart,
@@ -24,6 +25,7 @@ import {
   FiArrowRightCircle,
   FiThumbsUp,
   FiTrendingUp,
+  FiEdit,
 } from "react-icons/fi";
 import {
   FaTachometerAlt,
@@ -49,6 +51,8 @@ interface SidebarProps {
   hidden?: boolean;
 }
 
+type UserRole = "SUPER_ADMIN" | "ADMIN" | "HR" | "DEPARTMENT" | "EMPLOYEE";
+
 export default function Sidebar({ className, hidden = false }: SidebarProps) {
   const [openMenus, setOpenMenus] = useState({
     dashboard: false,
@@ -59,7 +63,21 @@ export default function Sidebar({ className, hidden = false }: SidebarProps) {
     separation: false,
     AuthorityDelegation: false,
     transferRequest: false,
+    UserManagement: false,
   });
+
+  // Get current user role from localStorage
+  let userRole: UserRole | null = null;
+  if (typeof window !== "undefined") {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        userRole = JSON.parse(storedUser).role;
+      } catch {
+        userRole = null;
+      }
+    }
+  }
 
   const toggleMenu = (menu: keyof typeof openMenus) => {
     setOpenMenus((prev) => ({
@@ -111,7 +129,7 @@ export default function Sidebar({ className, hidden = false }: SidebarProps) {
                   Home
                 </Link>
                 <Link
-                  href="/hr-module/dashboard"
+                  href="/dashboard"
                   className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
                 >
                   <FaTachometerAlt className="w-4 h-4" />
@@ -135,13 +153,30 @@ export default function Sidebar({ className, hidden = false }: SidebarProps) {
             </button>
             {openMenus.organization && (
               <div className="ml-6 mt-1 space-y-2">
-                <Link
-                  href="/hr-module/organizational-structure"
+                <a
+                  href="#"
                   className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
+                  onClick={(e) => {
+                    if (
+                      userRole === "SUPER_ADMIN" ||
+                      userRole === "DEPARTMENT"
+                    ) {
+                      window.location.href =
+                        "/hr-module/organizational-structure";
+                    } else {
+                      e.preventDefault();
+                      Swal.fire({
+                        icon: "warning",
+                        title: "Access Denied",
+                        text: "You do not have permission to access this module.",
+                        confirmButtonColor: "#3c8dbc",
+                      });
+                    }
+                  }}
                 >
                   <FiLayers className="w-4 h-4" />
                   Organizational Structure
-                </Link>
+                </a>
                 <Link
                   href="/hr-module/salary-settings"
                   className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
@@ -149,34 +184,98 @@ export default function Sidebar({ className, hidden = false }: SidebarProps) {
                   <FiDollarSign className="w-4 h-4" />
                   Salary Settings
                 </Link>
-                <Link
-                  href="/hr-module/register-jobs"
+                <a
+                  href="#"
                   className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
+                  onClick={(e) => {
+                    if (
+                      userRole &&
+                      ["ADMIN", "HR", "DEPARTMENT"].includes(userRole)
+                    ) {
+                      window.location.href = "/hr-module/register-jobs";
+                    } else {
+                      e.preventDefault();
+                      Swal.fire({
+                        icon: "warning",
+                        title: "Access Denied",
+                        text: "You do not have permission to access this module.",
+                        confirmButtonColor: "#3c8dbc",
+                      });
+                    }
+                  }}
                 >
                   <FiFileText className="w-4 h-4" />
                   Register Jobs
-                </Link>
-                <Link
-                  href="/hr-module/job-qualifications"
+                </a>
+                <a
+                  href="#"
                   className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
+                  onClick={(e) => {
+                    if (
+                      userRole &&
+                      ["ADMIN", "HR", "DEPARTMENT"].includes(userRole)
+                    ) {
+                      window.location.href = "/hr-module/job-qualifications";
+                    } else {
+                      e.preventDefault();
+                      Swal.fire({
+                        icon: "warning",
+                        title: "Access Denied",
+                        text: "You do not have permission to access this module.",
+                        confirmButtonColor: "#3c8dbc",
+                      });
+                    }
+                  }}
                 >
                   <FiAward className="w-4 h-4" />
                   Job Qualifications
-                </Link>
-                <Link
-                  href="/hr-module/jobs-by-family"
+                </a>
+                <a
+                  href="#"
                   className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
+                  onClick={(e) => {
+                    if (
+                      userRole &&
+                      ["ADMIN", "HR", "DEPARTMENT"].includes(userRole)
+                    ) {
+                      window.location.href = "/hr-module/jobs-by-family";
+                    } else {
+                      e.preventDefault();
+                      Swal.fire({
+                        icon: "warning",
+                        title: "Access Denied",
+                        text: "You do not have permission to access this module.",
+                        confirmButtonColor: "#3c8dbc",
+                      });
+                    }
+                  }}
                 >
                   <FiUsers className="w-4 h-4" />
                   Jobs Under Family
-                </Link>
-                <Link
-                  href="/hr-module/jobs-by-department"
+                </a>
+                <a
+                  href="#"
                   className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
+                  onClick={(e) => {
+                    if (
+                      userRole &&
+                      ["ADMIN", "HR", "DEPARTMENT"].includes(userRole)
+                    ) {
+                      window.location.href = "/hr-module/jobs-by-department";
+                    } else {
+                      e.preventDefault();
+                      Swal.fire({
+                        icon: "warning",
+                        title: "Access Denied",
+                        text: "You do not have permission to access this module.",
+                        confirmButtonColor: "#3c8dbc",
+                      });
+                    }
+                  }}
                 >
                   <FiArchive className="w-4 h-4" />
                   Jobs Under Department
-                </Link>
+                </a>
               </div>
             )}
           </div>
@@ -230,48 +329,131 @@ export default function Sidebar({ className, hidden = false }: SidebarProps) {
                   overflowY: "auto",
                 }}
               >
-                <Link
-                  href="/hr-module/transfer-requests"
+                <a
+                  href="#"
                   className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text"
+                  onClick={(e) => {
+                    if (
+                      userRole &&
+                      ["EMPLOYEE", "HR", "ADMIN", "DEPARTMENT"].includes(
+                        userRole
+                      )
+                    ) {
+                      window.location.href = "/hr-module/transfer-requests";
+                    } else {
+                      e.preventDefault();
+                      Swal.fire({
+                        icon: "warning",
+                        title: "Access Denied",
+                        text: "You do not have permission to access this module.",
+                        confirmButtonColor: "#3c8dbc",
+                      });
+                    }
+                  }}
                 >
                   <FiSend className="w-4 h-4" />
                   Transfer Request
-                </Link>
-                <Link
-                  href="/hr-module/approve-dept-from"
+                </a>
+                <a
+                  href="#"
                   className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
+                  onClick={(e) => {
+                    if (userRole === "DEPARTMENT") {
+                      window.location.href = "/hr-module/approve-dept-from";
+                    } else {
+                      e.preventDefault();
+                      Swal.fire({
+                        icon: "warning",
+                        title: "Access Denied",
+                        text: "You do not have permission to access this module.",
+                        confirmButtonColor: "#3c8dbc",
+                      });
+                    }
+                  }}
                 >
                   <FiArrowLeftCircle className="w-4 h-4" />
                   Approve Dept From
-                </Link>
-                <Link
-                  href="/hr-module/approve-dept-to"
+                </a>
+                <a
+                  href="#"
                   className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
+                  onClick={(e) => {
+                    if (userRole === "DEPARTMENT") {
+                      window.location.href = "/hr-module/approve-dept-to";
+                    } else {
+                      e.preventDefault();
+                      Swal.fire({
+                        icon: "warning",
+                        title: "Access Denied",
+                        text: "You do not have permission to access this module.",
+                        confirmButtonColor: "#3c8dbc",
+                      });
+                    }
+                  }}
                 >
                   <FiArrowRightCircle className="w-4 h-4" />
                   Approve Dept To
-                </Link>
-                <Link
-                  href="/hr-module/hr-approve"
+                </a>
+                <a
+                  href="#"
                   className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
+                  onClick={(e) => {
+                    if (userRole && ["ADMIN", "HR"].includes(userRole)) {
+                      window.location.href = "/hr-module/hr-approve";
+                    } else {
+                      e.preventDefault();
+                      Swal.fire({
+                        icon: "warning",
+                        title: "Access Denied",
+                        text: "You do not have permission to access this module.",
+                        confirmButtonColor: "#3c8dbc",
+                      });
+                    }
+                  }}
                 >
                   <FiThumbsUp className="w-4 h-4" />
                   Hr Approve
-                </Link>
-                <Link
-                  href="/hr-module/hr-promotion"
+                </a>
+                <a
+                  href="#"
                   className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
+                  onClick={(e) => {
+                    if (userRole && ["ADMIN", "HR"].includes(userRole)) {
+                      window.location.href = "/hr-module/hr-promotion";
+                    } else {
+                      e.preventDefault();
+                      Swal.fire({
+                        icon: "warning",
+                        title: "Access Denied",
+                        text: "You do not have permission to access this module.",
+                        confirmButtonColor: "#3c8dbc",
+                      });
+                    }
+                  }}
                 >
                   <FiTrendingUp className="w-4 h-4" />
                   Hr Promotion
-                </Link>
-                <Link
-                  href="/hr-module/hr-promotion-approve"
+                </a>
+                <a
+                  href="#"
                   className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
+                  onClick={(e) => {
+                    if (userRole && ["ADMIN", "HR"].includes(userRole)) {
+                      window.location.href = "/hr-module/hr-promotion-approve";
+                    } else {
+                      e.preventDefault();
+                      Swal.fire({
+                        icon: "warning",
+                        title: "Access Denied",
+                        text: "You do not have permission to access this module.",
+                        confirmButtonColor: "#3c8dbc",
+                      });
+                    }
+                  }}
                 >
                   <ApprovalIcon className="w-4 h-4" />
                   Hr Promotion Approve
-                </Link>
+                </a>
               </div>
             )}
           </div>
@@ -487,6 +669,32 @@ export default function Sidebar({ className, hidden = false }: SidebarProps) {
               </div>
             )}
           </div>
+          {/* User Management - Only for SUPER_ADMIN */}
+          {userRole === "SUPER_ADMIN" && (
+            <div>
+              <button
+                onClick={() => toggleMenu("UserManagement")}
+                className="flex items-center justify-between w-full p-2 hover:bg-gray-700 rounded"
+              >
+                <div className="flex items-center gap-2">
+                  <FiUser className="exit-icon" />
+                  <span>User Management</span>
+                </div>
+                {openMenus.UserManagement ? <FiChevronUp /> : <FiChevronDown />}
+              </button>
+              {openMenus.UserManagement && (
+                <div className="ml-6 mt-1 space-y-2">
+                  <Link
+                    href="/hr-module/user-management"
+                    className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
+                  >
+                    <FiEdit className="separation-request-icon" />
+                    Manage Users
+                  </Link>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </nav>
     </aside>

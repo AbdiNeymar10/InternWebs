@@ -31,9 +31,11 @@ public class EmailService {
             LOGGER.info("Email sent successfully to {}", to);
         } catch (MailException exception) {
             LOGGER.error("Error sending email to {}: {}", to, exception.getMessage());
-            // Depending on your error handling strategy, you might rethrow or handle differently
+            // Depending on your error handling strategy, you might rethrow or handle
+            // differently
         }
     }
 
-    // You can add more complex email sending methods here, e.g., with HTML content or attachments
+    // You can add more complex email sending methods here, e.g., with HTML content
+    // or attachments
 }

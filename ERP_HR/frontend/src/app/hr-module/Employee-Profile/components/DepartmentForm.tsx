@@ -22,12 +22,12 @@ const DepartmentForm = ({
   const [estDate, setEstDate] = useState("");
   const [mission, setMission] = useState("");
   const [vision, setVision] = useState("");
-  const [status, setStatus] = useState(""); // Status as "Active" or "Inactive"
+  const [status, setStatus] = useState("");
   const [email, setEmail] = useState("");
   const [fax, setFax] = useState("");
   const [tele1, setTele1] = useState("");
   const [tele2, setTele2] = useState("");
-  const [poBox, setPoBox] = useState("");
+  const [pobox, setPobox] = useState("");
   const [deptLevel, setDeptLevel] = useState(0);
   const [message, setMessage] = useState<{
     text: string;
@@ -55,14 +55,13 @@ const DepartmentForm = ({
       setEstDate(dept.estDate || "");
       setMission(dept.mission || "");
       setVision(dept.vision || "");
-      // Map status 0/1 to "Inactive"/"Active"
       setStatus(dept.status === "1" ? "Active" : "Inactive");
       setEmail(dept.email || "");
-      setFax(dept.fax || "");
       setTele1(dept.tele1 || "");
       setTele2(dept.tele2 || "");
-      setPoBox(dept.poBox || "");
       setDeptLevel(dept.deptLevel || 0);
+      setPobox(dept.poBox || "");
+      if ("fax" in dept) setFax((dept as any).fax || "");
     }
   }, [dept]);
 
@@ -72,18 +71,19 @@ const DepartmentForm = ({
       const parentDepartment = allDepartments.find(
         (department) => department.deptId === parentDeptId
       );
-      if (parentDepartment) {
-        setDeptLevel((parentDepartment.deptLevel ?? 0) + 1); // Increment deptLevel based on parent's level
+      if (parentDepartment && typeof parentDepartment.deptLevel === "number") {
+        setDeptLevel(parentDepartment.deptLevel + 1);
+      } else {
+        setDeptLevel(0);
       }
     } else {
-      setDeptLevel(0); // Reset to level 0 if no parent
+      setDeptLevel(0);
     }
   }, [parentDeptId, allDepartments]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Convert the status back to 0/1 for submission
     const statusValue = status === "Active" ? "1" : "0";
 
     const updatedDept: DepartmentDto = {
@@ -93,13 +93,14 @@ const DepartmentForm = ({
       estDate,
       mission,
       vision,
-      status: statusValue, // Save the status as 0 or 1
+      status: statusValue,
       email,
-      fax,
       tele1,
       tele2,
-      poBox,
+      poBox: pobox,
       deptLevel,
+      // Only include fax if it exists in DepartmentDto
+      ...(typeof fax !== "undefined" ? { fax } : {}),
     };
 
     try {
@@ -117,12 +118,11 @@ const DepartmentForm = ({
         });
       }
 
-      // Delay calling onSave and onClose
       setTimeout(() => {
         onSave();
         setMessage({ text: "", type: "" });
         onClose();
-      }, 1500); // show success message for 1.5 seconds
+      }, 1500);
     } catch (err) {
       console.error("Error saving department:", err);
       setMessage({
@@ -263,8 +263,8 @@ const DepartmentForm = ({
             </label>
             <input
               type="text"
-              value={poBox}
-              onChange={(e) => setPoBox(e.target.value)}
+              value={pobox}
+              onChange={(e) => setPobox(e.target.value)}
               className="w-full p-2 border rounded"
             />
           </div>

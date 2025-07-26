@@ -1,5 +1,6 @@
 "use client";
 
+import { authFetch } from "@/utils/authFetch";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import toast, { Toaster } from "react-hot-toast";
@@ -321,7 +322,7 @@ const RegisterJob = () => {
   };
   const fetchJobTypeDetails = async (jobTitle: string, jobClass: string) => {
     try {
-      const response = await fetch(
+      const response = await authFetch(
         `http://localhost:8080/api/job-type-details/filter?jobTitle=${encodeURIComponent(
           jobTitle
         )}&jobClass=${encodeURIComponent(jobClass)}`
@@ -330,11 +331,9 @@ const RegisterJob = () => {
         throw new Error("Failed to fetch job type details");
       }
       const data = await response.json();
-
       if (data.length === 0) {
         return;
       }
-
       setPositions((prev) => [
         ...prev,
         ...data.map((detail: any) => ({
@@ -679,7 +678,7 @@ const RegisterJob = () => {
                 }));
 
                 // Save HR_JOB_TYPE and get the jobTypeIds
-                const jobTypeResponse = await fetch(
+                const jobTypeResponse = await authFetch(
                   "http://localhost:8080/api/hr-job-types/save-job-types",
                   {
                     method: "POST",
@@ -715,7 +714,7 @@ const RegisterJob = () => {
                 );
 
                 // Save HR_JOB_TYPE_DETAIL
-                const detailResponse = await fetch(
+                const detailResponse = await authFetch(
                   "http://localhost:8080/api/job-type-details/save",
                   {
                     method: "POST",

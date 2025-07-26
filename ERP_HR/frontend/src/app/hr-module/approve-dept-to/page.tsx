@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import Head from "next/head";
+import { authFetch } from "@/utils/authFetch";
+// import Head from "next/head";
 import toast, { Toaster } from "react-hot-toast";
 import AppModuleLayout from "../../components/AppModuleLayout";
 
@@ -134,12 +135,12 @@ function ApproveDeptTo() {
           delete updatePayload[key];
         }
       });
-      fetch(updateUrl, {
+      authFetch(updateUrl, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updatePayload),
       })
-        .then((res) => {
+        .then((res: Response) => {
           if (!res.ok) throw new Error("Failed to update transfer request");
           return res.json();
         })
@@ -150,12 +151,12 @@ function ApproveDeptTo() {
         .catch(() => toast.error("Failed to update transfer request"));
     } else {
       // Create new request
-      fetch("http://localhost:8080/api/hr-transfer-requests", {
+      authFetch("http://localhost:8080/api/hr-transfer-requests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       })
-        .then((res) => {
+        .then((res: Response) => {
           if (!res.ok) throw new Error("Failed to save transfer request");
           return res.json();
         })
@@ -168,23 +169,23 @@ function ApproveDeptTo() {
   };
 
   useEffect(() => {
-    fetch("http://localhost:8080/api/departments")
-      .then((res) => res.json())
-      .then((data) => {
+    authFetch("http://localhost:8080/api/departments")
+      .then((res: Response) => res.json())
+      .then((data: any) => {
         setDepartments(data);
       })
-      .catch((err) => console.error("Failed to fetch departments", err));
+      .catch((err: any) => console.error("Failed to fetch departments", err));
   }, []);
 
   // Fetch employee info when employeeId changes
   useEffect(() => {
     if (employeeId.trim() !== "") {
-      fetch(`http://localhost:8080/api/employees/${employeeId}/info`)
-        .then((res) => {
+      authFetch(`http://localhost:8080/api/employees/${employeeId}/info`)
+        .then((res: Response) => {
           if (!res.ok) throw new Error("Employee not found");
           return res.json();
         })
-        .then((data) => {
+        .then((data: any) => {
           setEmployeeName(data.employeeName || "");
           setGender(data.gender || "");
           setHiredDate(data.hiredDate || "");
@@ -200,11 +201,11 @@ function ApproveDeptTo() {
           setJobCodeId(data.jobCode || "");
 
           if (data.jobPositionId) {
-            fetch(
+            authFetch(
               `http://localhost:8080/api/job-type-details/${data.jobPositionId}`
             )
-              .then((res) => (res.ok ? res.json() : null))
-              .then((jobTypeDetail) => {
+              .then((res: Response) => (res.ok ? res.json() : null))
+              .then((jobTypeDetail: any) => {
                 const icfValue =
                   jobTypeDetail && jobTypeDetail.icf && jobTypeDetail.icf.ICF
                     ? jobTypeDetail.icf.ICF
@@ -227,7 +228,7 @@ function ApproveDeptTo() {
                   icf: icfValue,
                 });
               })
-              .catch((err) => {
+              .catch((err: any) => {
                 seticf("");
                 console.log("Error fetching ICF ", data.jobPositionId, err);
               });
@@ -270,10 +271,10 @@ function ApproveDeptTo() {
   useEffect(() => {
     const fetchRequests = async () => {
       try {
-        const response = await fetch(
+        const response = await authFetch(
           "http://localhost:8080/api/hr-transfer-requests"
         );
-        const data = await response.json();
+        const data: any = await response.json();
         const filtered = data.filter((req: any) => {
           if (req.status === undefined || req.status === null) return false;
           return req.status === "1" || req.status === 1;
@@ -468,15 +469,15 @@ function ApproveDeptTo() {
   useEffect(() => {
     if (approvedDropdownFocused) {
       setApprovedLoading(true);
-      fetch("http://localhost:8080/api/hr-transfer-requests")
-        .then((res) => res.json())
-        .then((data) => {
+      authFetch("http://localhost:8080/api/hr-transfer-requests")
+        .then((res: Response) => res.json())
+        .then((data: any) => {
           const filtered = data.filter(
             (req: any) => req.status === "2" || req.status === 2
           );
           setApprovedRequests(filtered);
         })
-        .catch((err) => {
+        .catch((err: any) => {
           setApprovedRequests([]);
           console.error("Failed to fetch approved requests", err);
         })
