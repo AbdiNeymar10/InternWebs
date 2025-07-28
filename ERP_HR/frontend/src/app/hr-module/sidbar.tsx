@@ -96,11 +96,11 @@ export default function Sidebar({ className, hidden = false }: SidebarProps) {
       style={{
         top:
           typeof window !== "undefined" && window.innerWidth < 768
-            ? "64px"
+            ? "48px"
             : undefined,
         height:
           typeof window !== "undefined" && window.innerWidth < 768
-            ? "calc(100vh - 64px)"
+            ? "calc(100vh - 48px)"
             : undefined,
         transition: "transform 0.3s ease",
       }}

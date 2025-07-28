@@ -91,6 +91,8 @@ public class UserService implements UserDetailsService {
             user.setEmpId(body.get("empId"));
         if (body.containsKey("role"))
             user.setRole(body.get("role"));
+        if (body.containsKey("profilePicture"))
+            user.setProfilePicture(body.get("profilePicture"));
         if (body.containsKey("password") && body.get("password") != null && !body.get("password").isEmpty()) {
             user.setPassword(passwordEncoder.encode(body.get("password")));
         }

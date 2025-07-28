@@ -7,7 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.util.StringUtils;
+import java.io.File;
+import java.io.IOException;
 import java.util.Map;
 
 @RestController
@@ -142,4 +145,70 @@ public class AuthController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    // Upload user profile picture by empId
+    @PostMapping("/users/empid/{empId}/profile-picture")
+    public ResponseEntity<?> uploadProfilePictureByEmpId(@PathVariable String empId,
+            @RequestParam("file") MultipartFile file) {
+        try {
+            User user = userService.getUserByEmpId(empId);
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+            }
+            String fileName = StringUtils.cleanPath(file.getOriginalFilename());
+            String baseDir = System.getProperty("user.dir"); // Project root
+            String uploadDir = baseDir + File.separator + "uploads" + File.separator + "profile-pictures"
+                    + File.separator;
+            File dir = new File(uploadDir);
+            if (!dir.exists())
+                dir.mkdirs();
+            String savedFileName = user.getId() + "_" + fileName;
+            String filePath = uploadDir + savedFileName;
+            File destFile = new File(filePath);
+            System.out.println("Saving file to: " + destFile.getAbsolutePath());
+            file.transferTo(destFile);
+            user.setProfilePicture(savedFileName); // Save only file name
+            userService.updateUser(user.getId(), Map.of("profilePicture", savedFileName));
+            return ResponseEntity.ok(Map.of("profilePicture", savedFileName));
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to upload: " + e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to upload: " + e.getMessage());
+        }
+    }
+
+    // Get user profile picture by empId
+    @GetMapping("/users/empid/{empId}/profile-picture")
+    public ResponseEntity<?> getProfilePictureByEmpId(@PathVariable String empId) {
+        try {
+            User user = userService.getUserByEmpId(empId);
+            if (user == null || user.getProfilePicture() == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Profile picture not found");
+            }
+            String baseDir = System.getProperty("user.dir");
+            String uploadDir = baseDir + File.separator + "uploads" + File.separator + "profile-pictures"
+                    + File.separator;
+            String filePath = uploadDir + user.getProfilePicture();
+            File imgFile = new File(filePath);
+            if (!imgFile.exists()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("File not found");
+            }
+            String contentType = "image/jpeg";
+            String lowerName = imgFile.getName().toLowerCase();
+            if (lowerName.endsWith(".png"))
+                contentType = "image/png";
+            else if (lowerName.endsWith(".jpg") || lowerName.endsWith(".jpeg"))
+                contentType = "image/jpeg";
+            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+            headers.add("Content-Type", contentType);
+            return ResponseEntity.ok().headers(headers).body(java.nio.file.Files.readAllBytes(imgFile.toPath()));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error retrieving image: " + e.getMessage());
+        }
+    }
+
 }

@@ -26,6 +26,9 @@ public class User {
     @Column(name = "ROLE", nullable = false)
     private String role;
 
+    @Column(name = "PROFILE_PICTURE")
+    private String profilePicture;
+
     // Getters and Setters
     public Long getId() {
         return id;
@@ -73,5 +76,13 @@ public class User {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public String getProfilePicture() {
+        return profilePicture;
+    }
+
+    public void setProfilePicture(String profilePicture) {
+        this.profilePicture = profilePicture;
     }
 }

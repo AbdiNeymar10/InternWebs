@@ -1,16 +1,17 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { useMediaQuery } from "react-responsive";
 import Chart from "chart.js/auto";
 import Header from "../components/Header";
 import Sidebar from "./sidbar";
 import RegisterJobs from "./register-jobs/page"; 
 
 export default function HRModule() {
-  const [sidebarHidden, setSidebarHidden] = useState(false);
+  const isMobile = useMediaQuery({ maxWidth: 1024 });
+  const [sidebarHidden, setSidebarHidden] = useState(isMobile);
   const pieChartRef = useRef(null);
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 3;
-
   const [currentRoute, setCurrentRoute] = useState("dashboard"); 
 
   useEffect(() => {
@@ -195,10 +196,15 @@ export default function HRModule() {
     );
   };
 
+  useEffect(() => {
+    setSidebarHidden(isMobile);
+  }, [isMobile]);
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
-      <Header toggleSidebar={() => setSidebarHidden(!sidebarHidden)} />
+      <Header toggleSidebar={() => setSidebarHidden((prev) => !prev)} />
       <div className="flex flex-1">
+        {/* Sidebar: toggled on all screen sizes by menu icon */}
         <Sidebar className={sidebarHidden ? "hidden" : ""} />
         <div className="flex-1 p-6 overflow-auto">
           <h1 className="text-2xl font-bold mb-6">HR Module Dashboard</h1>

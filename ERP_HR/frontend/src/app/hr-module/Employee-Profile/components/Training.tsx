@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import axios from "axios";
+import { authFetch } from "@/utils/authFetch";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FiPlus,
@@ -49,7 +49,8 @@ export default function TrainingTab({ empId }: { empId: string }) {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [trainings, setTrainings] = useState<Training[]>([]);
-  const [formData, setFormData] = useState<Omit<Training, "id">>(initialFormData);
+  const [formData, setFormData] =
+    useState<Omit<Training, "id">>(initialFormData);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -60,18 +61,27 @@ export default function TrainingTab({ empId }: { empId: string }) {
     setError(null);
     setSuccessMessage(null);
     try {
-      const response = await axios.get(
+      const res = await authFetch(
         `http://localhost:8080/api/employees/${empId}/trainings`,
         {
-          timeout: 5000,
           headers: {
             "Cache-Control": "no-cache",
             Pragma: "no-cache",
           },
         }
       );
-      
-      const formattedTrainings = response.data.map((training: any) => ({
+      if (!res.ok) {
+        let errorMessage = `Server error (${res.status}): `;
+        try {
+          const data = await res.json();
+          errorMessage += data?.message || "Could not fetch data";
+        } catch {
+          errorMessage += "Could not fetch data";
+        }
+        throw new Error(errorMessage);
+      }
+      const data = await res.json();
+      const formattedTrainings = data.map((training: any) => ({
         ...training,
         startDateGC: training.startDateGC
           ? new Date(training.startDateGC).toISOString().split("T")[0]
@@ -80,23 +90,12 @@ export default function TrainingTab({ empId }: { empId: string }) {
           ? new Date(training.endDateGC).toISOString().split("T")[0]
           : "",
         payment: Number(training.payment) || 0,
-        employee: training.employee || undefined
+        employee: training.employee || undefined,
       }));
-      
       setTrainings(formattedTrainings);
-    } catch (err) {
-      let errorMessage = "Failed to fetch trainings. Please try again.";
-      if (axios.isAxiosError(err)) {
-        if (err.code === "ECONNABORTED") {
-          errorMessage = "Request timeout. Please check your connection.";
-        } else if (err.response) {
-          errorMessage = `Server error (${err.response.status}): ${
-            err.response.data?.message || "Could not fetch data"
-          }`;
-        } else if (err.request) {
-          errorMessage = "No response from server. Is the backend running?";
-        }
-      }
+    } catch (err: any) {
+      let errorMessage =
+        err.message || "Failed to fetch trainings. Please try again.";
       setError(errorMessage);
       console.error("Error fetching trainings:", err);
     } finally {
@@ -182,77 +181,55 @@ export default function TrainingTab({ empId }: { empId: string }) {
         payment: Number(trainingDataWithId.payment),
       };
 
-      let response;
+      let res;
       if (isUpdate) {
-        response = await axios.put(
+        res = await authFetch(
           `http://localhost:8080/api/employees/${empId}/trainings/${trainingDataWithId.id}`,
-          payload,
           {
+            method: "PUT",
             headers: { "Content-Type": "application/json" },
-            timeout: 5000,
+            body: JSON.stringify(payload),
           }
         );
+        if (!res.ok) {
+          let errorMessage = `Server error (${res.status}): `;
+          try {
+            const data = await res.json();
+            errorMessage += data?.message || "Could not update training";
+          } catch {
+            errorMessage += "Could not update training";
+          }
+          throw new Error(errorMessage);
+        }
         setSuccessMessage("Training updated successfully!");
       } else {
-        response = await axios.post(
+        res = await authFetch(
           `http://localhost:8080/api/employees/${empId}/trainings`,
-          payload,
           {
+            method: "POST",
             headers: { "Content-Type": "application/json" },
-            timeout: 5000,
+            body: JSON.stringify(payload),
           }
         );
+        if (!res.ok) {
+          let errorMessage = `Server error (${res.status}): `;
+          try {
+            const data = await res.json();
+            errorMessage += data?.message || "Could not add training";
+          } catch {
+            errorMessage += "Could not add training";
+          }
+          throw new Error(errorMessage);
+        }
         setSuccessMessage("Training added successfully!");
       }
 
       await fetchTrainings();
       return true;
-    } catch (err) {
-      console.error("Error saving training:", err);
+    } catch (err: any) {
       let errorMessage =
+        err.message ||
         "Failed to save training. Please check input and try again.";
-
-      if (axios.isAxiosError(err)) {
-        if (err.response) {
-          console.error("Backend Error Data:", err.response.data);
-          console.error("Backend Error Status:", err.response.status);
-          if (err.response.data && err.response.status === 400) {
-            if (
-              err.response.data.errors &&
-              Array.isArray(err.response.data.errors)
-            ) {
-              const fieldErrors = err.response.data.errors
-                .map(
-                  (fieldError: any) =>
-                    `${fieldError.field}: ${fieldError.defaultMessage}`
-                )
-                .join("\n");
-              errorMessage = `Validation failed:\n${fieldErrors}`;
-            } else if (typeof err.response.data.message === "string") {
-              errorMessage = err.response.data.message;
-            } else if (typeof err.response.data === "string") {
-              errorMessage = err.response.data;
-            } else {
-              errorMessage =
-                "Invalid data submitted. Please check the fields and try again.";
-            }
-          } else if (err.response.data?.message) {
-            errorMessage = `Server error (${err.response.status}): ${err.response.data.message}`;
-          } else if (err.response.status === 409) {
-            errorMessage =
-              "Conflict: This record might have been updated elsewhere. Please refresh.";
-          } else {
-            errorMessage = `Server error (${err.response.status}). ${
-              err.response.data || "Please try again later."
-            }`;
-          }
-        } else if (err.request) {
-          errorMessage =
-            "No response from server. Check network or backend status.";
-        } else if (err.code === "ECONNABORTED") {
-          errorMessage = "Request timed out. Please check your connection.";
-        }
-      }
       setError(errorMessage);
       return false;
     } finally {
@@ -317,26 +294,28 @@ export default function TrainingTab({ empId }: { empId: string }) {
     setError(null);
     setSuccessMessage(null);
     try {
-      await axios.delete(
+      const res = await authFetch(
         `http://localhost:8080/api/employees/${empId}/trainings/${id}`,
-        { timeout: 5000 }
+        {
+          method: "DELETE",
+        }
       );
+      if (!res.ok) {
+        let errorMessage = `Server error (${res.status}): `;
+        try {
+          const data = await res.json();
+          errorMessage += data?.message || "Could not delete training";
+        } catch {
+          errorMessage += "Could not delete training";
+        }
+        throw new Error(errorMessage);
+      }
       setSuccessMessage("Training deleted successfully!");
       await fetchTrainings();
       return true;
-    } catch (err) {
-      let errorMessage = "Failed to delete training. Please try again.";
-      if (axios.isAxiosError(err)) {
-        if (err.response?.status === 409) {
-          errorMessage = "Conflict: Record may have changed. Please refresh.";
-        } else if (err.response) {
-          errorMessage = `Server error (${err.response.status}). ${
-            err.response.data?.message || ""
-          }`;
-        } else if (err.request) {
-          errorMessage = "No response from server.";
-        }
-      }
+    } catch (err: any) {
+      let errorMessage =
+        err.message || "Failed to delete training. Please try again.";
       setError(errorMessage);
       console.error("Error deleting training:", err);
       return false;
@@ -885,8 +864,8 @@ export default function TrainingTab({ empId }: { empId: string }) {
                       {idx + 1}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-gray-500">
-                      {training.employee 
-                        ? `${training.employee.firstName} ${training.employee.lastName}` 
+                      {training.employee
+                        ? `${training.employee.firstName} ${training.employee.lastName}`
                         : training.employeeId}
                       {training.employee?.department && (
                         <div className="text-xs text-gray-400">

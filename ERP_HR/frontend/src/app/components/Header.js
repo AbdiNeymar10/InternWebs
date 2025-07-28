@@ -1,9 +1,10 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBars, faSearch } from "@fortawesome/free-solid-svg-icons";
+import ProfilePicture from "./ProfilePicture";
 
 export default function Header({ toggleSidebar }) {
   return (
-    <header className="bg-gray-800 text-white p-4 flex justify-between items-center sticky top-0 z-10 w-full">
+    <header className="bg-gray-800 text-white p-2 flex justify-between items-center sticky top-0 z-10 w-full">
       {/* Left Section: Logo and Menu Icon */}
       <div className="flex items-center">
         <button className="mr-4 focus:outline-none" onClick={toggleSidebar}>
@@ -28,11 +29,7 @@ export default function Header({ toggleSidebar }) {
         </div> */}
 
         {/* User Profile Picture */}
-        <img
-          alt="User profile picture"
-          className="w-10 h-10 rounded-full"
-          src="/user.PNG"
-        />
+        <ProfilePicture />
       </div>
     </header>
   );

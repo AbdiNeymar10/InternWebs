@@ -8,7 +8,7 @@ import Sidebar from "@/app/hr-module/sidbar";
 export default function HRModule() {
     const [sidebarHidden, setSidebarHidden] = useState(false);
     const pieChartRef = useRef<HTMLCanvasElement | null>(null);
-    const pieChartInstanceRef = useRef<Chart | null>(null); // ✅ CHART INSTANCE REF
+    const pieChartInstanceRef = useRef<Chart | null>(null); 
 
     const [currentPage, setCurrentPage] = useState(1);
     const rowsPerPage = 3;
@@ -29,7 +29,6 @@ export default function HRModule() {
             const ctx = pieChartRef.current.getContext("2d");
 
             if (ctx) {
-                // Destroy existing chart before creating a new one
                 if (pieChartInstanceRef.current) {
                     pieChartInstanceRef.current.destroy();
                 }
