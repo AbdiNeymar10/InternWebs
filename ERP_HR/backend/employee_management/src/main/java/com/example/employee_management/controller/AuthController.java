@@ -167,7 +167,7 @@ public class AuthController {
             File destFile = new File(filePath);
             System.out.println("Saving file to: " + destFile.getAbsolutePath());
             file.transferTo(destFile);
-            user.setProfilePicture(savedFileName); // Save only file name
+            user.setProfilePicture(savedFileName);
             userService.updateUser(user.getId(), Map.of("profilePicture", savedFileName));
             return ResponseEntity.ok(Map.of("profilePicture", savedFileName));
         } catch (IOException e) {
@@ -208,6 +208,24 @@ public class AuthController {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error retrieving image: " + e.getMessage());
+        }
+    }
+
+    // Change password endpoint
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(@RequestBody Map<String, String> body) {
+        try {
+            String identifier = body.get("identifier"); // email or empId
+            String currentPassword = body.get("currentPassword");
+            String newPassword = body.get("newPassword");
+            if (identifier == null || currentPassword == null || newPassword == null
+                    || identifier.isEmpty() || currentPassword.isEmpty() || newPassword.isEmpty()) {
+                return ResponseEntity.badRequest().body("All fields are required");
+            }
+            userService.changePassword(identifier, currentPassword, newPassword);
+            return ResponseEntity.ok("Password changed successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 

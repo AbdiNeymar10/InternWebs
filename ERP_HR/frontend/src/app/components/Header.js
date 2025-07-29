@@ -23,6 +23,9 @@ export default function Header({ toggleSidebar }) {
     newPassword: "",
     confirmPassword: "",
   });
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const profileRef = useRef(null);
   // Handle input change for settings form
@@ -48,38 +51,44 @@ export default function Header({ toggleSidebar }) {
     }
     setLoading(true);
     try {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("No authentication token found");
-      const response = await axios.put(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/adminuser/change-password`,
+      // Get user identifier (email or empId)
+      let identifier = "";
+      if (typeof window !== "undefined") {
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+          const parsedUser = JSON.parse(storedUser);
+          identifier = parsedUser.email || parsedUser.empId || "";
+        }
+      }
+      if (!identifier) throw new Error("User identifier not found");
+      const response = await axios.post(
+        "http://localhost:8080/api/auth/change-password",
         {
+          identifier,
           currentPassword: formData.currentPassword,
           newPassword: formData.newPassword,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
         }
       );
-      if (response.data.status === 200) {
-        await Swal.fire({
-          title: "Success!",
-          text: "Password changed successfully",
-          icon: "success",
-          confirmButtonColor: "#3c8dbc",
-        });
-        setFormData({
-          currentPassword: "",
-          newPassword: "",
-          confirmPassword: "",
-        });
-        setIsSettingsModalOpen(false);
-      }
+      await Swal.fire({
+        title: "Success!",
+        text: response.data || "Password changed successfully",
+        icon: "success",
+        confirmButtonColor: "#3c8dbc",
+      });
+      setFormData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+      setIsSettingsModalOpen(false);
+      setShowChangePasswordForm(false);
     } catch (error) {
       await Swal.fire({
         title: "Error",
-        text: error.response?.data?.message || "Failed to change password",
+        text:
+          error.response?.data ||
+          error.response?.data?.message ||
+          "Failed to change password",
         icon: "error",
         confirmButtonColor: "#3c8dbc",
       });
@@ -163,7 +172,6 @@ export default function Header({ toggleSidebar }) {
     };
   }, []);
 
-  // Dummy user info for dropdown (replace with your logic if needed)
   const user = (() => {
     if (typeof window !== "undefined") {
       const storedUser = localStorage.getItem("user");
@@ -473,42 +481,162 @@ export default function Header({ toggleSidebar }) {
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Current Password
                       </label>
-                      <input
-                        type="password"
-                        name="currentPassword"
-                        value={formData.currentPassword}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#3c8dbc] focus:border-[#3c8dbc]"
-                        required
-                      />
+                      <div className="relative">
+                        <input
+                          type={showCurrentPassword ? "text" : "password"}
+                          name="currentPassword"
+                          value={formData.currentPassword}
+                          onChange={handleInputChange}
+                          className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#3c8dbc] focus:border-[#3c8dbc]"
+                          required
+                        />
+                        <button
+                          type="button"
+                          className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 focus:outline-none"
+                          onClick={() => setShowCurrentPassword((v) => !v)}
+                          tabIndex={-1}
+                        >
+                          {showCurrentPassword ? (
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-5 w-5"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M13.875 18.825A10.05 10.05 0 0112 19c-5.523 0-10-4.477-10-10 0-1.657.402-3.22 1.125-4.575M15 12a3 3 0 11-6 0 3 3 0 016 0zm6.875-4.575A9.956 9.956 0 0122 9c0 5.523-4.477 10-10 10a9.956 9.956 0 01-4.575-1.125"
+                              />
+                            </svg>
+                          ) : (
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-5 w-5"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0zm2.121-2.121A9.969 9.969 0 0122 12c0 5.523-4.477 10-10 10S2 17.523 2 12c0-2.21.896-4.21 2.343-5.657"
+                              />
+                            </svg>
+                          )}
+                        </button>
+                      </div>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         New Password
                       </label>
-                      <input
-                        type="password"
-                        name="newPassword"
-                        value={formData.newPassword}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#3c8dbc] focus:border-[#3c8dbc]"
-                        required
-                        minLength={6}
-                      />
+                      <div className="relative">
+                        <input
+                          type={showNewPassword ? "text" : "password"}
+                          name="newPassword"
+                          value={formData.newPassword}
+                          onChange={handleInputChange}
+                          className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#3c8dbc] focus:border-[#3c8dbc]"
+                          required
+                          minLength={6}
+                        />
+                        <button
+                          type="button"
+                          className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 focus:outline-none"
+                          onClick={() => setShowNewPassword((v) => !v)}
+                          tabIndex={-1}
+                        >
+                          {showNewPassword ? (
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-5 w-5"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M13.875 18.825A10.05 10.05 0 0112 19c-5.523 0-10-4.477-10-10 0-1.657.402-3.22 1.125-4.575M15 12a3 3 0 11-6 0 3 3 0 016 0zm6.875-4.575A9.956 9.956 0 0122 9c0 5.523-4.477 10-10 10a9.956 9.956 0 01-4.575-1.125"
+                              />
+                            </svg>
+                          ) : (
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-5 w-5"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0zm2.121-2.121A9.969 9.969 0 0122 12c0 5.523-4.477 10-10 10S2 17.523 2 12c0-2.21.896-4.21 2.343-5.657"
+                              />
+                            </svg>
+                          )}
+                        </button>
+                      </div>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Confirm New Password
                       </label>
-                      <input
-                        type="password"
-                        name="confirmPassword"
-                        value={formData.confirmPassword}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#3c8dbc] focus:border-[#3c8dbc]"
-                        required
-                        minLength={6}
-                      />
+                      <div className="relative">
+                        <input
+                          type={showConfirmPassword ? "text" : "password"}
+                          name="confirmPassword"
+                          value={formData.confirmPassword}
+                          onChange={handleInputChange}
+                          className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#3c8dbc] focus:border-[#3c8dbc]"
+                          required
+                          minLength={6}
+                        />
+                        <button
+                          type="button"
+                          className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 focus:outline-none"
+                          onClick={() => setShowConfirmPassword((v) => !v)}
+                          tabIndex={-1}
+                        >
+                          {showConfirmPassword ? (
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-5 w-5"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M13.875 18.825A10.05 10.05 0 0112 19c-5.523 0-10-4.477-10-10 0-1.657.402-3.22 1.125-4.575M15 12a3 3 0 11-6 0 3 3 0 016 0zm6.875-4.575A9.956 9.956 0 0122 9c0 5.523-4.477 10-10 10a9.956 9.956 0 01-4.575-1.125"
+                              />
+                            </svg>
+                          ) : (
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-5 w-5"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0zm2.121-2.121A9.969 9.969 0 0122 12c0 5.523-4.477 10-10 10S2 17.523 2 12c0-2.21.896-4.21 2.343-5.657"
+                              />
+                            </svg>
+                          )}
+                        </button>
+                      </div>
                     </div>
                     <div className="pt-4">
                       <button
