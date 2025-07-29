@@ -435,7 +435,7 @@ export default function Header({ toggleSidebar }) {
               </div>
               <div className="p-8">
                 <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
-                  Settings
+                  change password
                 </h2>
                 {!showChangePasswordForm ? (
                   <div className="space-y-6">
@@ -487,7 +487,7 @@ export default function Header({ toggleSidebar }) {
                           name="currentPassword"
                           value={formData.currentPassword}
                           onChange={handleInputChange}
-                          className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#3c8dbc] focus:border-[#3c8dbc]"
+                          className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#3c8dbc] focus:border-[#3c8dbc] text-black"
                           required
                         />
                         <button
@@ -540,7 +540,8 @@ export default function Header({ toggleSidebar }) {
                           name="newPassword"
                           value={formData.newPassword}
                           onChange={handleInputChange}
-                          className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#3c8dbc] focus:border-[#3c8dbc]"
+                          className="w-full pl-10 pr-10 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#3c8dbc] focus:border-[#3c8dbc] text-black"
+                          style={{ paddingRight: "2.5rem" }}
                           required
                           minLength={6}
                         />
@@ -594,7 +595,8 @@ export default function Header({ toggleSidebar }) {
                           name="confirmPassword"
                           value={formData.confirmPassword}
                           onChange={handleInputChange}
-                          className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#3c8dbc] focus:border-[#3c8dbc]"
+                          className="w-full pl-10 pr-10 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#3c8dbc] focus:border-[#3c8dbc] text-black"
+                          style={{ paddingRight: "2.5rem" }}
                           required
                           minLength={6}
                         />
