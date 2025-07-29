@@ -15,10 +15,13 @@ export default function ProfilePicture({
   const [fullName, setFullName] = useState("");
   const fileInputRef = useRef();
   const [empId, setEmpId] = useState(null);
+
+  // Helper to get empId from localStorage, only on client
   const getValidEmpId = () => {
-    let raw = localStorage.getItem("empId");
+    if (typeof window === "undefined") return null;
+    let raw = window.localStorage.getItem("empId");
     if (!raw) {
-      const userStr = localStorage.getItem("user");
+      const userStr = window.localStorage.getItem("user");
       if (userStr) {
         try {
           const userObj = JSON.parse(userStr);
@@ -36,9 +39,9 @@ export default function ProfilePicture({
     if (typeof window !== "undefined") {
       const validEmpId = getValidEmpId();
       setEmpId(validEmpId);
-      let storedFullName = localStorage.getItem("fullName");
+      let storedFullName = window.localStorage.getItem("fullName");
       if (!storedFullName) {
-        const userStr = localStorage.getItem("user");
+        const userStr = window.localStorage.getItem("user");
         if (userStr) {
           try {
             const userObj = JSON.parse(userStr);
@@ -51,11 +54,12 @@ export default function ProfilePicture({
       );
     }
     const handleStorage = () => {
+      if (typeof window === "undefined") return;
       const validEmpId = getValidEmpId();
       setEmpId(validEmpId);
-      let storedFullName = localStorage.getItem("fullName");
+      let storedFullName = window.localStorage.getItem("fullName");
       if (!storedFullName) {
-        const userStr = localStorage.getItem("user");
+        const userStr = window.localStorage.getItem("user");
         if (userStr) {
           try {
             const userObj = JSON.parse(userStr);
@@ -67,11 +71,14 @@ export default function ProfilePicture({
         storedFullName && storedFullName.trim() ? storedFullName : ""
       );
     };
-    window.addEventListener("storage", handleStorage);
-    return () => window.removeEventListener("storage", handleStorage);
+    if (typeof window !== "undefined") {
+      window.addEventListener("storage", handleStorage);
+      return () => window.removeEventListener("storage", handleStorage);
+    }
   }, []);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
     const validEmpId = getValidEmpId();
     if (!validEmpId) return;
     setFeedback("");
@@ -97,11 +104,12 @@ export default function ProfilePicture({
   }, [loading, feedback]);
 
   const handleFileChange = async (e) => {
+    if (typeof window === "undefined") return;
     const currentEmpId = getValidEmpId();
     setEmpId(currentEmpId);
-    let currentFullName = localStorage.getItem("fullName");
+    let currentFullName = window.localStorage.getItem("fullName");
     if (!currentFullName) {
-      const userStr = localStorage.getItem("user");
+      const userStr = window.localStorage.getItem("user");
       if (userStr) {
         try {
           const userObj = JSON.parse(userStr);
@@ -190,11 +198,13 @@ export default function ProfilePicture({
               disableClick
                 ? undefined
                 : () => {
+                    if (typeof window === "undefined") return;
                     const currentEmpId = getValidEmpId();
                     setEmpId(currentEmpId);
-                    let currentFullName = localStorage.getItem("fullName");
+                    let currentFullName =
+                      window.localStorage.getItem("fullName");
                     if (!currentFullName) {
-                      const userStr = localStorage.getItem("user");
+                      const userStr = window.localStorage.getItem("user");
                       if (userStr) {
                         try {
                           const userObj = JSON.parse(userStr);
@@ -207,15 +217,22 @@ export default function ProfilePicture({
                         ? currentFullName
                         : ""
                     );
-                    if (currentEmpId) fileInputRef.current.click();
+                    if (currentEmpId && fileInputRef.current)
+                      fileInputRef.current.click();
                   }
             }
             title={
-              getValidEmpId() ? "Change profile picture" : "Login required"
+              typeof window !== "undefined" && getValidEmpId()
+                ? "Change profile picture"
+                : "Login required"
             }
             style={{
-              opacity: getValidEmpId() ? 1 : 0.5,
-              pointerEvents: getValidEmpId() ? "auto" : "none",
+              opacity:
+                typeof window !== "undefined" && getValidEmpId() ? 1 : 0.5,
+              pointerEvents:
+                typeof window !== "undefined" && getValidEmpId()
+                  ? "auto"
+                  : "none",
             }}
           />
         ) : (
@@ -230,11 +247,13 @@ export default function ProfilePicture({
               disableClick
                 ? undefined
                 : () => {
+                    if (typeof window === "undefined") return;
                     const currentEmpId = getValidEmpId();
                     setEmpId(currentEmpId);
-                    let currentFullName = localStorage.getItem("fullName");
+                    let currentFullName =
+                      window.localStorage.getItem("fullName");
                     if (!currentFullName) {
-                      const userStr = localStorage.getItem("user");
+                      const userStr = window.localStorage.getItem("user");
                       if (userStr) {
                         try {
                           const userObj = JSON.parse(userStr);
@@ -247,13 +266,22 @@ export default function ProfilePicture({
                         ? currentFullName
                         : ""
                     );
-                    if (currentEmpId) fileInputRef.current.click();
+                    if (currentEmpId && fileInputRef.current)
+                      fileInputRef.current.click();
                   }
             }
-            title={getValidEmpId() ? "Set profile picture" : "Login required"}
+            title={
+              typeof window !== "undefined" && getValidEmpId()
+                ? "Set profile picture"
+                : "Login required"
+            }
             style={{
-              opacity: getValidEmpId() ? 1 : 0.5,
-              pointerEvents: getValidEmpId() ? "auto" : "none",
+              opacity:
+                typeof window !== "undefined" && getValidEmpId() ? 1 : 0.5,
+              pointerEvents:
+                typeof window !== "undefined" && getValidEmpId()
+                  ? "auto"
+                  : "none",
             }}
           >
             {fullName && fullName.trim().length > 0
@@ -267,7 +295,9 @@ export default function ProfilePicture({
           ref={fileInputRef}
           style={{ display: "none" }}
           onChange={handleFileChange}
-          disabled={loading || !getValidEmpId()}
+          disabled={
+            loading || (typeof window !== "undefined" && !getValidEmpId())
+          }
         />
       </div>
     </>
