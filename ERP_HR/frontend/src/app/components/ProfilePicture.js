@@ -3,7 +3,11 @@ import { authFetch } from "../../utils/authFetch";
 
 const API_BASE = "http://localhost:8080/api/auth/users/empid/";
 
-export default function ProfilePicture({ disableClick = false, className, fillParent = false }) {
+export default function ProfilePicture({
+  disableClick = false,
+  className,
+  fillParent = false,
+}) {
   const [imageUrl, setImageUrl] = useState(null);
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState("");
@@ -42,7 +46,9 @@ export default function ProfilePicture({ disableClick = false, className, fillPa
           } catch {}
         }
       }
-      setFullName(storedFullName && storedFullName.trim() ? storedFullName : "");
+      setFullName(
+        storedFullName && storedFullName.trim() ? storedFullName : ""
+      );
     }
     const handleStorage = () => {
       const validEmpId = getValidEmpId();
@@ -57,7 +63,9 @@ export default function ProfilePicture({ disableClick = false, className, fillPa
           } catch {}
         }
       }
-      setFullName(storedFullName && storedFullName.trim() ? storedFullName : "");
+      setFullName(
+        storedFullName && storedFullName.trim() ? storedFullName : ""
+      );
     };
     window.addEventListener("storage", handleStorage);
     return () => window.removeEventListener("storage", handleStorage);
@@ -101,7 +109,9 @@ export default function ProfilePicture({ disableClick = false, className, fillPa
         } catch {}
       }
     }
-    setFullName(currentFullName && currentFullName.trim() ? currentFullName : "");
+    setFullName(
+      currentFullName && currentFullName.trim() ? currentFullName : ""
+    );
 
     let file;
     if (e.target && e.target.files && e.target.files.length > 0) {
@@ -122,20 +132,27 @@ export default function ProfilePicture({ disableClick = false, className, fillPa
     const formData = new FormData();
     formData.append("file", file);
     try {
-      const res = await authFetch(`${API_BASE}${currentEmpId}/profile-picture`, {
-        method: "POST",
-        body: formData,
-      });
+      const res = await authFetch(
+        `${API_BASE}${currentEmpId}/profile-picture`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
       if (res.ok) {
         // Refresh image with cache busting
-        const imgRes = await authFetch(`${API_BASE}${currentEmpId}/profile-picture`);
+        const imgRes = await authFetch(
+          `${API_BASE}${currentEmpId}/profile-picture`
+        );
         if (imgRes.ok) {
           const blob = await imgRes.blob();
           setImageUrl(URL.createObjectURL(blob) + "?t=" + new Date().getTime());
           setFeedback("Profile picture updated successfully.");
         } else {
           setImageUrl(null);
-          setFeedback("Profile picture uploaded, but could not retrieve image.");
+          setFeedback(
+            "Profile picture uploaded, but could not retrieve image."
+          );
         }
       } else {
         const errorText = await res.text();
@@ -185,14 +202,20 @@ export default function ProfilePicture({ disableClick = false, className, fillPa
                         } catch {}
                       }
                     }
-                    setFullName(currentFullName && currentFullName.trim() ? currentFullName : "");
+                    setFullName(
+                      currentFullName && currentFullName.trim()
+                        ? currentFullName
+                        : ""
+                    );
                     if (currentEmpId) fileInputRef.current.click();
                   }
             }
-            title={getValidEmpId() ? "Change profile picture" : "Login required"}
+            title={
+              getValidEmpId() ? "Change profile picture" : "Login required"
+            }
             style={{
               opacity: getValidEmpId() ? 1 : 0.5,
-              pointerEvents: getValidEmpId() ? "auto" : "none"
+              pointerEvents: getValidEmpId() ? "auto" : "none",
             }}
           />
         ) : (
@@ -219,17 +242,23 @@ export default function ProfilePicture({ disableClick = false, className, fillPa
                         } catch {}
                       }
                     }
-                    setFullName(currentFullName && currentFullName.trim() ? currentFullName : "");
+                    setFullName(
+                      currentFullName && currentFullName.trim()
+                        ? currentFullName
+                        : ""
+                    );
                     if (currentEmpId) fileInputRef.current.click();
                   }
             }
             title={getValidEmpId() ? "Set profile picture" : "Login required"}
             style={{
               opacity: getValidEmpId() ? 1 : 0.5,
-              pointerEvents: getValidEmpId() ? "auto" : "none"
+              pointerEvents: getValidEmpId() ? "auto" : "none",
             }}
           >
-            {fullName && fullName.trim().length > 0 ? fullName.trim().charAt(0).toUpperCase() : "?"}
+            {fullName && fullName.trim().length > 0
+              ? fullName.trim().charAt(0).toUpperCase()
+              : "?"}
           </div>
         )}
         <input

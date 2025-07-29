@@ -192,7 +192,7 @@ export default function Header({ toggleSidebar }) {
   };
 
   return (
-    <header className="bg-gray-800 text-white p-2 flex justify-between items-center sticky top-0 z-10 w-full">
+    <header className="bg-gray-800 text-white p-1 flex justify-between items-center sticky top-0 z-10 w-full">
       {/* Left Section: Logo and Menu Icon */}
       <div className="flex items-center">
         <button className="mr-4 focus:outline-none" onClick={toggleSidebar}>
@@ -226,15 +226,7 @@ export default function Header({ toggleSidebar }) {
             {/* Avatar: Use ProfilePicture as avatar */}
             <ProfilePicture
               disableClick
-              className="w-11 h-11 rounded-full border-2 border-white shadow cursor-pointer object-cover"
-              style={{
-                width: "44px",
-                height: "44px",
-                objectFit: "cover",
-                borderRadius: "9999px",
-                display: "block",
-                background: "none",
-              }}
+              className="w-11 h-11 min-w-[44px] min-h-[44px] max-w-[44px] max-h-[44px] rounded-full border-2 border-white shadow object-cover"
             />
           </button>
           <AnimatePresence>
@@ -339,7 +331,7 @@ export default function Header({ toggleSidebar }) {
                 <div className="text-center mb-6">
                   {/* Profile Picture at the top */}
                   <div className="w-24 h-24 rounded-full mx-auto mb-4 overflow-hidden aspect-square flex items-center justify-center">
-                    <ProfilePicture />
+                    <ProfilePicture className="w-24 h-24 min-w-[96px] min-h-[96px] max-w-[96px] max-h-[96px] rounded-full object-cover" />
                   </div>
                   {/* Full Name */}
                   <h2 className="text-2xl font-bold text-gray-800 mb-1">
