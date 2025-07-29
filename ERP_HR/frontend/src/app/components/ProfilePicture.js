@@ -3,7 +3,7 @@ import { authFetch } from "../../utils/authFetch";
 
 const API_BASE = "http://localhost:8080/api/auth/users/empid/";
 
-export default function ProfilePicture() {
+export default function ProfilePicture({ disableClick = false }) {
   const [imageUrl, setImageUrl] = useState(null);
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState("");
@@ -165,44 +165,52 @@ export default function ProfilePicture() {
             src={imageUrl}
             alt="User profile picture"
             className="w-10 h-10 rounded-full object-cover cursor-pointer border"
-            onClick={() => {
-              const currentEmpId = getValidEmpId();
-              setEmpId(currentEmpId);
-              let currentFullName = localStorage.getItem("fullName");
-              if (!currentFullName) {
-                const userStr = localStorage.getItem("user");
-                if (userStr) {
-                  try {
-                    const userObj = JSON.parse(userStr);
-                    currentFullName = userObj.fullName;
-                  } catch {}
-                }
-              }
-              setFullName(currentFullName && currentFullName.trim() ? currentFullName : "");
-              if (currentEmpId) fileInputRef.current.click();
-            }}
+            onClick={
+              disableClick
+                ? undefined
+                : () => {
+                    const currentEmpId = getValidEmpId();
+                    setEmpId(currentEmpId);
+                    let currentFullName = localStorage.getItem("fullName");
+                    if (!currentFullName) {
+                      const userStr = localStorage.getItem("user");
+                      if (userStr) {
+                        try {
+                          const userObj = JSON.parse(userStr);
+                          currentFullName = userObj.fullName;
+                        } catch {}
+                      }
+                    }
+                    setFullName(currentFullName && currentFullName.trim() ? currentFullName : "");
+                    if (currentEmpId) fileInputRef.current.click();
+                  }
+            }
             title={getValidEmpId() ? "Change profile picture" : "Login required"}
             style={{ opacity: getValidEmpId() ? 1 : 0.5, pointerEvents: getValidEmpId() ? "auto" : "none" }}
           />
         ) : (
           <div
             className="w-10 h-10 rounded-full bg-gray-500 flex items-center justify-center text-white text-xl font-bold cursor-pointer border"
-            onClick={() => {
-              const currentEmpId = getValidEmpId();
-              setEmpId(currentEmpId);
-              let currentFullName = localStorage.getItem("fullName");
-              if (!currentFullName) {
-                const userStr = localStorage.getItem("user");
-                if (userStr) {
-                  try {
-                    const userObj = JSON.parse(userStr);
-                    currentFullName = userObj.fullName;
-                  } catch {}
-                }
-              }
-              setFullName(currentFullName && currentFullName.trim() ? currentFullName : "");
-              if (currentEmpId) fileInputRef.current.click();
-            }}
+            onClick={
+              disableClick
+                ? undefined
+                : () => {
+                    const currentEmpId = getValidEmpId();
+                    setEmpId(currentEmpId);
+                    let currentFullName = localStorage.getItem("fullName");
+                    if (!currentFullName) {
+                      const userStr = localStorage.getItem("user");
+                      if (userStr) {
+                        try {
+                          const userObj = JSON.parse(userStr);
+                          currentFullName = userObj.fullName;
+                        } catch {}
+                      }
+                    }
+                    setFullName(currentFullName && currentFullName.trim() ? currentFullName : "");
+                    if (currentEmpId) fileInputRef.current.click();
+                  }
+            }
             title={getValidEmpId() ? "Set profile picture" : "Login required"}
             style={{ opacity: getValidEmpId() ? 1 : 0.5, pointerEvents: getValidEmpId() ? "auto" : "none" }}
           >
