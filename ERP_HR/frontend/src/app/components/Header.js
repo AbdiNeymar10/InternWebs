@@ -1,9 +1,14 @@
-
 import { useState, useRef, useEffect } from "react";
 import Swal from "sweetalert2";
 import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBars, faSearch, faUser, faCog, faSignOutAlt } from "@fortawesome/free-solid-svg-icons";
+import {
+  faBars,
+  faSearch,
+  faUser,
+  faCog,
+  faSignOutAlt,
+} from "@fortawesome/free-solid-svg-icons";
 import { motion, AnimatePresence } from "framer-motion";
 import ProfilePicture from "./ProfilePicture";
 
@@ -16,7 +21,7 @@ export default function Header({ toggleSidebar }) {
   const [formData, setFormData] = useState({
     currentPassword: "",
     newPassword: "",
-    confirmPassword: ""
+    confirmPassword: "",
   });
   const [loading, setLoading] = useState(false);
   const profileRef = useRef(null);
@@ -64,7 +69,11 @@ export default function Header({ toggleSidebar }) {
           icon: "success",
           confirmButtonColor: "#3c8dbc",
         });
-        setFormData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+        setFormData({
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        });
         setIsSettingsModalOpen(false);
       }
     } catch (error) {
@@ -215,11 +224,10 @@ export default function Header({ toggleSidebar }) {
             aria-label="User menu"
           >
             {/* Avatar: Use ProfilePicture as avatar */}
-            <div className="w-10 h-10 rounded-full overflow-hidden aspect-square">
+            <div className="w-10 h-10 object-cover cursor-pointer">
               <ProfilePicture disableClick />
             </div>
           </button>
-
           <AnimatePresence>
             {isProfileOpen && (
               <motion.div
@@ -230,7 +238,9 @@ export default function Header({ toggleSidebar }) {
                 exit="exit"
               >
                 <div className="px-4 py-3 border-b border-gray-100">
-                  <p className="text-sm font-medium text-gray-900">{user.name}</p>
+                  <p className="text-sm font-medium text-gray-900">
+                    {user.name}
+                  </p>
                   <p className="text-xs text-gray-500 truncate">{user.email}</p>
                 </div>
                 <button
@@ -240,7 +250,10 @@ export default function Header({ toggleSidebar }) {
                   }}
                   className="w-full text-left flex items-center px-4 py-3 text-base text-gray-700 hover:bg-gray-100"
                 >
-                  <FontAwesomeIcon icon={faUser} className="mr-3 text-[#3c8dbc]" />
+                  <FontAwesomeIcon
+                    icon={faUser}
+                    className="mr-3 text-[#3c8dbc]"
+                  />
                   <span>Profile</span>
                 </button>
                 <button
@@ -250,14 +263,20 @@ export default function Header({ toggleSidebar }) {
                   }}
                   className="w-full text-left flex items-center px-4 py-3 text-base text-gray-700 hover:bg-gray-100"
                 >
-                  <FontAwesomeIcon icon={faCog} className="mr-3 text-[#3c8dbc]" />
+                  <FontAwesomeIcon
+                    icon={faCog}
+                    className="mr-3 text-[#3c8dbc]"
+                  />
                   <span>Settings</span>
                 </button>
                 <button
                   className="w-full text-left flex items-center px-4 py-3 text-base text-gray-700 hover:bg-gray-100"
                   onClick={handleLogout}
                 >
-                  <FontAwesomeIcon icon={faSignOutAlt} className="mr-3 text-[#3c8dbc]" />
+                  <FontAwesomeIcon
+                    icon={faSignOutAlt}
+                    className="mr-3 text-[#3c8dbc]"
+                  />
                   <span>Logout</span>
                 </button>
               </motion.div>
@@ -291,8 +310,19 @@ export default function Header({ toggleSidebar }) {
                   onClick={() => setIsProfileModalOpen(false)}
                   className="text-gray-400 hover:text-gray-500 focus:outline-none"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 </motion.button>
               </div>
@@ -303,14 +333,22 @@ export default function Header({ toggleSidebar }) {
                     <ProfilePicture />
                   </div>
                   {/* Full Name */}
-                  <h2 className="text-2xl font-bold text-gray-800 mb-1">{user.name}</h2>
+                  <h2 className="text-2xl font-bold text-gray-800 mb-1">
+                    {user.name}
+                  </h2>
                   {/* Department (using role as department) */}
-                  <div className="text-base text-gray-600 mb-4">{user.role}</div>
+                  <div className="text-base text-gray-600 mb-4">
+                    {user.role}
+                  </div>
                   {/* User Information Section */}
                   <div className="bg-gray-50 p-4 rounded-lg text-left max-w-md mx-auto">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-3">User Information</h3>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                      User Information
+                    </h3>
                     <div className="mb-2">
-                      <span className="font-medium text-gray-700">Full name:</span>
+                      <span className="font-medium text-gray-700">
+                        Full name:
+                      </span>
                       <span className="ml-2 text-gray-900">{user.name}</span>
                     </div>
                     <div className="mb-2">
@@ -344,7 +382,11 @@ export default function Header({ toggleSidebar }) {
               onClick={() => {
                 setIsSettingsModalOpen(false);
                 setShowChangePasswordForm(false);
-                setFormData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+                setFormData({
+                  currentPassword: "",
+                  newPassword: "",
+                  confirmPassword: "",
+                });
               }}
             />
             <motion.div
@@ -358,17 +400,34 @@ export default function Header({ toggleSidebar }) {
                   onClick={() => {
                     setIsSettingsModalOpen(false);
                     setShowChangePasswordForm(false);
-                    setFormData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+                    setFormData({
+                      currentPassword: "",
+                      newPassword: "",
+                      confirmPassword: "",
+                    });
                   }}
                   className="text-gray-400 hover:text-gray-500 focus:outline-none"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 </motion.button>
               </div>
               <div className="p-8">
-                <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">Settings</h2>
+                <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
+                  Settings
+                </h2>
                 {!showChangePasswordForm ? (
                   <div className="space-y-6">
                     <div className="bg-gray-50 p-4 rounded-lg">
@@ -378,24 +437,41 @@ export default function Header({ toggleSidebar }) {
                       >
                         <div className="flex items-center">
                           <div className="p-2 rounded-full bg-[#3c8dbc] text-white mr-3">
-                            <FontAwesomeIcon icon={faUser} className="h-5 w-5" />
+                            <FontAwesomeIcon
+                              icon={faUser}
+                              className="h-5 w-5"
+                            />
                           </div>
                           <div className="text-left">
-                            <h3 className="font-medium text-gray-800">Change Password</h3>
-                            <p className="text-sm text-gray-500">Update your account password</p>
+                            <h3 className="font-medium text-gray-800">
+                              Change Password
+                            </h3>
+                            <p className="text-sm text-gray-500">
+                              Update your account password
+                            </p>
                           </div>
                         </div>
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5 text-gray-400"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                            clipRule="evenodd"
+                          />
                         </svg>
                       </button>
                     </div>
                   </div>
                 ) : (
                   <form onSubmit={handlePasswordChange} className="space-y-6">
-                    
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Current Password
+                      </label>
                       <input
                         type="password"
                         name="currentPassword"
@@ -406,7 +482,9 @@ export default function Header({ toggleSidebar }) {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        New Password
+                      </label>
                       <input
                         type="password"
                         name="newPassword"
@@ -418,7 +496,9 @@ export default function Header({ toggleSidebar }) {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Confirm New Password
+                      </label>
                       <input
                         type="password"
                         name="confirmPassword"
@@ -437,13 +517,31 @@ export default function Header({ toggleSidebar }) {
                       >
                         {loading ? (
                           <>
-                            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            <svg
+                              className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                            >
+                              <circle
+                                className="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                strokeWidth="4"
+                              ></circle>
+                              <path
+                                className="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                              ></path>
                             </svg>
                             Updating...
                           </>
-                        ) : 'Change Password'}
+                        ) : (
+                          "Change Password"
+                        )}
                       </button>
                     </div>
                   </form>

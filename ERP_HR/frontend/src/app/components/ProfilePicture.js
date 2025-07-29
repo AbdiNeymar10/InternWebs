@@ -3,7 +3,7 @@ import { authFetch } from "../../utils/authFetch";
 
 const API_BASE = "http://localhost:8080/api/auth/users/empid/";
 
-export default function ProfilePicture({ disableClick = false }) {
+export default function ProfilePicture({ disableClick = false, className, fillParent = false }) {
   const [imageUrl, setImageUrl] = useState(null);
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState("");
@@ -154,9 +154,7 @@ export default function ProfilePicture({ disableClick = false }) {
           className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 bg-gray-800 text-white px-4 py-2 rounded shadow-lg flex items-center justify-center"
           style={{ minWidth: "220px", maxWidth: "350px" }}
         >
-          {loading
-            ? "Uploading..."
-            : feedback}
+          {loading ? "Uploading..." : feedback}
         </div>
       )}
       <div className="relative mr-2 flex items-center">
@@ -164,7 +162,13 @@ export default function ProfilePicture({ disableClick = false }) {
           <img
             src={imageUrl}
             alt="User profile picture"
-            className="w-10 h-10 rounded-full object-cover cursor-pointer border"
+            className={
+              (fillParent
+                ? "absolute inset-0 w-full h-full object-cover rounded-full"
+                : "w-full h-full rounded-full object-cover") +
+              (className ? ` ${className}` : "") +
+              " cursor-pointer"
+            }
             onClick={
               disableClick
                 ? undefined
@@ -186,11 +190,19 @@ export default function ProfilePicture({ disableClick = false }) {
                   }
             }
             title={getValidEmpId() ? "Change profile picture" : "Login required"}
-            style={{ opacity: getValidEmpId() ? 1 : 0.5, pointerEvents: getValidEmpId() ? "auto" : "none" }}
+            style={{
+              opacity: getValidEmpId() ? 1 : 0.5,
+              pointerEvents: getValidEmpId() ? "auto" : "none"
+            }}
           />
         ) : (
           <div
-            className="w-10 h-10 rounded-full bg-gray-500 flex items-center justify-center text-white text-xl font-bold cursor-pointer border"
+            className={
+              (fillParent
+                ? "absolute inset-0 w-full h-full rounded-full bg-gray-500 flex items-center justify-center text-white text-xl font-bold cursor-pointer"
+                : "w-full h-full rounded-full bg-gray-500 flex items-center justify-center text-white text-xl font-bold cursor-pointer") +
+              (className ? ` ${className}` : "")
+            }
             onClick={
               disableClick
                 ? undefined
@@ -212,7 +224,10 @@ export default function ProfilePicture({ disableClick = false }) {
                   }
             }
             title={getValidEmpId() ? "Set profile picture" : "Login required"}
-            style={{ opacity: getValidEmpId() ? 1 : 0.5, pointerEvents: getValidEmpId() ? "auto" : "none" }}
+            style={{
+              opacity: getValidEmpId() ? 1 : 0.5,
+              pointerEvents: getValidEmpId() ? "auto" : "none"
+            }}
           >
             {fullName && fullName.trim().length > 0 ? fullName.trim().charAt(0).toUpperCase() : "?"}
           </div>
