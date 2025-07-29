@@ -224,9 +224,18 @@ export default function Header({ toggleSidebar }) {
             aria-label="User menu"
           >
             {/* Avatar: Use ProfilePicture as avatar */}
-            <div className="w-10 h-10 object-cover cursor-pointer">
-              <ProfilePicture disableClick />
-            </div>
+            <ProfilePicture
+              disableClick
+              className="w-11 h-11 rounded-full border-2 border-white shadow cursor-pointer object-cover"
+              style={{
+                width: "44px",
+                height: "44px",
+                objectFit: "cover",
+                borderRadius: "9999px",
+                display: "block",
+                background: "none",
+              }}
+            />
           </button>
           <AnimatePresence>
             {isProfileOpen && (
