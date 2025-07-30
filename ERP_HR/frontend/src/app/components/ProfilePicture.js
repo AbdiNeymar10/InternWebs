@@ -8,6 +8,8 @@ export default function ProfilePicture({
   className,
   fillParent = false,
 }) {
+  // Hydration fix: only render after client mount
+  const [hasMounted, setHasMounted] = useState(false);
   const [imageUrl, setImageUrl] = useState(null);
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState("");
@@ -36,6 +38,7 @@ export default function ProfilePicture({
   };
 
   useEffect(() => {
+    setHasMounted(true);
     if (typeof window !== "undefined") {
       const validEmpId = getValidEmpId();
       setEmpId(validEmpId);
@@ -172,6 +175,10 @@ export default function ProfilePicture({
     setLoading(false);
   };
 
+  if (!hasMounted) {
+    // Render nothing until client mount to avoid hydration mismatch
+    return null;
+  }
   return (
     <>
       {showToast && (
@@ -226,14 +233,11 @@ export default function ProfilePicture({
                 ? "Change profile picture"
                 : "Login required"
             }
-            style={{
-              opacity:
-                typeof window !== "undefined" && getValidEmpId() ? 1 : 0.5,
-              pointerEvents:
-                typeof window !== "undefined" && getValidEmpId()
-                  ? "auto"
-                  : "none",
-            }}
+            style={
+              typeof window !== "undefined" && getValidEmpId()
+                ? { opacity: 1, pointerEvents: "auto" }
+                : { opacity: 0.5, pointerEvents: "none" }
+            }
           />
         ) : (
           <div
@@ -275,14 +279,11 @@ export default function ProfilePicture({
                 ? "Set profile picture"
                 : "Login required"
             }
-            style={{
-              opacity:
-                typeof window !== "undefined" && getValidEmpId() ? 1 : 0.5,
-              pointerEvents:
-                typeof window !== "undefined" && getValidEmpId()
-                  ? "auto"
-                  : "none",
-            }}
+            style={
+              typeof window !== "undefined" && getValidEmpId()
+                ? { opacity: 1, pointerEvents: "auto" }
+                : { opacity: 0.5, pointerEvents: "none" }
+            }
           >
             {fullName && fullName.trim().length > 0
               ? fullName.trim().charAt(0).toUpperCase()

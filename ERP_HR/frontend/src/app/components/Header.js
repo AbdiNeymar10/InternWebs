@@ -13,7 +13,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import ProfilePicture from "./ProfilePicture";
 
 export default function Header({ toggleSidebar }) {
-  // Dropdown and modal state
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
@@ -28,7 +27,7 @@ export default function Header({ toggleSidebar }) {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const profileRef = useRef(null);
-  // Handle input change for settings form
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -159,7 +158,6 @@ export default function Header({ toggleSidebar }) {
     },
   };
 
-  // Close dropdown on outside click
   useEffect(() => {
     function handleClickOutside(event) {
       if (profileRef.current && !profileRef.current.contains(event.target)) {
@@ -191,7 +189,6 @@ export default function Header({ toggleSidebar }) {
     return { name: "Guest", email: "guest@example.com", role: "Unknown" };
   })();
 
-  // Logout handler (replace with your logic if needed)
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
