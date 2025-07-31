@@ -39,6 +39,17 @@ export default function Header({ toggleSidebar }) {
   // Handle password change
   const handlePasswordChange = async (e) => {
     e.preventDefault();
+    // Password validation: at least 6 chars, one uppercase, one lowercase, one number
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/;
+    if (!passwordRegex.test(formData.newPassword)) {
+      await Swal.fire({
+        title: "Warning",
+        text: "Password must be at least 6 characters, include one uppercase, one lowercase, and one number.",
+        icon: "warning",
+        confirmButtonColor: "#3c8dbc",
+      });
+      return;
+    }
     if (formData.newPassword !== formData.confirmPassword) {
       await Swal.fire({
         title: "Error",
@@ -193,7 +204,7 @@ export default function Header({ toggleSidebar }) {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     localStorage.removeItem("refreshedToken");
-    window.location.href = "/hr-module";
+    window.location.href = "/login";
   };
 
   return (
@@ -342,7 +353,6 @@ export default function Header({ toggleSidebar }) {
                   <h2 className="text-2xl font-bold text-gray-800 mb-1">
                     {user.name}
                   </h2>
-                  {/* Department (using role as department) */}
                   <div className="text-base text-gray-600 mb-4">
                     {user.role}
                   </div>

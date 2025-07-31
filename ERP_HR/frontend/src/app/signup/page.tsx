@@ -13,6 +13,7 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const [role] = useState("EMPLOYEE");
 
@@ -20,6 +21,22 @@ export default function SignupPage() {
     e.preventDefault();
     setLoading(true);
     setError("");
+    setSuccess("");
+    // Email validation: must include '@' and '.'
+    if (!email.includes("@") || !email.includes(".")) {
+      setError("Email must include '@' and '.'");
+      setLoading(false);
+      return;
+    }
+    // Password validation: at least 6 chars, one uppercase, one lowercase, one number
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/;
+    if (!passwordRegex.test(password)) {
+      setError(
+        "Password must be at least 6 characters, include one uppercase, one lowercase, and one number."
+      );
+      setLoading(false);
+      return;
+    }
     if (password !== confirmPassword) {
       setError("Passwords do not match");
       setLoading(false);
@@ -32,10 +49,13 @@ export default function SignupPage() {
         body: JSON.stringify({ email, empId, fullName, password, role }),
       });
       if (res.ok) {
+        setSuccess("Signup successful! Redirecting to login...");
         if (typeof window !== "undefined") {
           localStorage.removeItem("token");
         }
-        router.push("/login");
+        setTimeout(() => {
+          router.push("/login");
+        }, 1500);
       } else {
         const data = await res.text();
         setError(data || "Signup failed");
@@ -147,6 +167,7 @@ export default function SignupPage() {
             </button>
           </div>
           {error && <div className="text-red-500 text-sm">{error}</div>}
+          {success && <div className="text-green-600 text-sm">{success}</div>}
           <button
             type="submit"
             className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition"

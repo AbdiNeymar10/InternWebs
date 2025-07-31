@@ -30,10 +30,10 @@ export default function Sidebar({ className = "", isOpen }: SidebarProps) {
     { icon: faFileAlt, label: "Pages" },
   ];
 
-  const handleLogout = () => {
-    localStorage.clear();
-    router.push("/login");
-  };
+  // const handleLogout = () => {
+  //   localStorage.clear();
+  //   router.push("/login");
+  // };
 
   return (
     <div
@@ -53,14 +53,14 @@ export default function Sidebar({ className = "", isOpen }: SidebarProps) {
           </li>
         ))}
       </ul>
-      <div className="mt-32 mb-2 px-4">
+      {/* <div className="mt-32 mb-2 px-4">
         <button
           onClick={handleLogout}
           className="flex items-center justify-center border border-red-600 text-red-600 hover:bg-red-50 hover:text-red-700 py-1 px-2 rounded text-sm font-medium transition-colors duration-200 bg-transparent"
         >
           <FontAwesomeIcon icon={faSignOutAlt} className="mr-2" /> Logout
         </button>
-      </div>
+      </div> */}
     </div>
   );
 }
