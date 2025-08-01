@@ -170,7 +170,7 @@ export default function EditUser({
           )}
         </div>
 
-        <div>
+        {/* <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Password (leave blank to keep current)
           </label>
@@ -180,9 +180,9 @@ export default function EditUser({
             value={user.password}
             onChange={handleChange}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3c8dbc] focus:border-[#3c8dbc]"
-            placeholder="Enter new password"
+            placeholder=""
           />
-        </div>
+        </div> */}
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -194,7 +194,9 @@ export default function EditUser({
             onChange={handleChange}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3c8dbc] focus:border-[#3c8dbc]"
           >
-            <option value="ADMIN">Admin</option>
+            <option value="" disabled>
+              select one
+            </option>
             <option value="ADMIN">Admin</option>
             <option value="HR">HR</option>
             <option value="DEPARTMENT">Deprtment</option>

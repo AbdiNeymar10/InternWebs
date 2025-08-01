@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.util.StringUtils;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
@@ -227,6 +228,12 @@ public class AuthController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
+    }
+
+    // Redirect endpoint for Google OAuth2 login
+    @GetMapping("/google")
+    public void redirectToGoogle(HttpServletResponse response) throws java.io.IOException {
+        response.sendRedirect("/oauth2/authorization/google");
     }
 
 }

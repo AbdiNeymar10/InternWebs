@@ -1,15 +1,34 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FiMail, FiLock, FiEye, FiEyeOff } from "react-icons/fi";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Handle Google OAuth2 redirect with token in URL
+  useEffect(() => {
+    const token = searchParams.get("token");
+    const email = searchParams.get("email");
+    const role = searchParams.get("role");
+    const empId = searchParams.get("empId");
+    const fullName = searchParams.get("fullName");
+    if (token) {
+      localStorage.setItem("token", token);
+      // Optionally store user info if present
+      if (email || role || empId || fullName) {
+        const userObj = { email, role, empId, fullName };
+        localStorage.setItem("user", JSON.stringify(userObj));
+      }
+      router.replace("/dashboard");
+    }
+  }, [searchParams, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,9 +45,7 @@ export default function LoginPage() {
         if (data.token) {
           localStorage.setItem("token", data.token);
         }
-        // Store user object with role and fullName in localStorage if available
         if (data.user || data.role) {
-          // If backend returns user object, use it; else, build from available fields
           const userObj = data.user
             ? data.user
             : {
@@ -51,7 +68,7 @@ export default function LoginPage() {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = "/api/auth/google";
+    window.location.href = "http://localhost:8080/oauth2/authorization/google";
   };
 
   return (

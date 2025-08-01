@@ -242,7 +242,7 @@ export default function Header({ toggleSidebar }) {
             {/* Avatar: Use ProfilePicture as avatar */}
             <ProfilePicture
               disableClick
-              className="w-11 h-11 min-w-[44px] min-h-[44px] max-w-[44px] max-h-[44px] rounded-full border-2 border-white shadow object-cover"
+              className="w-11 h-11 min-w-[44px] min-h-[44px] max-w-[44px] max-h-[44px] rounded-full shadow object-cover"
             />
           </button>
           <AnimatePresence>
@@ -346,8 +346,28 @@ export default function Header({ toggleSidebar }) {
               <div className="p-8">
                 <div className="text-center mb-6">
                   {/* Profile Picture at the top */}
-                  <div className="w-24 h-24 rounded-full mx-auto mb-4 overflow-hidden aspect-square flex items-center justify-center">
+                  <div className="w-24 h-24 rounded-full mx-auto mb-4 overflow-hidden aspect-square flex items-center justify-center relative">
                     <ProfilePicture className="w-24 h-24 min-w-[96px] min-h-[96px] max-w-[96px] max-h-[96px] rounded-full object-cover" />
+                    {/* Camera icon at bottom right */}
+                    <div
+                      className="absolute bottom-1 right-1 bg-white rounded-full p-1 shadow-md flex items-center justify-center cursor-pointer"
+                      style={{ width: 28, height: 28 }}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={2}
+                        stroke="currentColor"
+                        className="w-5 h-5 text-gray-600"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M15.232 5.232l1.536 1.536A2 2 0 0120 8.268V17a2 2 0 01-2 2H6a2 2 0 01-2-2V8.268a2 2 0 01.586-1.414l1.536-1.536A2 2 0 017.768 4h8.464a2 2 0 011.414.586zM12 15a3 3 0 100-6 3 3 0 000 6z"
+                        />
+                      </svg>
+                    </div>
                   </div>
                   {/* Full Name */}
                   <h2 className="text-2xl font-bold text-gray-800 mb-1">

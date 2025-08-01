@@ -15,10 +15,14 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import java.util.List;
+import com.example.employee_management.config.CustomOAuth2SuccessHandler;
 
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig {
+
+    @Autowired
+    private CustomOAuth2SuccessHandler customOAuth2SuccessHandler;
 
     @Autowired
     private JwtRequestFilter jwtRequestFilter;
@@ -35,7 +39,9 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .anyRequest().authenticated())
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()));
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .oauth2Login(oauth2 -> oauth2
+                        .successHandler(customOAuth2SuccessHandler));
         http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
