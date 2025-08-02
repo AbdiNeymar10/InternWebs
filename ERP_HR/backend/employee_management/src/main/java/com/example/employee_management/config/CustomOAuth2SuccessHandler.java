@@ -1,6 +1,6 @@
 package com.example.employee_management.config;
 
-import com.example.employee_management.config.JwtUtil;
+// import com.example.employee_management.config.JwtUtil;
 import com.example.employee_management.entity.User;
 import com.example.employee_management.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,8 +43,19 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
         // Generate JWT
         String token = jwtUtil.generateToken(user.getEmail());
 
-        // Redirect to frontend with token as query param
-        String redirectUrl = "http://localhost:3000/login?token=" + token;
+        // Prepare user info for redirect
+        String empId = user.getEmpId() != null ? user.getEmpId() : "";
+        String role = user.getRole() != null ? user.getRole() : "EMPLOYEE";
+        String fullName = user.getFullName() != null ? user.getFullName() : "";
+
+        // URL encode parameters to avoid issues with special characters
+        String redirectUrl = String.format(
+                "http://localhost:3000/login?token=%s&email=%s&empId=%s&role=%s&fullName=%s",
+                java.net.URLEncoder.encode(token, "UTF-8"),
+                java.net.URLEncoder.encode(email, "UTF-8"),
+                java.net.URLEncoder.encode(empId, "UTF-8"),
+                java.net.URLEncoder.encode(role, "UTF-8"),
+                java.net.URLEncoder.encode(fullName, "UTF-8"));
         response.sendRedirect(redirectUrl);
     }
 }
