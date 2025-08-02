@@ -21,7 +21,6 @@ export default function LoginPage() {
     const fullName = searchParams.get("fullName");
     if (token) {
       localStorage.setItem("token", token);
-      // Optionally store user info if present
       if (email || role || empId || fullName) {
         const userObj = { email, role, empId, fullName };
         localStorage.setItem("user", JSON.stringify(userObj));
