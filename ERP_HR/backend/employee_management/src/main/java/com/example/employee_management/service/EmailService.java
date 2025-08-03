@@ -31,9 +31,22 @@ public class EmailService {
             LOGGER.info("Email sent successfully to {}", to);
         } catch (MailException exception) {
             LOGGER.error("Error sending email to {}: {}", to, exception.getMessage());
-            // Depending on your error handling strategy, you might rethrow or handle differently
+            // Depending on your error handling strategy, you might rethrow or handle
+            // differently
         }
     }
 
-    // You can add more complex email sending methods here, e.g., with HTML content or attachments
+    // private JavaMailSender mailSender;
+
+    public void sendPasswordResetEmail(String to, String token) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(to);
+        message.setSubject("Password Reset Request");
+        message.setText("To reset your password, click the link below:\n\n"
+                + "http://localhost:3000/reset-password?token=" + token);
+        javaMailSender.send(message);
+    }
+
+    // You can add more complex email sending methods here, e.g., with HTML content
+    // or attachments
 }

@@ -8,12 +8,19 @@ import org.springframework.stereotype.Service;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-
+import com.example.employee_management.entity.PasswordResetToken;
+import com.example.employee_management.repository.PasswordResetTokenRepository;
 import java.util.Optional;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 public class UserService implements UserDetailsService {
+    // Get user by email
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email).orElse(null);
+    }
+
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Optional<User> userOpt = userRepository.findByEmail(username);
@@ -117,6 +124,46 @@ public class UserService implements UserDetailsService {
             throw new RuntimeException("Current password is incorrect");
         }
         user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
+
+    @Autowired
+    private PasswordResetTokenRepository passwordResetTokenRepository;
+
+    @Autowired
+    private EmailService emailService;
+
+    public void createPasswordResetTokenForUser(User user, String token) {
+        PasswordResetToken myToken = new PasswordResetToken(token, user);
+        passwordResetTokenRepository.save(myToken);
+    }
+
+    public void sendPasswordResetEmail(String userEmail) {
+        Optional<User> userOpt = userRepository.findByEmail(userEmail);
+        User user = userOpt.orElseThrow(() -> new RuntimeException("User not found with email: " + userEmail));
+
+        String token = UUID.randomUUID().toString();
+        createPasswordResetTokenForUser(user, token);
+        emailService.sendPasswordResetEmail(user.getEmail(), token);
+    }
+
+    public boolean validatePasswordResetToken(String token) {
+        PasswordResetToken passToken = passwordResetTokenRepository.findByToken(token);
+        if (passToken == null) {
+            return false;
+        }
+        if (passToken.getExpiryDate().before(new java.util.Date())) {
+            return false;
+        }
+        return true;
+    }
+
+    public Optional<User> getUserByPasswordResetToken(String token) {
+        return Optional.ofNullable(passwordResetTokenRepository.findByToken(token).getUser());
+    }
+
+    public void changeUserPassword(User user, String password) {
+        user.setPassword(passwordEncoder.encode(password));
         userRepository.save(user);
     }
 }
