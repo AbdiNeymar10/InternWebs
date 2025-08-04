@@ -18,8 +18,8 @@ import java.util.Map;
 @RequestMapping("/api/auth")
 @CrossOrigin(origins = "http://localhost:3000")
 public class AuthController {
-    // In-memory store for reset tokens
-    private final Map<String, String> resetTokens = new java.util.concurrent.ConcurrentHashMap<>();
+    // Removed in-memory store for reset tokens. Now using persistent token and
+    // email service.
 
     // Forgot password: send reset token to email
     @PostMapping("/forgot-password")
@@ -37,13 +37,13 @@ public class AuthController {
         if (user == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
         }
-        // Generate a simple token (for demo; use secure random in production)
-        String token = java.util.UUID.randomUUID().toString();
-        resetTokens.put(token, user.getEmail());
-        // In production, send email with link:
-        // http://localhost:3000/reset-password?token=...
-        return ResponseEntity.ok(Map.of("resetToken", token, "message",
-                "Password reset token generated. Use this token to reset your password."));
+        try {
+            userService.sendPasswordResetEmail(user.getEmail());
+            return ResponseEntity.ok(Map.of("message", "Password reset email sent. Please check your inbox."));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to send password reset email: " + e.getMessage());
+        }
     }
 
     // Reset password using token
@@ -54,17 +54,21 @@ public class AuthController {
         if (token == null || token.isEmpty() || newPassword == null || newPassword.isEmpty()) {
             return ResponseEntity.badRequest().body("Token and new password are required");
         }
-        String email = resetTokens.get(token);
-        if (email == null) {
+        boolean valid = userService.validatePasswordResetToken(token);
+        if (!valid) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid or expired token");
         }
-        User user = userService.getUserByEmail(email);
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        try {
+            java.util.Optional<User> userOpt = userService.getUserByPasswordResetToken(token);
+            if (userOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+            }
+            userService.changeUserPassword(userOpt.get(), newPassword);
+            return ResponseEntity.ok("Password reset successful");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to reset password: " + e.getMessage());
         }
-        userService.updateUser(user.getId(), Map.of("password", newPassword));
-        resetTokens.remove(token);
-        return ResponseEntity.ok("Password reset successful");
     }
 
     @Autowired

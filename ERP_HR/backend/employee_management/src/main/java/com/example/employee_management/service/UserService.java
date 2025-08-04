@@ -134,6 +134,11 @@ public class UserService implements UserDetailsService {
     private EmailService emailService;
 
     public void createPasswordResetTokenForUser(User user, String token) {
+        // Remove any existing token for this user to avoid unique constraint violation
+        PasswordResetToken existingToken = passwordResetTokenRepository.findByUser(user);
+        if (existingToken != null) {
+            passwordResetTokenRepository.delete(existingToken);
+        }
         PasswordResetToken myToken = new PasswordResetToken(token, user);
         passwordResetTokenRepository.save(myToken);
     }

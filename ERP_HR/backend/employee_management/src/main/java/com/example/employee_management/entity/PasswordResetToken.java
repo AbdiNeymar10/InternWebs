@@ -8,7 +8,8 @@ import java.util.Date;
 public class PasswordResetToken {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "password_reset_token_seq")
+    @SequenceGenerator(name = "password_reset_token_seq", sequenceName = "PASSWORD_RESET_TOKEN_SEQ", allocationSize = 1)
     private long id;
 
     private String token;
@@ -19,7 +20,8 @@ public class PasswordResetToken {
 
     private Date expiryDate;
 
-    public PasswordResetToken() {}
+    public PasswordResetToken() {
+    }
 
     public PasswordResetToken(String token, User user) {
         this.token = token;
