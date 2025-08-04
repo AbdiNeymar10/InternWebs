@@ -177,7 +177,7 @@ export default function SignupPage() {
           </button>
         </form>
         <div className="mt-6 flex flex-col gap-2">
-          <button
+          {/* <button
             onClick={handleGoogleSignup}
             className="w-full bg-white border border-gray-300 text-gray-800 py-2 rounded-2xl hover:bg-gray-200 transition flex items-center justify-center gap-2 shadow-sm"
           >
@@ -207,7 +207,7 @@ export default function SignupPage() {
               </g>
             </svg>
             Sign Up with Google
-          </button>
+          </button> */}
           <button
             onClick={() => router.push("/login")}
             className="w-full bg-white border border-gray-300 text-blue-700 py-2 rounded-2xl hover:bg-gray-300 transition mt-2"
