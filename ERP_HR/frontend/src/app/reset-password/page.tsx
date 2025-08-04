@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import axios from 'axios';
 
-export default function ResetPassword() {
+ export default function ResetPassword() {
     const searchParams = useSearchParams();
+    const router = useRouter();
     const token = searchParams.get('token');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -17,6 +18,15 @@ export default function ResetPassword() {
             setError('Invalid or missing reset token.');
         }
     }, [token]);
+
+    useEffect(() => {
+        if (message === 'Password has been reset successfully.') {
+            const timeout = setTimeout(() => {
+                router.push('/login');
+            }, 2000);
+            return () => clearTimeout(timeout);
+        }
+    }, [message, router]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
