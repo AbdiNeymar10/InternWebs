@@ -16,7 +16,7 @@ import java.util.UUID;
 
 @Service
 public class UserService implements UserDetailsService {
-    // Get user by email
+    // Get user by user email
     public User getUserByEmail(String email) {
         return userRepository.findByEmail(email).orElse(null);
     }
