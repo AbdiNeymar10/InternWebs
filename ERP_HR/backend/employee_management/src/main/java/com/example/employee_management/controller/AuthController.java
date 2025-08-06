@@ -18,8 +18,6 @@ import java.util.Map;
 @RequestMapping("/api/auth")
 @CrossOrigin(origins = "http://localhost:3000")
 public class AuthController {
-    // Removed in-memory store for reset tokens. Now using persistent token and
-    // email service.
 
     // Forgot password: send reset token to email
     @PostMapping("/forgot-password")
