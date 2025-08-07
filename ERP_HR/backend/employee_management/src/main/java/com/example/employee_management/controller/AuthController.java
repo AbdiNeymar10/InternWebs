@@ -280,7 +280,7 @@ public class AuthController {
         }
     }
 
-    // Redirect endpoint for Google OAuth2 login
+    // Redirect endpoint for Google OAuth2 login page
     @GetMapping("/google")
     public void redirectToGoogle(HttpServletResponse response) throws java.io.IOException {
         response.sendRedirect("/oauth2/authorization/google");
