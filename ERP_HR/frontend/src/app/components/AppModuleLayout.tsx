@@ -18,7 +18,6 @@ export default function AppModuleLayout({ children }: Props) {
     return true;
   });
   const sidebarRef = useRef<HTMLDivElement>(null);
-
   const toggleSidebar = () => setIsSidebarOpen((prev) => !prev);
 
   useEffect(() => {
