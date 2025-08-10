@@ -15,7 +15,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import java.util.List;
-import com.example.employee_management.config.CustomOAuth2SuccessHandler;
+// import com.example.employee_management.config.CustomOAuth2SuccessHandler;
 
 @Configuration
 @EnableWebSecurity

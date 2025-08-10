@@ -30,7 +30,7 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
         String email = oAuth2User.getAttribute("email");
 
-        // Find or create user in your DB
+        // Find or create user in  DB
         Optional<User> userOpt = userRepository.findByEmail(email);
         User user = userOpt.orElseGet(() -> {
             User newUser = new User();

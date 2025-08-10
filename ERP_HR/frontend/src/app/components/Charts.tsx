@@ -17,7 +17,6 @@ export default function Charts() {
       const areaCtx = areaChartRef.current.getContext("2d");
       const pieCtx = pieChartRef.current.getContext("2d");
 
-      // Destroy previous chart instances if they exist
       if (areaChartInstance.current) {
         areaChartInstance.current.destroy();
       }

@@ -1,10 +1,10 @@
 export interface User {
   id?: number;
-  name: string;
+  fullName: string;
   email: string;
-  myUsername: string;
+  empId: string;
   password: string;
-  role: 'USER' | 'ADMIN';
+  role: 'EMPLOYEE' | 'ADMIN';
   token?: string;
   otp?: string;
   otpGeneratedTime?: string;

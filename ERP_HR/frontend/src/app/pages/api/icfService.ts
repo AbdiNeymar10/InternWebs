@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:8080/api/icf"; // Replace with your backend URL
+const API_BASE_URL = "http://localhost:8080/api/icf"; 
 
 // Fetch all ICFs
 export const fetchICFs = async () => {
