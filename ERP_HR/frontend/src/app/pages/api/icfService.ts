@@ -24,7 +24,7 @@ export const fetchICFById = async (id: number) => {
   return response.data;
 };
 
-// Create a new ICF
+// Create  new ICF
 export const createICF = async (icfData: {
   ICF: string;
   description: string;
