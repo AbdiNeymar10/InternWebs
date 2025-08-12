@@ -302,7 +302,7 @@ export default function Header({ toggleSidebar }) {
         </div>
       </div>
 
-      {/* Profile Modal */}
+      {/* Profile Modal  section*/}
       <AnimatePresence>
         {isProfileModalOpen && (
           <motion.div
