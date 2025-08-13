@@ -302,7 +302,7 @@ export default function Header({ toggleSidebar }) {
         </div>
       </div>
 
-      {/* Profile Modal  section*/}
+      {/* Profile Modal section*/}
       <AnimatePresence>
         {isProfileModalOpen && (
           <motion.div
@@ -403,7 +403,7 @@ export default function Header({ toggleSidebar }) {
         )}
       </AnimatePresence>
 
-      {/* Settings Modal with Change Password stepper */}
+      {/* Settings Modal section with Change Password stepper */}
       <AnimatePresence>
         {isSettingsModalOpen && (
           <motion.div
