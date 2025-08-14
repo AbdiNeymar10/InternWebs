@@ -36,7 +36,7 @@ export default function Header({ toggleSidebar }) {
     }));
   };
 
-  // Handle password change
+  // Handle change password change
   const handlePasswordChange = async (e) => {
     e.preventDefault();
     // Password validation: at least 6 chars, one uppercase, one lowercase, one number
