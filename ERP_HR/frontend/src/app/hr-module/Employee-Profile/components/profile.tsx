@@ -3,6 +3,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { FiUser, FiCamera, FiEdit2, FiSearch } from 'react-icons/fi';
 
+// --- TYPE DEFINITIONS ---
+
 type PositionDetail = {
   id: number;
   name: string;
@@ -21,6 +23,17 @@ type NationalityDetail = {
   nationalityName: string;
 };
 
+type ReligionDetail = { id: number; name?: string };
+type NationDetail = { nationCode: number; name?: string };
+type JobTitleDetail = { id: number; jobTitle?: string };
+type IcfDetail = { id: number; icf?: string };
+type JobResponsibilityDetail = { id: number; responsibility?: string };
+type TitleDetail = { titleId: number; title?: string };
+type EmploymentTypeDetail = { id: number; type?: string };
+type RecruitmentTypeDetail = { recruitmentType: string; description?: string };
+type JobFamilyDetail = { id: number; familyName?: string };
+type BranchDetail = { id: number; branchName?: string };
+
 type Employee = {
   id: number;
   empId: string;
@@ -33,10 +46,34 @@ type Employee = {
   gender: string;
   dateOfBirth: string;
   nationality?: string | NationalityDetail | null;
-  position: string | PositionDetail;
-  department: string | Department;
+  position?: PositionDetail | null;
+  department?: Department | null;
   status: string | number | null;
   photo?: string;
+  religion?: ReligionDetail | null;
+  maritalStatus?: string;
+  nation?: NationDetail | null;
+  contractEnd?: string;
+  jobType?: JobTitleDetail | null;
+  icf?: IcfDetail | null;
+  salary?: string | number;
+  pensionNumber?: string;
+  jobResponsibility?: JobResponsibilityDetail | null;
+  tess?: string;
+  title?: TitleDetail | null;
+  employmentType?: EmploymentTypeDetail | null;
+  recruitmentType?: RecruitmentTypeDetail | string | null;
+  jobFamily?: JobFamilyDetail | null;
+  jobGrade?: string;
+  retirementNo?: string;
+  rankId?: string;
+  tinNumer?: string;
+  hiredDate?: string;
+  accountNo?: string;
+  terminationDate?: string;
+  branch?: BranchDetail | null;
+  dedactionDescriptive?: string;
+  birthDate?: string;
   [key: string]: any;
 };
 
@@ -46,19 +83,14 @@ const mapSearchResultToEmployee = (result: { id: string; name: string; departmen
   empId: result.id,
   firstName: result.name.split(' ')[0] || '',
   lastName: result.name.split(' ').slice(1).join(' ') || '',
-  position: 'Unknown',
-  department: result.department,
+  position: { id: 0, name: 'Unknown' },
+  department: { deptId: 0, depName: result.department },
   status: null,
   gender: 'Unknown',
   dateOfBirth: '',
 });
 
-interface EmployeeProfileProps {
-  employee?: Employee;
-  onEdit?: () => void;
-  allEmployees?: Employee[];
-  onEmployeeSelect?: (employee: Employee) => void;
-}
+// --- COMPONENT ---
 
 export default function EmployeeProfile({
   employee,
@@ -67,7 +99,9 @@ export default function EmployeeProfile({
   onEmployeeSelect,
 }: EmployeeProfileProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [profileImage, setProfileImage] = useState<string | undefined>(employee?.photo);
+  const [profileImage, setProfileImage] = useState<string | undefined>(() => 
+    employee?.photo ? `data:image/jpeg;base64,${employee.photo}` : undefined
+  );
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<Employee[]>([]);
   const [showResults, setShowResults] = useState(false);
@@ -76,9 +110,17 @@ export default function EmployeeProfile({
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
+  interface EmployeeProfileProps {
+    employee?: Employee;
+    onEdit?: () => void;
+    allEmployees?: Employee[];
+    onEmployeeSelect?: (employee: Employee) => void;
+  }
+
   useEffect(() => {
     if (employee) {
       setCurrentEmployee(employee);
+      // Only update profileImage if employee.photo is defined and non-empty
       setProfileImage(employee.photo ? `data:image/jpeg;base64,${employee.photo}` : undefined);
     }
   }, [employee]);
@@ -94,35 +136,50 @@ export default function EmployeeProfile({
     elastName: data.elastName,
     gender: data.sex || 'Unknown',
     dateOfBirth: data.dateOfBirth || data.birthDate || '',
-    nationality: data.nationality
-      ? {
-          nationalityId: data.nationality.nationalityId,
-          nationalityName: data.nationality.nationalityName,
-          nationalityDescription: data.nationality.nationalityDescription,
-        }
-      : null,
-    position: data.position
-      ? {
-          id: data.position.id,
-          name: data.position.positionName || data.position.name,
-          salary: data.salary,
-        }
-      : data.payGrade
-      ? {
-          id: data.payGrade.payGradeId,
-          name: data.payGrade.payGradeName || 'Unknown',
-          salary: data.salary,
-        }
-      : data.position || 'Unknown',
-    department: data.department
-      ? {
-          deptId: data.department.deptId,
-          depName: data.department.depName || 'Unknown',
-          parentDeptId: data.department.parentDeptId,
-        }
-      : data.department || 'Unknown',
+    nationality: data.nationality ? {
+      nationalityId: data.nationality.nationalityId,
+      nationalityName: data.nationality.nationalityName,
+      nationalityDescription: data.nationality.nationalityDescription,
+    } : null,
+    position: data.position ? {
+      id: Number(data.position.id),
+      name: data.position.positionName || data.position.name || 'Unknown',
+      salary: data.position.salary !== undefined ? String(data.position.salary) : undefined,
+    } : data.payGrade ? {
+      id: Number(data.payGrade.payGradeId),
+      name: data.payGrade.payGradeName || 'Unknown',
+      salary: data.payGrade.salary !== undefined ? String(data.payGrade.salary) : undefined,
+    } : null,
+    department: data.department ? {
+      deptId: data.department.deptId,
+      depName: data.department.depName || 'Unknown',
+    } : null,
     status: data.empStatus != null ? data.empStatus : data.positionStatus || null,
-    photo: data.photo,
+    photo: data.photo || undefined, // Ensure photo is preserved or set to undefined if null
+    religion: data.religion ? { id: Number(data.religion.id), name: data.religion.name } : null,
+    maritalStatus: data.maritalStatus,
+    nation: data.nation ? { nationCode: Number(data.nation.nationCode), name: data.nation.name } : null,
+    contractEnd: data.contractEnd,
+    jobType: data.jobType ? { id: Number(data.jobType.id), jobTitle: data.jobType.jobTitle } : null,
+    icf: data.icf ? { id: Number(data.icf.id), icf: data.icf.icf } : null,
+    salary: data.salary !== undefined ? String(data.salary) : '',
+    pensionNumber: data.pensionNumber,
+    jobResponsibility: data.jobResponsibility ? { id: Number(data.jobResponsibility.id), responsibility: data.jobResponsibility.responsibility } : null,
+    tess: data.tess,
+    title: data.title ? { titleId: Number(data.title.titleId), title: data.title.title } : null,
+    employmentType: data.employmentType ? { id: Number(data.employmentType.id), type: data.employmentType.type } : null,
+    recruitmentType: data.recruitmentType,
+    jobFamily: data.jobFamily ? { id: Number(data.jobFamily.id), familyName: data.jobFamily.familyName } : null,
+    jobGrade: data.jobGrade,
+    retirementNo: data.retirementNo,
+    rankId: data.rankId,
+    tinNumer: data.tinNumer,
+    hiredDate: data.hiredDate,
+    accountNo: data.accountNo,
+    terminationDate: data.terminationDate,
+    branch: data.branch ? { id: Number(data.branch.id), branchName: data.branch.branchName } : null,
+    dedactionDescriptive: data.dedactionDescriptive,
+    birthDate: data.birthDate || data.dateOfBirth || '',
   });
 
   const fetchEmployeeDetails = async (empId: string): Promise<Employee | null> => {
@@ -137,7 +194,6 @@ export default function EmployeeProfile({
       }
       const data = await response.json();
       const employee = mapEmployeeResponse(data);
-      setProfileImage(employee.photo ? `data:image/jpeg;base64,${employee.photo}` : undefined);
       return employee;
     } catch (err: any) {
       console.error('Error fetching employee details:', err.message);
@@ -149,9 +205,7 @@ export default function EmployeeProfile({
   };
 
   const getStatusDisplay = (status: string | number | null | undefined): string => {
-    if (status === null || status === undefined || status === '') {
-      return 'N/A';
-    }
+    if (status === null || status === undefined || status === '') return 'N/A';
     if (typeof status === 'number') {
       if (status === 1) return 'Active';
       if (status === 0) return 'Inactive';
@@ -175,36 +229,58 @@ export default function EmployeeProfile({
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && currentEmployee) {
+      if (file.size > 10 * 1024 * 1024) { // 10MB limit
+        setError("Image size exceeds 10MB limit.");
+        return;
+      }
+
       const reader = new FileReader();
       reader.onload = async (event) => {
         if (event.target?.result) {
-          const base64Image = (event.target.result as string).split(',')[1];
-          setProfileImage(event.target.result as string);
+          const base64Image = event.target.result as string;
+          const base64Data = base64Image.split(',')[1]; // Extract base64 data
 
           try {
+            // Optimistic update
+            setProfileImage(base64Image);
+            setError(null);
+
             const response = await fetch(`http://localhost:8080/api/employees/${currentEmployee.empId}/image`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ profileImage: base64Image }),
+              body: JSON.stringify({ profileImage: base64Data }),
             });
+
             if (!response.ok) {
+              setProfileImage(currentEmployee.photo ? `data:image/jpeg;base64,${currentEmployee.photo}` : undefined);
               const errorData = await response.json();
               throw new Error(errorData.error || `Failed to upload image: ${response.statusText}`);
             }
+
             setSuccessMessage('Image uploaded successfully!');
-            setError(null);
             setTimeout(() => setSuccessMessage(null), 3000);
-            // Refresh employee details to get updated photo
+
+            // Refresh employee details
             const updatedEmployee = await fetchEmployeeDetails(currentEmployee.empId);
             if (updatedEmployee) {
               setCurrentEmployee(updatedEmployee);
+              setProfileImage(updatedEmployee.photo ? `data:image/jpeg;base64,${updatedEmployee.photo}` : undefined);
+              if (onEmployeeSelect) {
+                onEmployeeSelect(updatedEmployee);
+              }
             }
+
           } catch (err: any) {
             console.error('Error uploading image:', err);
             setError(err.message || 'Failed to upload image to the database.');
             setSuccessMessage(null);
+            setProfileImage(currentEmployee.photo ? `data:image/jpeg;base64,${currentEmployee.photo}` : undefined);
           }
         }
+      };
+      reader.onerror = () => {
+        setError("Failed to read the image file.");
+        setProfileImage(currentEmployee.photo ? `data:image/jpeg;base64,${currentEmployee.photo}` : undefined);
       };
       reader.readAsDataURL(file);
     }
@@ -306,7 +382,7 @@ export default function EmployeeProfile({
                           {emp.empId} - {emp.firstName} {emp.lastName}
                         </div>
                         <div className="text-gray-600 text-xs">
-                          {typeof emp.position === 'object' ? emp.position.name : emp.position}
+                          {typeof emp.department === 'object' && emp.department ? emp.department.depName : emp.department}
                         </div>
                       </div>
                     ))}
@@ -333,7 +409,7 @@ export default function EmployeeProfile({
                 <div className="flex items-center border-b border-gray-200 pb-2 sm:pb-3">
                   <span className="w-20 sm:w-24 text-xs sm:text-sm text-gray-600 font-semibold">Position</span>
                   <span className="text-xs sm:text-sm text-gray-800">
-                    {typeof currentEmployee.position === 'object'
+                    {typeof currentEmployee.position === 'object' && currentEmployee.position
                       ? currentEmployee.position.name
                       : currentEmployee.position}
                   </span>
@@ -341,7 +417,7 @@ export default function EmployeeProfile({
                 <div className="flex items-center border-b border-gray-200 pb-2 sm:pb-3">
                   <span className="w-20 sm:w-24 text-xs sm:text-sm text-gray-600 font-semibold">Department</span>
                   <span className="text-xs sm:text-sm text-gray-800">
-                    {typeof currentEmployee.department === 'object'
+                    {typeof currentEmployee.department === 'object' && currentEmployee.department
                       ? currentEmployee.department.depName
                       : currentEmployee.department}
                   </span>

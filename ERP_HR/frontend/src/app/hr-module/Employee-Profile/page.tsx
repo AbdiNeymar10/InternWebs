@@ -109,7 +109,7 @@ const mapHrEmployeeToEmployee = (hrEmployee: any): Employee => ({
       }
     : hrEmployee.department || 'Unknown',
   status: hrEmployee.empStatus != null ? hrEmployee.empStatus : hrEmployee.positionStatus || null,
-  photo: hrEmployee.photo ? `data:image/jpeg;base64,${hrEmployee.photo}` : undefined,
+  photo: hrEmployee.photo, // Use the Base64 string directly from backend
 });
 
 const mockEmployees: Employee[] = [
@@ -118,7 +118,7 @@ const mockEmployees: Employee[] = [
     empId: '20005835',
     firstName: 'John',
     lastName: 'Doe',
-    position: 'Senior Developer',
+    position: 'Unknown',
     department: 'Engineering',
     status: 'Active',
     photo: '/profile1.jpg',
@@ -211,19 +211,33 @@ export default function EmployeeProfilePage() {
   const handleFormSubmit = async (formData: any) => {
     try {
       if (isEditMode && currentEmployee) {
+        // Include the existing photo in formData if not provided
+        const updatedFormData = {
+          ...formData,
+          photo: formData.photo || currentEmployee.photo, // Preserve existing photo
+        };
+
         const response = await fetch(`http://localhost:8080/api/employees/${formData.empId}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(formData),
+          body: JSON.stringify(updatedFormData),
         });
 
         if (!response.ok) {
-          throw new Error(`Failed to update employee: ${response.statusText}`);
+          const errorBody = await response.text();
+          throw new Error(`Failed to update employee: ${response.statusText}, ${errorBody}`);
         }
 
-        const updatedEmployee = mapHrEmployeeToEmployee(await response.json());
+        // Fetch the updated employee with all relations to include the photo
+        const updatedResponse = await fetch(`http://localhost:8080/api/employees/${formData.empId}/with-relations`);
+        if (!updatedResponse.ok) {
+          throw new Error(`Failed to fetch updated employee: ${updatedResponse.statusText}`);
+        }
+        const updatedEmployeeData = await updatedResponse.json();
+        console.log('Updated employee data:', updatedEmployeeData); // Log to verify photo field
+        const updatedEmployee = mapHrEmployeeToEmployee(updatedEmployeeData);
         const updatedEmployees = employees.map(emp =>
           emp.empId === updatedEmployee.empId ? updatedEmployee : emp
         );
@@ -324,7 +338,7 @@ export default function EmployeeProfilePage() {
             <FamilyTable empId={currentEmployee.empId} />
           </div>
         )}
-          {activeTab === "address" && currentEmployee && (
+        {activeTab === "address" && currentEmployee && (
           <div className="mt-10">
             <AddressTab empId={currentEmployee.empId} />
           </div>
@@ -335,17 +349,17 @@ export default function EmployeeProfilePage() {
             <TrainingTab empId={currentEmployee.empId}/>
           </div>
         )}
-           {activeTab === "cost-sharing" && currentEmployee && (
+        {activeTab === "cost-sharing" && currentEmployee && (
           <div className="mt-10">
             <CostSharingTab empId={currentEmployee.empId}/>
           </div>
         )}
-           {activeTab === "edit" && currentEmployee && (
+        {activeTab === "edit" && currentEmployee && (
           <div className="mt-10">
             <EditExperienceTab empId={currentEmployee.empId}/>
           </div>
         )}
-          {activeTab === "education" && currentEmployee &&( <div className="mt-10"> <Education empId={currentEmployee.empId}/></div>)}
+        {activeTab === "education" && currentEmployee &&( <div className="mt-10"> <Education empId={currentEmployee.empId}/></div>)}
         {activeTab === "experience" && currentEmployee && (<div className="mt-10"> <Experience empId={currentEmployee.empId}/></div>)}
         {activeTab === "promotion" && currentEmployee && (<div className="mt-10"> <Promotion empId={currentEmployee.empId}/></div>)}
         {activeTab === "upload" && currentEmployee && (<div className="mt-10"> <Upload empId={currentEmployee.empId}/></div>)}
