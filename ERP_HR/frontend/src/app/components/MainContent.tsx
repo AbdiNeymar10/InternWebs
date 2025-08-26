@@ -160,7 +160,7 @@ export default function MainContent() {
     <div>
       {/* Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div className="bg-blue-500 text-white p-2 rounded flex flex-col items-center justify-center text-center">
+        <div className="bg-blue-500 text-white p-2 rounded-xl flex flex-col items-center justify-center text-center">
           <h2 className="text-lg w-full">HR manager</h2>
           <button
             className="mt-2 bg-blue-700 px-2 py-1 rounded text-sm w-full sm:w-auto"
@@ -169,19 +169,19 @@ export default function MainContent() {
             View Details
           </button>
         </div>
-        <div className="bg-yellow-500 text-white p-2 rounded flex flex-col items-center justify-center text-center">
+        <div className="bg-yellow-500 text-white p-2 rounded-xl flex flex-col items-center justify-center text-center">
           <h2 className="text-lg w-full">Payroll</h2>
           <button className="mt-2 bg-yellow-700 px-2 py-1 rounded text-sm w-full sm:w-auto">
             View Details
           </button>
         </div>
-        <div className="bg-green-500 text-white p-2 rounded flex flex-col items-center justify-center text-center">
+        <div className="bg-green-500 text-white p-2 rounded-xl flex flex-col items-center justify-center text-center">
           <h2 className="text-lg w-full">Procurement</h2>
           <button className="mt-2 bg-green-700 px-2 py-1 rounded text-sm w-full sm:w-auto">
             View Details
           </button>
         </div>
-        <div className="bg-red-500 text-white p-2 rounded flex flex-col items-center justify-center text-center">
+        <div className="bg-red-500 text-white p-2 rounded-xl flex flex-col items-center justify-center text-center">
           <h2 className="text-lg w-full">Lookup</h2>
           <button className="mt-2 bg-red-700 px-2 py-1 rounded text-sm w-full sm:w-auto">
             View Details

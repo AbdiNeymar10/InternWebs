@@ -211,7 +211,10 @@ export default function Header({ toggleSidebar }) {
     <header className="bg-gray-800 text-white p-1 flex justify-between items-center sticky top-0 z-10 w-full">
       {/* Left Section: Logo and Menu Icon */}
       <div className="flex items-center">
-        <button className="mr-4 focus:outline-none" onClick={toggleSidebar}>
+        <button
+          className="mr-4 ml-3 focus:outline-none"
+          onClick={toggleSidebar}
+        >
           <FontAwesomeIcon icon={faBars} size="lg" />
         </button>
         <div className="text-xl font-bold">INSA ERP</div>
