@@ -1,17 +1,24 @@
-'use client';
+"use client";
 
-import { useState, useRef, useEffect } from 'react';
-import { FiUpload, FiFile, FiX, FiDownload, FiCheck, FiExternalLink } from 'react-icons/fi';
-import { motion, AnimatePresence } from 'framer-motion';
-import axios from 'axios';
+import { useState, useRef, useEffect } from "react";
+import {
+  FiUpload,
+  FiFile,
+  FiX,
+  FiDownload,
+  FiCheck,
+  FiExternalLink,
+} from "react-icons/fi";
+import { motion, AnimatePresence } from "framer-motion";
+import { authFetch } from "@/utils/authFetch";
 
 const documentCategories = [
-  'Personal Identification',
-  'Educational Certificate',
-  'Employment Record',
-  'Financial Document',
-  'Medical Record',
-  'Other'
+  "Personal Identification",
+  "Educational Certificate",
+  "Employment Record",
+  "Financial Document",
+  "Medical Record",
+  "Other",
 ];
 
 type DocumentFile = {
@@ -26,38 +33,44 @@ type DocumentFile = {
   filePath?: string;
 };
 
-const Upload = () => {
+interface UploadProps {
+  empId: string;
+}
+
+const Upload = ({ empId }: UploadProps) => {
   const [files, setFiles] = useState<DocumentFile[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [showDocumentsModal, setShowDocumentsModal] = useState(false);
-  const [newCategory, setNewCategory] = useState('');
+  const [newCategory, setNewCategory] = useState("");
   const [showCustomCategoryInput, setShowCustomCategoryInput] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchDocuments();
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      if (e.key === "Escape") {
         setShowDocumentsModal(false);
       }
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+      if ((e.ctrlKey || e.metaKey) && e.key === "k") {
         e.preventDefault();
         triggerFileInput();
       }
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
   const fetchDocuments = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/api/documents');
-      setFiles(response.data);
+      const response = await authFetch("http://localhost:8080/api/documents");
+      if (!response.ok) throw new Error(await response.text());
+      const data = await response.json();
+      setFiles(data);
     } catch (error) {
-      console.error('Error fetching documents:', error);
+      console.error("Error fetching documents:", error);
     }
   };
 
@@ -95,8 +108,8 @@ const Upload = () => {
 
   const handleFiles = async (fileList: FileList) => {
     const newFiles = Array.from(fileList)
-      .filter(file => {
-        const isValidType = file.type === 'application/pdf';
+      .filter((file) => {
+        const isValidType = file.type === "application/pdf";
         const isValidSize = file.size <= 10 * 1024 * 1024;
         if (!isValidType) {
           alert(`File ${file.name} is not a PDF. Only PDF files are accepted.`);
@@ -105,13 +118,13 @@ const Upload = () => {
         }
         return isValidType && isValidSize;
       })
-      .map(file => ({
+      .map((file) => ({
         id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
         name: file.name,
         fileSize: file.size,
         type: file.type,
-        category: '',
-        description: '',
+        category: "",
+        description: "",
         uploadDate: new Date().toISOString(),
         file,
       }));
@@ -123,32 +136,54 @@ const Upload = () => {
 
   const removeFile = async (id: string) => {
     try {
-      await axios.delete(`http://localhost:8080/api/documents/${id}`);
-      setFiles(files.filter(file => file.id !== id));
+      const response = await authFetch(
+        `http://localhost:8080/api/documents/${id}`,
+        { method: "DELETE" }
+      );
+      if (!response.ok) throw new Error(await response.text());
+      setFiles(files.filter((file) => file.id !== id));
     } catch (error) {
-      console.error('Error deleting document:', error);
+      console.error("Error deleting document:", error);
     }
   };
 
-  const updateFileDetails = async (id: string, field: string, value: string) => {
+  const updateFileDetails = async (
+    id: string,
+    field: string,
+    value: string
+  ) => {
     try {
-      const updatedFiles = files.map(file =>
+      const updatedFiles = files.map((file) =>
         file.id === id ? { ...file, [field]: value } : file
       );
       setFiles(updatedFiles);
-      await axios.put(`http://localhost:8080/api/documents/${id}`, {
-        category: field === 'category' ? value : (updatedFiles.find(f => f.id === id)?.category ?? ''),
-        description: field === 'description' ? value : (updatedFiles.find(f => f.id === id)?.description ?? ''),
-      });
+      const response = await authFetch(
+        `http://localhost:8080/api/documents/${id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            category:
+              field === "category"
+                ? value
+                : updatedFiles.find((f) => f.id === id)?.category ?? "",
+            description:
+              field === "description"
+                ? value
+                : updatedFiles.find((f) => f.id === id)?.description ?? "",
+          }),
+        }
+      );
+      if (!response.ok) throw new Error(await response.text());
     } catch (error) {
-      console.error('Error updating document:', error);
+      console.error("Error updating document:", error);
     }
   };
 
   const addCustomCategory = () => {
     if (newCategory.trim() && !documentCategories.includes(newCategory)) {
       documentCategories.push(newCategory);
-      setNewCategory('');
+      setNewCategory("");
       setShowCustomCategoryInput(false);
     }
   };
@@ -158,19 +193,19 @@ const Upload = () => {
   };
 
   const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes';
+    if (bytes === 0) return "0 Bytes";
     const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
@@ -181,26 +216,27 @@ const Upload = () => {
     for (const file of files) {
       if (!file.file) continue;
       const formData = new FormData();
-      formData.append('file', file.file);
-      formData.append('category', file.category);
-      formData.append('description', file.description);
+      formData.append("file", file.file);
+      formData.append("category", file.category);
+      formData.append("description", file.description);
 
       try {
-        const response = await axios.post('http://localhost:8080/api/documents/upload', formData, {
-          onUploadProgress: (progressEvent) => {
-            if (progressEvent.total) {
-              const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-              setUploadProgress(progress);
-            }
-          },
-        });
-        file.id = response.data.id;
-        file.fileSize = response.data.fileSize;
-        file.uploadDate = response.data.uploadDate;
-        file.filePath = response.data.filePath;
+        const response = await authFetch(
+          "http://localhost:8080/api/documents/upload",
+          {
+            method: "POST",
+            body: formData,
+          }
+        );
+        if (!response.ok) throw new Error(await response.text());
+        const data = await response.json();
+        file.id = data.id;
+        file.fileSize = data.fileSize;
+        file.uploadDate = data.uploadDate;
+        file.filePath = data.filePath;
         file.file = null;
       } catch (error) {
-        console.error('Error uploading file:', error);
+        console.error("Error uploading file:", error);
         alert(`Failed to upload ${file.name}`);
       }
     }
@@ -215,11 +251,13 @@ const Upload = () => {
 
   const handleDownload = async (id: string, fileName: string) => {
     try {
-      const response = await axios.get(`http://localhost:8080/api/documents/${id}/download`, {
-        responseType: 'blob',
-      });
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
+      const response = await authFetch(
+        `http://localhost:8080/api/documents/${id}/download`
+      );
+      if (!response.ok) throw new Error(await response.text());
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
       link.href = url;
       link.download = fileName;
       document.body.appendChild(link);
@@ -227,34 +265,38 @@ const Upload = () => {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Error downloading file:', error);
+      console.error("Error downloading file:", error);
     }
   };
 
   const handlePreview = async (id: string) => {
     try {
-      const response = await axios.get(`http://localhost:8080/api/documents/${id}/preview`, {
-        responseType: 'blob',
-      });
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      window.open(url, '_blank');
+      const response = await authFetch(
+        `http://localhost:8080/api/documents/${id}/preview`
+      );
+      if (!response.ok) throw new Error(await response.text());
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      window.open(url, "_blank");
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Error previewing file:', error);
+      console.error("Error previewing file:", error);
     }
   };
 
   const getCategoryColor = (category: string) => {
-    if (!category) return 'bg-gray-100 text-gray-800';
+    if (!category) return "bg-gray-100 text-gray-800";
     const colors = {
-      'Personal Identification': 'bg-blue-100 text-blue-800',
-      'Educational Certificate': 'bg-emerald-100 text-emerald-800',
-      'Employment Record': 'bg-purple-100 text-purple-800',
-      'Financial Document': 'bg-amber-100 text-amber-800',
-      'Medical Record': 'bg-red-100 text-red-800',
-      'Other': 'bg-gray-100 text-gray-800'
+      "Personal Identification": "bg-blue-100 text-blue-800",
+      "Educational Certificate": "bg-emerald-100 text-emerald-800",
+      "Employment Record": "bg-purple-100 text-purple-800",
+      "Financial Document": "bg-amber-100 text-amber-800",
+      "Medical Record": "bg-red-100 text-red-800",
+      Other: "bg-gray-100 text-gray-800",
     };
-    return colors[category as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+    return (
+      colors[category as keyof typeof colors] || "bg-gray-100 text-gray-800"
+    );
   };
 
   return (
@@ -268,12 +310,14 @@ const Upload = () => {
           className="fixed inset-0 bg-black z-10"
         />
       )}
-      
+
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3 }}
-        className={`bg-white rounded-xl shadow-lg overflow-hidden ${showDocumentsModal ? 'blur-sm' : ''}`}
+        className={`bg-white rounded-xl shadow-lg overflow-hidden ${
+          showDocumentsModal ? "blur-sm" : ""
+        }`}
       >
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 bg-[#3c8dbc] rounded-lg shadow-md p-2 md:p-3 text-white h-[50px]">
           <div className="flex items-center">
@@ -293,7 +337,9 @@ const Upload = () => {
             </svg>
             <div>
               <h1 className="text-[14px] font-bold">Document Management</h1>
-              <p className="text-blue-100 text-xs">Upload and manage your documents</p>
+              <p className="text-blue-100 text-xs">
+                Upload and manage your documents
+              </p>
             </div>
           </div>
           <button
@@ -305,9 +351,11 @@ const Upload = () => {
         </div>
 
         <div className="p-6 space-y-6">
-          <motion.div 
+          <motion.div
             className={`border-2 border-dashed rounded-xl p-8 text-center bg-gray-50 cursor-pointer transition-colors ${
-              isDragging ? 'border-[#3c8dbc] bg-blue-50' : 'border-gray-300 hover:border-[#3c8dbc]'
+              isDragging
+                ? "border-[#3c8dbc] bg-blue-50"
+                : "border-gray-300 hover:border-[#3c8dbc]"
             }`}
             onDragEnter={handleDragEnter}
             onDragLeave={handleDragLeave}
@@ -320,7 +368,9 @@ const Upload = () => {
                 <FiUpload className="w-5 h-5 text-[#3c8dbc]" />
               </div>
               <p className="text-sm font-medium text-gray-700 mb-1">
-                {isDragging ? 'Drop PDF files here' : 'Drag & drop PDF files here'}
+                {isDragging
+                  ? "Drop PDF files here"
+                  : "Drag & drop PDF files here"}
               </p>
               <p className="text-xs text-gray-500 mb-3">
                 or click to browse files on your computer
@@ -347,25 +397,29 @@ const Upload = () => {
 
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
             <div className="bg-gray-50 px-6 py-3 border-b border-gray-200 flex justify-between items-center">
-              <h3 className="text-xs font-bold text-gray-700">DOCUMENTS TO UPLOAD</h3>
+              <h3 className="text-xs font-bold text-gray-700">
+                DOCUMENTS TO UPLOAD
+              </h3>
               <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                {files.length} {files.length === 1 ? 'file' : 'files'} selected
+                {files.length} {files.length === 1 ? "file" : "files"} selected
               </span>
             </div>
 
             {files.length === 0 ? (
-              <motion.div 
+              <motion.div
                 className="text-center py-8"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
               >
-                <p className="text-gray-500 text-sm">No documents selected for upload</p>
+                <p className="text-gray-500 text-sm">
+                  No documents selected for upload
+                </p>
               </motion.div>
             ) : (
               <motion.ul className="divide-y divide-gray-200">
                 <AnimatePresence>
                   {files.map((file) => (
-                    <motion.li 
+                    <motion.li
                       key={file.id}
                       className="p-4 hover:bg-gray-50"
                       initial={{ opacity: 0, y: 10 }}
@@ -379,14 +433,21 @@ const Upload = () => {
                             <FiFile className="text-gray-400" />
                           </div>
                           <div className="min-w-0">
-                            <p className="text-xs font-medium text-gray-700 truncate">{file.name}</p>
-                            <p className="text-xs text-gray-500">{formatFileSize(file.fileSize)} • {formatDate(file.uploadDate)}</p>
+                            <p className="text-xs font-medium text-gray-700 truncate">
+                              {file.name}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {formatFileSize(file.fileSize)} •{" "}
+                              {formatDate(file.uploadDate)}
+                            </p>
                           </div>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1">
                           <div>
-                            <label className="block text-xs font-medium text-gray-700 mb-1">CATEGORY*</label>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                              CATEGORY*
+                            </label>
                             <div className="relative w-full">
                               <select
                                 value={file.category}
@@ -394,26 +455,36 @@ const Upload = () => {
                                   if (e.target.value === "custom") {
                                     setShowCustomCategoryInput(true);
                                   } else {
-                                    updateFileDetails(file.id, 'category', e.target.value);
+                                    updateFileDetails(
+                                      file.id,
+                                      "category",
+                                      e.target.value
+                                    );
                                   }
                                 }}
                                 className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3c8dbc] focus:border-transparent text-xs"
                                 required
                               >
                                 <option value="">Select category</option>
-                                {documentCategories.map(category => (
-                                  <option key={category} value={category}>{category}</option>
+                                {documentCategories.map((category) => (
+                                  <option key={category} value={category}>
+                                    {category}
+                                  </option>
                                 ))}
-                                <option value="custom">+ Add custom category</option>
+                                <option value="custom">
+                                  + Add custom category
+                                </option>
                               </select>
-                              
+
                               {showCustomCategoryInput && (
                                 <div className="absolute top-full left-0 right-0 mt-1 bg-white p-2 border border-gray-300 rounded-lg shadow-lg z-10">
                                   <div className="flex gap-2">
                                     <input
                                       type="text"
                                       value={newCategory}
-                                      onChange={(e) => setNewCategory(e.target.value)}
+                                      onChange={(e) =>
+                                        setNewCategory(e.target.value)
+                                      }
                                       placeholder="Enter new category name"
                                       className="flex-1 p-2 border border-gray-300 rounded-lg text-xs"
                                       autoFocus
@@ -432,19 +503,27 @@ const Upload = () => {
                               )}
                             </div>
                           </div>
-                          
+
                           <div>
-                            <label className="block text-xs font-medium text-gray-700 mb-1">DESCRIPTION</label>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                              DESCRIPTION
+                            </label>
                             <div className="flex gap-2">
                               <input
                                 type="text"
                                 value={file.description}
-                                onChange={(e) => updateFileDetails(file.id, 'description', e.target.value)}
+                                onChange={(e) =>
+                                  updateFileDetails(
+                                    file.id,
+                                    "description",
+                                    e.target.value
+                                  )
+                                }
                                 className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7abce3] focus:border-transparent text-xs"
                                 placeholder="Enter brief description..."
                                 maxLength={100}
                               />
-                              <button 
+                              <button
                                 onClick={() => removeFile(file.id)}
                                 className="text-red-500 hover:text-red-700 p-1"
                                 title="Remove file"
@@ -463,7 +542,7 @@ const Upload = () => {
           </div>
 
           {files.length > 0 && (
-            <motion.div 
+            <motion.div
               className="flex justify-end"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -472,26 +551,32 @@ const Upload = () => {
               <div className="w-full space-y-2">
                 {isUploading && (
                   <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-[#3c8dbc] h-2 rounded-full" 
+                    <div
+                      className="bg-[#3c8dbc] h-2 rounded-full"
                       style={{ width: `${uploadProgress}%` }}
                     ></div>
                   </div>
                 )}
                 <motion.button
                   className={`px-6 py-2 rounded-md text-white flex items-center gap-2 ${
-                    uploadSuccess ? 'bg-green-600 hover:bg-green-700' : 'bg-[#3c8dbc] hover:bg-[#367fa9]'
+                    uploadSuccess
+                      ? "bg-green-600 hover:bg-green-700"
+                      : "bg-[#3c8dbc] hover:bg-[#367fa9]"
                   } shadow hover:shadow-md text-sm`}
                   onClick={handleSubmit}
-                  disabled={isUploading || files.some(f => !f.category)}
+                  disabled={isUploading || files.some((f) => !f.category)}
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
                 >
                   {isUploading ? (
                     <>
-                      <motion.span 
+                      <motion.span
                         animate={{ rotate: 360 }}
-                        transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                        transition={{
+                          repeat: Infinity,
+                          duration: 1,
+                          ease: "linear",
+                        }}
                       >
                         <FiUpload size={16} />
                       </motion.span>
@@ -502,7 +587,7 @@ const Upload = () => {
                       <FiCheck size={16} /> Documents Submitted
                     </>
                   ) : (
-                    'Submit All Documents'
+                    "Submit All Documents"
                   )}
                 </motion.button>
               </div>
@@ -519,7 +604,7 @@ const Upload = () => {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
             >
               <div className="flex justify-between items-center p-4 border-b border-gray-200 sticky top-0 bg-white bg-opacity-90 z-10">
                 <motion.h3
@@ -536,7 +621,10 @@ const Upload = () => {
                   whileHover={{ rotate: 90 }}
                   whileTap={{ scale: 0.9 }}
                 >
-                  <FiX size={20} className="text-gray-500 hover:text-gray-700" />
+                  <FiX
+                    size={20}
+                    className="text-gray-500 hover:text-gray-700"
+                  />
                 </motion.button>
               </div>
 
@@ -561,10 +649,14 @@ const Upload = () => {
                             "Description",
                             "Size",
                             "Uploaded",
-                            "Actions"
+                            "Actions",
                           ].map((header, idx) => (
                             <motion.th
-                              key={typeof header === "string" ? header : "actions-header"}
+                              key={
+                                typeof header === "string"
+                                  ? header
+                                  : "actions-header"
+                              }
                               initial={{ opacity: 0, y: 10 }}
                               animate={{ opacity: 1, y: 0 }}
                               transition={{ delay: 0.1 * idx }}
@@ -578,7 +670,7 @@ const Upload = () => {
                       <tbody className="bg-white divide-y divide-gray-200">
                         <AnimatePresence>
                           {files.map((file, index) => (
-                            <motion.tr 
+                            <motion.tr
                               key={file.id}
                               className="hover:bg-gray-50"
                               initial={{ opacity: 0, y: 10 }}
@@ -594,29 +686,44 @@ const Upload = () => {
                                   <div className="w-8 h-8 bg-gray-100 rounded flex items-center justify-center mr-3">
                                     <FiFile className="text-gray-400" />
                                   </div>
-                                  <div className="text-xs font-medium text-gray-900">{file.name}</div>
+                                  <div className="text-xs font-medium text-gray-900">
+                                    {file.name}
+                                  </div>
                                 </div>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
-                                <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getCategoryColor(file.category)}`}>
-                                  {file.category || '-'}
+                                <span
+                                  className={`px-2 py-1 text-xs font-semibold rounded-full ${getCategoryColor(
+                                    file.category
+                                  )}`}
+                                >
+                                  {file.category || "-"}
                                 </span>
                               </td>
                               <td className="px-6 py-4">
-                                <div className="text-xs text-gray-600 max-w-xs truncate" title={file.description}>
-                                  {file.description || '-'}
+                                <div
+                                  className="text-xs text-gray-600 max-w-xs truncate"
+                                  title={file.description}
+                                >
+                                  {file.description || "-"}
                                 </div>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-xs text-gray-900">{formatFileSize(file.fileSize)}</div>
+                                <div className="text-xs text-gray-900">
+                                  {formatFileSize(file.fileSize)}
+                                </div>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-xs text-gray-900">{formatDate(file.uploadDate)}</div>
+                                <div className="text-xs text-gray-900">
+                                  {formatDate(file.uploadDate)}
+                                </div>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                 <div className="flex justify-center">
                                   <motion.button
-                                    onClick={() => handleDownload(file.id, file.name)}
+                                    onClick={() =>
+                                      handleDownload(file.id, file.name)
+                                    }
                                     className="text-[#3c8dbc] hover:text-blue-700 p-1 rounded-full hover:bg-blue-50"
                                     title="Download"
                                     whileHover={{ scale: 1.2 }}

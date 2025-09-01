@@ -1,6 +1,7 @@
-'use client';
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+"use client";
+import { useState, useEffect } from "react";
+import { authFetch } from "@/utils/authFetch";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   FiPlus,
   FiX,
@@ -8,7 +9,7 @@ import {
   FiEdit2,
   FiChevronLeft,
   FiChevronRight,
-} from 'react-icons/fi';
+} from "react-icons/fi";
 
 type EducationRecord = {
   empEduId?: number;
@@ -36,8 +37,8 @@ type FieldOfStudy = {
   name: string;
 };
 
-const EDUCATION_LEVELS_URL = 'http://localhost:8080/api/education-level';
-const FIELDS_OF_STUDY_URL = 'http://localhost:8080/api/field-of-study';
+const EDUCATION_LEVELS_URL = "http://localhost:8080/api/education-level";
+const FIELDS_OF_STUDY_URL = "http://localhost:8080/api/field-of-study";
 const ITEMS_PER_PAGE = 5;
 
 export default function EducationTab({ empId }: { empId: string }) {
@@ -49,32 +50,35 @@ export default function EducationTab({ empId }: { empId: string }) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<Partial<EducationRecord>>({
-    institution: '',
-    startDate: '',
-    endDate: '',
+    institution: "",
+    startDate: "",
+    endDate: "",
     isCurrentlyEnrolled: false,
-    paymentPayedBy: '',
+    paymentPayedBy: "",
     studyField: 0,
     fieldOfStudy: undefined,
     eduLevelId: 0,
     educationLevel: undefined,
-    location: '',
-    eduResult: '',
+    location: "",
+    eduResult: "",
   });
-  const [locationSuggestions, setLocationSuggestions] = useState<{ country: string; city: string }[]>([]);
+  const [locationSuggestions, setLocationSuggestions] = useState<
+    { country: string; city: string }[]
+  >([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
   const paymentPaidByOptions = [
-    'Self-paid',
-    'Company-sponsored',
-    'Scholarship',
-    'Government-funded',
-    'Loan',
-    'Other',
+    "Self-paid",
+    "Company-sponsored",
+    "Scholarship",
+    "Government-funded",
+    "Loan",
+    "Other",
   ];
 
-  const compactInputClass = 'w-full p-2 text-xs border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all';
+  const compactInputClass =
+    "w-full p-2 text-xs border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all";
 
   // Calculate pagination values
   const totalPages = Math.ceil(educations.length / ITEMS_PER_PAGE);
@@ -89,7 +93,7 @@ export default function EducationTab({ empId }: { empId: string }) {
       setIsLoading(true);
       setError(null);
       try {
-        console.log('Loading data for empId:', empId);
+        console.log("Loading data for empId:", empId);
         const [eduData, levelsData, fieldsData] = await Promise.all([
           fetchEducationRecords(empId),
           fetchEducationLevels(),
@@ -100,9 +104,12 @@ export default function EducationTab({ empId }: { empId: string }) {
         setEducationLevels(levelsData);
         setFieldsOfStudy(fieldsData);
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Failed to load data. Please try again later.';
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Failed to load data. Please try again later.";
         setError(errorMessage);
-        console.error('Error loading data:', error);
+        console.error("Error loading data:", error);
       } finally {
         setIsLoading(false);
       }
@@ -119,13 +126,13 @@ export default function EducationTab({ empId }: { empId: string }) {
     const { name, value, type } = target;
     const checked = target.checked;
 
-    if (name === 'isCurrentlyEnrolled') {
+    if (name === "isCurrentlyEnrolled") {
       setFormData({
         ...formData,
         isCurrentlyEnrolled: checked,
-        endDate: checked ? '' : formData.endDate,
+        endDate: checked ? "" : formData.endDate,
       });
-    } else if (name === 'studyField' || name === 'eduLevelId') {
+    } else if (name === "studyField" || name === "eduLevelId") {
       const numValue = parseInt(value);
       setFormData({
         ...formData,
@@ -180,7 +187,7 @@ export default function EducationTab({ empId }: { empId: string }) {
     e.preventDefault();
 
     if (!validateForm()) {
-      alert('Please fill all required fields');
+      alert("Please fill all required fields");
       return;
     }
 
@@ -199,30 +206,44 @@ export default function EducationTab({ empId }: { empId: string }) {
 
       let response;
       if (editingId) {
-        response = await fetch(`http://localhost:8080/api/employees/${empId}/education/${editingId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
+        response = await authFetch(
+          `http://localhost:8080/api/employees/${empId}/education/${editingId}`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          }
+        );
       } else {
-        response = await fetch(`http://localhost:8080/api/employees/${empId}/education`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
+        response = await authFetch(
+          `http://localhost:8080/api/employees/${empId}/education`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          }
+        );
       }
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to save record');
+        const contentType = response.headers.get("content-type");
+        let errorMessage = "Failed to save record";
+        if (contentType && contentType.includes("application/json")) {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } else {
+          const errorText = await response.text();
+          errorMessage = errorText || errorMessage;
+        }
+        throw new Error(errorMessage);
       }
 
       const result = await response.json();
-      
+
       if (editingId) {
-        setEducations(educations.map(edu => 
-          edu.empEduId === editingId ? result : edu
-        ));
+        setEducations(
+          educations.map((edu) => (edu.empEduId === editingId ? result : edu))
+        );
       } else {
         setEducations([...educations, result]);
       }
@@ -230,25 +251,32 @@ export default function EducationTab({ empId }: { empId: string }) {
       setShowForm(false);
       resetForm();
     } catch (error) {
-      console.error('Save error:', error);
-      alert(`Error saving record: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error("Save error:", error);
+      alert(
+        `Error saving record: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
     }
   };
 
   // Edit handler
   const handleEdit = (education: EducationRecord) => {
     setFormData({
-      institution: education.institution ?? '',
-      startDate: education.startDate ?? '',
-      endDate: education.endDate ?? '',
-      isCurrentlyEnrolled: !education.endDate || education.endDate === '#N/A' || education.endDate === '',
-      paymentPayedBy: education.paymentPayedBy ?? '',
+      institution: education.institution ?? "",
+      startDate: education.startDate ?? "",
+      endDate: education.endDate ?? "",
+      isCurrentlyEnrolled:
+        !education.endDate ||
+        education.endDate === "#N/A" ||
+        education.endDate === "",
+      paymentPayedBy: education.paymentPayedBy ?? "",
       studyField: education.studyField ?? 0,
       fieldOfStudy: education.fieldOfStudy,
       eduLevelId: education.eduLevelId ?? 0,
       educationLevel: education.educationLevel,
-      location: education.location ?? '',
-      eduResult: education.eduResult ?? '',
+      location: education.location ?? "",
+      eduResult: education.eduResult ?? "",
     });
     setEditingId(education.empEduId || null);
     setShowForm(true);
@@ -256,40 +284,54 @@ export default function EducationTab({ empId }: { empId: string }) {
 
   // Delete handler
   const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this education record?')) return;
+    if (!confirm("Are you sure you want to delete this education record?"))
+      return;
 
     try {
-      const response = await fetch(`http://localhost:8080/api/employees/${empId}/education/${id}`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-      });
+      const response = await authFetch(
+        `http://localhost:8080/api/employees/${empId}/education/${id}`,
+        {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Failed to delete record');
+        const contentType = response.headers.get("content-type");
+        let errorMessage = "Failed to delete record";
+        if (contentType && contentType.includes("application/json")) {
+          const errorData = await response.json().catch(() => ({}));
+          errorMessage = errorData.message || errorMessage;
+        } else {
+          const errorText = await response.text();
+          errorMessage = errorText || errorMessage;
+        }
+        throw new Error(errorMessage);
       }
 
-      setEducations(educations.filter(edu => edu.empEduId !== id));
+      setEducations(educations.filter((edu) => edu.empEduId !== id));
     } catch (error) {
-      console.error('Delete error:', error);
-      setError(error instanceof Error ? error.message : 'Failed to delete record');
+      console.error("Delete error:", error);
+      setError(
+        error instanceof Error ? error.message : "Failed to delete record"
+      );
     }
   };
 
   // Reset form
   const resetForm = () => {
     setFormData({
-      institution: '',
-      startDate: '',
-      endDate: '',
+      institution: "",
+      startDate: "",
+      endDate: "",
       isCurrentlyEnrolled: false,
-      paymentPayedBy: '',
+      paymentPayedBy: "",
       studyField: 0,
       fieldOfStudy: undefined,
       eduLevelId: 0,
       educationLevel: undefined,
-      location: '',
-      eduResult: '',
+      location: "",
+      eduResult: "",
     });
     setEditingId(null);
     setLocationSuggestions([]);
@@ -298,34 +340,42 @@ export default function EducationTab({ empId }: { empId: string }) {
 
   // Utility functions
   const formatDate = (dateString: string | null): string => {
-    if (!dateString || dateString === '#N/A' || dateString === '') return '';
+    if (!dateString || dateString === "#N/A" || dateString === "") return "";
     try {
       const date = new Date(dateString);
-      return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
     } catch {
       return dateString;
     }
   };
 
   const formatDateForInput = (dateString: string | null) => {
-    if (!dateString) return '';
+    if (!dateString) return "";
     const date = new Date(dateString);
-    return date.toISOString().split('T')[0];
+    return date.toISOString().split("T")[0];
   };
 
   const getStatusColor = (isCurrent: boolean) => {
-    return isCurrent ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800';
+    return isCurrent
+      ? "bg-green-100 text-green-800"
+      : "bg-blue-100 text-blue-800";
   };
 
   const getCGPAColor = (eduResult: string | null) => {
-    if (!eduResult) return 'bg-gray-100 text-gray-800';
+    if (!eduResult) return "bg-gray-100 text-gray-800";
     const score = parseFloat(eduResult);
-    if (score >= 3.5) return 'bg-emerald-100 text-emerald-800';
-    if (score >= 2.5) return 'bg-blue-100 text-blue-800';
-    return 'bg-amber-100 text-amber-800';
+    if (score >= 3.5) return "bg-emerald-100 text-emerald-800";
+    if (score >= 2.5) return "bg-blue-100 text-blue-800";
+    return "bg-amber-100 text-amber-800";
   };
 
-  const formTitle = editingId ? 'Edit Education Record' : 'Add New Education Record';
+  const formTitle = editingId
+    ? "Edit Education Record"
+    : "Add New Education Record";
 
   if (isLoading) {
     return (
@@ -342,8 +392,16 @@ export default function EducationTab({ empId }: { empId: string }) {
         <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
           <div className="flex">
             <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              <svg
+                className="h-5 w-5 text-red-500"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                  clipRule="evenodd"
+                />
               </svg>
             </div>
             <div className="ml-3">
@@ -391,7 +449,10 @@ export default function EducationTab({ empId }: { empId: string }) {
                   }}
                   className="p-1 rounded-full hover:bg-gray-100 transition-all"
                 >
-                  <FiX size={18} className="text-gray-500 hover:text-gray-700" />
+                  <FiX
+                    size={18}
+                    className="text-gray-500 hover:text-gray-700"
+                  />
                 </button>
               </div>
 
@@ -403,11 +464,13 @@ export default function EducationTab({ empId }: { empId: string }) {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.2 }}
                   >
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Institution Name*</label>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      Institution Name*
+                    </label>
                     <input
                       type="text"
                       name="institution"
-                      value={formData.institution ?? ''}
+                      value={formData.institution ?? ""}
                       onChange={handleChange}
                       className={compactInputClass}
                       placeholder="University of Example"
@@ -421,10 +484,12 @@ export default function EducationTab({ empId }: { empId: string }) {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.2 }}
                   >
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Education Level*</label>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      Education Level*
+                    </label>
                     <select
                       name="eduLevelId"
-                      value={formData.eduLevelId ?? ''}
+                      value={formData.eduLevelId ?? ""}
                       onChange={handleChange}
                       className={compactInputClass}
                       required
@@ -444,10 +509,12 @@ export default function EducationTab({ empId }: { empId: string }) {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.2 }}
                   >
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Field of Study*</label>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      Field of Study*
+                    </label>
                     <select
                       name="studyField"
-                      value={formData.studyField ?? ''}
+                      value={formData.studyField ?? ""}
                       onChange={handleChange}
                       className={compactInputClass}
                       required
@@ -467,11 +534,13 @@ export default function EducationTab({ empId }: { empId: string }) {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.2 }}
                   >
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Location*</label>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      Location*
+                    </label>
                     <input
                       type="text"
                       name="location"
-                      value={formData.location ?? ''}
+                      value={formData.location ?? ""}
                       onChange={handleLocationChange}
                       className={compactInputClass}
                       placeholder="City, Country"
@@ -498,11 +567,17 @@ export default function EducationTab({ empId }: { empId: string }) {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.2 }}
                   >
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Start Date*</label>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      Start Date*
+                    </label>
                     <input
                       type="date"
                       name="startDate"
-                      value={formData.startDate ? formatDateForInput(formData.startDate) : ''}
+                      value={
+                        formData.startDate
+                          ? formatDateForInput(formData.startDate)
+                          : ""
+                      }
                       onChange={handleChange}
                       className={compactInputClass}
                       required
@@ -515,11 +590,17 @@ export default function EducationTab({ empId }: { empId: string }) {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.2 }}
                   >
-                    <label className="block text-xs font-medium text-gray-700 mb-1">End Date</label>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      End Date
+                    </label>
                     <input
                       type="date"
                       name="endDate"
-                      value={formData.endDate ? formatDateForInput(formData.endDate) : ''}
+                      value={
+                        formData.endDate
+                          ? formatDateForInput(formData.endDate)
+                          : ""
+                      }
                       onChange={handleChange}
                       disabled={formData.isCurrentlyEnrolled}
                       className={compactInputClass}
@@ -550,17 +631,21 @@ export default function EducationTab({ empId }: { empId: string }) {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.2 }}
                   >
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Payment Method*</label>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      Payment Method*
+                    </label>
                     <select
                       name="paymentPayedBy"
-                      value={formData.paymentPayedBy ?? ''}
+                      value={formData.paymentPayedBy ?? ""}
                       onChange={handleChange}
                       className={compactInputClass}
                       required
                     >
                       <option value="">Select</option>
                       {paymentPaidByOptions.map((method) => (
-                        <option key={method} value={method}>{method}</option>
+                        <option key={method} value={method}>
+                          {method}
+                        </option>
                       ))}
                     </select>
                   </motion.div>
@@ -571,11 +656,13 @@ export default function EducationTab({ empId }: { empId: string }) {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.2 }}
                   >
-                    <label className="block text-xs font-medium text-gray-700 mb-1">CGPA</label>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      CGPA
+                    </label>
                     <input
                       type="text"
                       name="eduResult"
-                      value={formData.eduResult ?? ''}
+                      value={formData.eduResult ?? ""}
                       onChange={handleChange}
                       className={compactInputClass}
                       placeholder="3.8"
@@ -593,7 +680,7 @@ export default function EducationTab({ empId }: { empId: string }) {
                     type="submit"
                     className="px-3 py-1.5 bg-[#3c8dbc] text-white rounded-md hover:bg-[#367fa9] transition-all text-xs font-medium"
                   >
-                    {editingId ? 'Update' : 'Save'}
+                    {editingId ? "Update" : "Save"}
                   </button>
                   <button
                     type="button"
@@ -617,7 +704,9 @@ export default function EducationTab({ empId }: { empId: string }) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3 }}
-        className={`bg-white rounded-xl shadow-lg overflow-hidden ${showForm ? 'blur-sm' : ''}`}
+        className={`bg-white rounded-xl shadow-lg overflow-hidden ${
+          showForm ? "blur-sm" : ""
+        }`}
       >
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 bg-[#3c8dbc] rounded-lg shadow-md p-2 md:p-3 text-white h-[50px]">
           <div className="flex items-center">
@@ -637,7 +726,9 @@ export default function EducationTab({ empId }: { empId: string }) {
             </svg>
             <div>
               <h1 className="text-[14px] font-bold">Education Records</h1>
-              <p className="text-blue-100 text-xs">Manage your education history</p>
+              <p className="text-blue-100 text-xs">
+                Manage your education history
+              </p>
             </div>
           </div>
           <button
@@ -669,19 +760,19 @@ export default function EducationTab({ empId }: { empId: string }) {
             <thead className="bg-gray-50">
               <tr>
                 {[
-                  'NO',
-                  'Institution',
-                  'Qualification',
-                  'Duration',
-                  'CGPA',
-                  'Status',
-                  'Payment Method',
-                  'Actions',
+                  "NO",
+                  "Institution",
+                  "Qualification",
+                  "Duration",
+                  "CGPA",
+                  "Status",
+                  "Payment Method",
+                  "Actions",
                 ].map((header, idx) => (
                   <th
                     key={header}
                     className="px-6 py-3 text-left font-bold text-gray-700 tracking-wider"
-                    style={{ fontSize: '12px' }}
+                    style={{ fontSize: "12px" }}
                   >
                     {header}
                   </th>
@@ -694,53 +785,75 @@ export default function EducationTab({ empId }: { empId: string }) {
                   key={education.empEduId || idx}
                   className="transition-colors hover:bg-gray-50"
                 >
-                  <td className="px-6 py-4 whitespace-nowrap">{(currentPage - 1) * ITEMS_PER_PAGE + idx + 1}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {(currentPage - 1) * ITEMS_PER_PAGE + idx + 1}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gradient-to-r from-blue-100 to-indigo-100 flex items-center justify-center">
                         <span className="text-indigo-600 font-semibold text-xs">
-                          {education.institution?.charAt(0).toUpperCase() || '?'}
+                          {education.institution?.charAt(0).toUpperCase() ||
+                            "?"}
                         </span>
                       </div>
                       <div className="ml-3">
-                        <div className="text-xs font-semibold text-gray-500">{education.institution || '-'}</div>
-                        <div className="text-xs text-gray-400">{education.location || '-'}</div>
+                        <div className="text-xs font-semibold text-gray-500">
+                          {education.institution || "-"}
+                        </div>
+                        <div className="text-xs text-gray-400">
+                          {education.location || "-"}
+                        </div>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-xs font-semibold text-gray-500">
-                      {fieldsOfStudy.find(f => f.id === education.studyField)?.name || 'Unknown Field'}
+                      {fieldsOfStudy.find((f) => f.id === education.studyField)
+                        ?.name || "Unknown Field"}
                     </div>
                     <div className="text-xs text-gray-400">
-                      {educationLevels.find(l => l.id === education.eduLevelId)?.eduName || 'Unknown Level'}
+                      {educationLevels.find(
+                        (l) => l.id === education.eduLevelId
+                      )?.eduName || "Unknown Level"}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-1 text-xs text-gray-500">
                       <FiCalendar className="text-gray-400" size={12} />
-                      {formatDate(education.startDate)} -{' '}
-                      {!education.endDate || education.endDate === '#N/A' || education.endDate === '' 
-                        ? 'Present' 
+                      {formatDate(education.startDate)} -{" "}
+                      {!education.endDate ||
+                      education.endDate === "#N/A" ||
+                      education.endDate === ""
+                        ? "Present"
                         : formatDate(education.endDate)}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
-                      className={`px-2 py-1 text-xs font-semibold rounded-full ${getCGPAColor(education.eduResult)}`}
+                      className={`px-2 py-1 text-xs font-semibold rounded-full ${getCGPAColor(
+                        education.eduResult
+                      )}`}
                     >
-                      {education.eduResult || '-'}
+                      {education.eduResult || "-"}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
-                      className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(!education.endDate || education.endDate === '#N/A' || education.endDate === '')}`}
+                      className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
+                        !education.endDate ||
+                          education.endDate === "#N/A" ||
+                          education.endDate === ""
+                      )}`}
                     >
-                      {!education.endDate || education.endDate === '#N/A' || education.endDate === '' ? 'Enrolled' : 'Completed'}
+                      {!education.endDate ||
+                      education.endDate === "#N/A" ||
+                      education.endDate === ""
+                        ? "Enrolled"
+                        : "Completed"}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-500">
-                    {education.paymentPayedBy || '-'}
+                    {education.paymentPayedBy || "-"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap font-medium">
                     <motion.button
@@ -769,18 +882,27 @@ export default function EducationTab({ empId }: { empId: string }) {
         {/* Pagination and Footer */}
         <div className="bg-gray-50 px-6 py-3 border-t border-gray-200 flex flex-col md:flex-row justify-between items-center">
           <div className="text-xs text-gray-600 mb-2 md:mb-0">
-            Showing <span className="font-semibold">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> to{' '}
+            Showing{" "}
+            <span className="font-semibold">
+              {(currentPage - 1) * ITEMS_PER_PAGE + 1}
+            </span>{" "}
+            to{" "}
             <span className="font-semibold">
               {Math.min(currentPage * ITEMS_PER_PAGE, educations.length)}
-            </span>{' '}
-            of <span className="font-semibold">{educations.length}</span> education records
+            </span>{" "}
+            of <span className="font-semibold">{educations.length}</span>{" "}
+            education records
           </div>
 
           <div className="flex items-center space-x-2">
             <button
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
-              className={`p-1 rounded-md ${currentPage === 1 ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-200'}`}
+              className={`p-1 rounded-md ${
+                currentPage === 1
+                  ? "text-gray-400 cursor-not-allowed"
+                  : "text-gray-700 hover:bg-gray-200"
+              }`}
             >
               <FiChevronLeft size={16} />
             </button>
@@ -789,16 +911,26 @@ export default function EducationTab({ empId }: { empId: string }) {
               <button
                 key={page}
                 onClick={() => setCurrentPage(page)}
-                className={`w-8 h-8 rounded-md text-xs ${currentPage === page ? 'bg-[#3c8dbc] text-white' : 'text-gray-700 hover:bg-gray-200'}`}
+                className={`w-8 h-8 rounded-md text-xs ${
+                  currentPage === page
+                    ? "bg-[#3c8dbc] text-white"
+                    : "text-gray-700 hover:bg-gray-200"
+                }`}
               >
                 {page}
               </button>
             ))}
 
             <button
-              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+              }
               disabled={currentPage === totalPages}
-              className={`p-1 rounded-md ${currentPage === totalPages ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-200'}`}
+              className={`p-1 rounded-md ${
+                currentPage === totalPages
+                  ? "text-gray-400 cursor-not-allowed"
+                  : "text-gray-700 hover:bg-gray-200"
+              }`}
             >
               <FiChevronRight size={16} />
             </button>
@@ -826,33 +958,46 @@ export default function EducationTab({ empId }: { empId: string }) {
 
 // Dummy data for location suggestions
 const cities = [
-  { country: 'Ethiopia', city: 'Addis Ababa' },
-  { country: 'USA', city: 'New York' },
-  { country: 'UK', city: 'London' },
-  { country: 'Canada', city: 'Toronto' },
-  { country: 'Germany', city: 'Berlin' },
-  { country: 'France', city: 'Paris' },
+  { country: "Ethiopia", city: "Addis Ababa" },
+  { country: "USA", city: "New York" },
+  { country: "UK", city: "London" },
+  { country: "Canada", city: "Toronto" },
+  { country: "Germany", city: "Berlin" },
+  { country: "France", city: "Paris" },
 ];
 
 // Fetchers
-async function fetchEducationRecords(empId: string): Promise<EducationRecord[]> {
+async function fetchEducationRecords(
+  empId: string
+): Promise<EducationRecord[]> {
   try {
     console.log(`Fetching education records for empId: ${empId}`);
-    const response = await fetch(`http://localhost:8080/api/employees/${empId}/education`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-    });
+    const response = await authFetch(
+      `http://localhost:8080/api/employees/${empId}/education`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      }
+    );
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.message || 'Unknown error'}`);
+      const contentType = response.headers.get("content-type");
+      let errorMessage = `HTTP error! status: ${response.status}`;
+      if (contentType && contentType.includes("application/json")) {
+        const errorData = await response.json().catch(() => ({}));
+        errorMessage += ", message: " + (errorData.message || "Unknown error");
+      } else {
+        const errorText = await response.text();
+        errorMessage += ", message: " + (errorText || "Unknown error");
+      }
+      throw new Error(errorMessage);
     }
 
     const data = await response.json();
-    console.log('Fetched education records:', data);
+    console.log("Fetched education records:", data);
 
     return data.map((record: any) => ({
       empEduId: record.empEduId,
@@ -868,19 +1013,19 @@ async function fetchEducationRecords(empId: string): Promise<EducationRecord[]> 
       educationLevel: record.educationLevel || undefined,
     }));
   } catch (error) {
-    console.error('Error fetching education records:', error);
+    console.error("Error fetching education records:", error);
     throw error; // Re-throw to handle in useEffect
   }
 }
 
 async function fetchEducationLevels(): Promise<EducationLevel[]> {
-  const response = await fetch(EDUCATION_LEVELS_URL);
-  if (!response.ok) throw new Error('Failed to fetch education levels');
+  const response = await authFetch(EDUCATION_LEVELS_URL);
+  if (!response.ok) throw new Error("Failed to fetch education levels");
   return response.json();
 }
 
 async function fetchFieldsOfStudy(): Promise<FieldOfStudy[]> {
-  const response = await fetch(FIELDS_OF_STUDY_URL);
-  if (!response.ok) throw new Error('Failed to fetch fields of study');
+  const response = await authFetch(FIELDS_OF_STUDY_URL);
+  if (!response.ok) throw new Error("Failed to fetch fields of study");
   return response.json();
 }

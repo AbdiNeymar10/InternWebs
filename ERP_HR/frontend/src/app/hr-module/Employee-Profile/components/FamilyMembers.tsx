@@ -1,6 +1,18 @@
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { FiUser, FiUsers, FiPlus, FiSettings, FiEdit2, FiTrash2, FiX, FiCheck } from 'react-icons/fi';
+"use client";
+
+import { useState, useEffect } from "react";
+import { authFetch } from "@/utils/authFetch";
+import { motion } from "framer-motion";
+import {
+  FiUser,
+  FiUsers,
+  FiPlus,
+  FiSettings,
+  FiEdit2,
+  FiTrash2,
+  FiX,
+  FiCheck,
+} from "react-icons/fi";
 
 type Dependent = {
   dependentsId: string;
@@ -13,86 +25,92 @@ type Dependent = {
   sex: string;
 };
 
-const DependentsForm = ({ 
+const DependentsForm = ({
   empId,
-  onClose, 
+  onClose,
   onSave,
-  initialData = null 
-}: { 
+  initialData = null,
+}: {
   empId: string;
-  onClose: () => void; 
+  onClose: () => void;
   onSave: () => void;
   initialData?: Dependent | null;
 }) => {
   const [isClient, setIsClient] = useState(false);
   const [formData, setFormData] = useState({
-    firstName: '',
-    middleName: '',
-    lastName: '',
-    relationship: '',
-    emergencyContact: '',
-    dateOfBirth: '',
-    sex: ''
+    firstName: "",
+    middleName: "",
+    lastName: "",
+    relationship: "",
+    emergencyContact: "",
+    dateOfBirth: "",
+    sex: "",
   });
 
   const [submitSuccess, setSubmitSuccess] = useState(false);
 
   const relationships = [
-    'Select Relationship',
-    'Wife',
-    'Husband',
-    'Daughter',
-    'Son',
-    'Father',
-    'Mother',
-    'Sister',
-    'Brother'
+    "Select Relationship",
+    "Wife",
+    "Husband",
+    "Daughter",
+    "Son",
+    "Father",
+    "Mother",
+    "Sister",
+    "Brother",
   ];
 
   useEffect(() => {
     setIsClient(true);
     if (initialData) {
       setFormData({
-        firstName: initialData.firstName || '',
-        middleName: initialData.middleName || '',
-        lastName: initialData.lastName || '',
-        relationship: initialData.relationship || '',
-        emergencyContact: initialData.emergencyContact || '',
-        dateOfBirth: initialData.dateOfBirth || '',
-        sex: initialData.sex || ''
+        firstName: initialData.firstName || "",
+        middleName: initialData.middleName || "",
+        lastName: initialData.lastName || "",
+        relationship: initialData.relationship || "",
+        emergencyContact: initialData.emergencyContact || "",
+        dateOfBirth: initialData.dateOfBirth || "",
+        sex: initialData.sex || "",
       });
     }
   }, [initialData]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (formData.firstName && formData.lastName && formData.relationship) {
       try {
-        const url = initialData 
+        const url = initialData
           ? `http://localhost:8080/api/employees/${empId}/dependents/${initialData.dependentsId}`
           : `http://localhost:8080/api/employees/${empId}/dependents`;
-        
-        const method = initialData ? 'PUT' : 'POST';
-        
-        const response = await fetch(url, {
+
+        const method = initialData ? "PUT" : "POST";
+
+        const response = await authFetch(url, {
           method,
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify(formData),
         });
 
         if (!response.ok) {
-          throw new Error(initialData ? 'Failed to update dependent' : 'Failed to add dependent');
+          throw new Error(
+            initialData
+              ? "Failed to update dependent"
+              : "Failed to add dependent"
+          );
         }
 
         setSubmitSuccess(true);
@@ -102,8 +120,8 @@ const DependentsForm = ({
           onClose();
         }, 1000);
       } catch (error) {
-        console.error('Error saving dependent:', error);
-        alert('Error saving dependent. Please try again.');
+        console.error("Error saving dependent:", error);
+        alert("Error saving dependent. Please try again.");
       }
     }
   };
@@ -124,7 +142,7 @@ const DependentsForm = ({
             transition={{ delay: 0.1 }}
             className="text-2xl font-bold text-[#3c8dbc]"
           >
-            {initialData ? 'Edit Dependent' : 'Add New Dependent'}
+            {initialData ? "Edit Dependent" : "Add New Dependent"}
           </motion.h3>
           <button
             onClick={onClose}
@@ -227,8 +245,11 @@ const DependentsForm = ({
                   className="w-full pl-8 p-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007BFF] focus:border-transparent appearance-none bg-white"
                   required
                 >
-                  {relationships.map(rel => (
-                    <option key={rel} value={rel === 'Select Relationship' ? '' : rel}>
+                  {relationships.map((rel) => (
+                    <option
+                      key={rel}
+                      value={rel === "Select Relationship" ? "" : rel}
+                    >
                       {rel}
                     </option>
                   ))}
@@ -247,7 +268,12 @@ const DependentsForm = ({
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none text-gray-400">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
                     <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
                   </svg>
                 </div>
@@ -272,8 +298,17 @@ const DependentsForm = ({
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none text-gray-400">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                 </div>
                 {isClient && (
@@ -327,7 +362,9 @@ const DependentsForm = ({
             <button
               type="submit"
               className={`px-4 py-2 text-sm rounded-lg text-white transition-all ${
-                submitSuccess ? 'bg-green-600 hover:bg-green-700' : 'bg-[#3c8dbc] hover:bg-[#3678a8]'
+                submitSuccess
+                  ? "bg-green-600 hover:bg-green-700"
+                  : "bg-[#3c8dbc] hover:bg-[#3678a8]"
               }`}
             >
               {submitSuccess ? (
@@ -335,9 +372,9 @@ const DependentsForm = ({
                   <FiCheck className="inline" /> Saved!
                 </span>
               ) : initialData ? (
-                'Update'
+                "Update"
               ) : (
-                'Add'
+                "Add"
               )}
             </button>
           </motion.div>
@@ -350,7 +387,9 @@ const DependentsForm = ({
 export default function FamilyPage({ empId }: { empId: string }) {
   const [dependents, setDependents] = useState<Dependent[]>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [currentDependent, setCurrentDependent] = useState<Dependent | null>(null);
+  const [currentDependent, setCurrentDependent] = useState<Dependent | null>(
+    null
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -358,36 +397,38 @@ export default function FamilyPage({ empId }: { empId: string }) {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch(`http://localhost:8080/api/employees/${empId}/dependents`);
+      const response = await authFetch(
+        `http://localhost:8080/api/employees/${empId}/dependents`
+      );
       if (!response.ok) {
-        throw new Error('Failed to fetch dependents');
+        throw new Error("Failed to fetch dependents");
       }
       const data = await response.json();
       setDependents(data);
     } catch (err) {
-      console.error('Error fetching dependents:', err);
-      setError('Failed to load dependents');
+      console.error("Error fetching dependents:", err);
+      setError("Failed to load dependents");
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleDelete = async (dependentsId: string) => {
-    if (window.confirm('Are you sure you want to delete this dependent?')) {
+    if (window.confirm("Are you sure you want to delete this dependent?")) {
       try {
-        const response = await fetch(
+        const response = await authFetch(
           `http://localhost:8080/api/employees/${empId}/dependents/${dependentsId}`,
-          { method: 'DELETE' }
+          { method: "DELETE" }
         );
-        
+
         if (!response.ok) {
-          throw new Error('Failed to delete dependent');
+          throw new Error("Failed to delete dependent");
         }
-        
+
         fetchDependents(); // Refresh the list
       } catch (error) {
-        console.error('Error deleting dependent:', error);
-        alert('Failed to delete dependent');
+        console.error("Error deleting dependent:", error);
+        alert("Failed to delete dependent");
       }
     }
   };
@@ -437,7 +478,9 @@ export default function FamilyPage({ empId }: { empId: string }) {
             <FiUser className="mr-2 text-blue-100" />
             <div>
               <h1 className="text-[14px] font-bold">Family Members</h1>
-              <p className="text-blue-100 text-xs">Manage your family information</p>
+              <p className="text-blue-100 text-xs">
+                Manage your family information
+              </p>
             </div>
           </div>
           <button
@@ -453,41 +496,78 @@ export default function FamilyPage({ empId }: { empId: string }) {
         </div>
 
         <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
-          <div className="overflow-x-auto" style={{ maxHeight: 'calc(100vh - 250px)', overflowY: 'auto' }}>
+          <div
+            className="overflow-x-auto"
+            style={{ maxHeight: "calc(100vh - 250px)", overflowY: "auto" }}
+          >
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50 sticky top-0">
                 <tr>
-                  <th className="px-4 py-3 text-left text-[12px] font-semibold text-black-500 uppercase tracking-wider">NO</th>
-                  <th className="px-4 py-3 text-left text-[12px] font-semibold text-black-500 uppercase tracking-wider">First Name</th>
-                  <th className="px-4 py-3 text-left text-[12px] font-semibold text-black-500 uppercase tracking-wider">Middle Name</th>
-                  <th className="px-4 py-3 text-left text-[12px] font-semibold text-black-500 uppercase tracking-wider">Last Name</th>
-                  <th className="px-4 py-3 text-left text-[12px] font-semibold text-black-500 uppercase tracking-wider">Relationship</th>
-                  <th className="px-4 py-3 text-left text-[12px] font-semibold text-black-500 uppercase tracking-wider">Emergency Contact</th>
-                  <th className="px-4 py-3 text-left text-[12px] font-semibold text-black-500 uppercase tracking-wider">Date of Birth</th>
-                  <th className="px-4 py-3 text-left text-[12px] font-semibold text-black-500 uppercase tracking-wider">Actions</th>
+                  <th className="px-4 py-3 text-left text-[12px] font-semibold text-black-500 uppercase tracking-wider">
+                    NO
+                  </th>
+                  <th className="px-4 py-3 text-left text-[12px] font-semibold text-black-500 uppercase tracking-wider">
+                    First Name
+                  </th>
+                  <th className="px-4 py-3 text-left text-[12px] font-semibold text-black-500 uppercase tracking-wider">
+                    Middle Name
+                  </th>
+                  <th className="px-4 py-3 text-left text-[12px] font-semibold text-black-500 uppercase tracking-wider">
+                    Last Name
+                  </th>
+                  <th className="px-4 py-3 text-left text-[12px] font-semibold text-black-500 uppercase tracking-wider">
+                    Relationship
+                  </th>
+                  <th className="px-4 py-3 text-left text-[12px] font-semibold text-black-500 uppercase tracking-wider">
+                    Emergency Contact
+                  </th>
+                  <th className="px-4 py-3 text-left text-[12px] font-semibold text-black-500 uppercase tracking-wider">
+                    Date of Birth
+                  </th>
+                  <th className="px-4 py-3 text-left text-[12px] font-semibold text-black-500 uppercase tracking-wider">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {dependents.length > 0 ? (
                   dependents.map((dependent, index) => (
-                    <tr key={dependent.dependentsId} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-3 whitespace-nowrap text-[12px] font-semibold text-gray-500">{index + 1}</td>
-                      <td className="px-4 py-3 whitespace-nowrap text-[12px] font-semibold text-gray-500">{dependent.firstName}</td>
-                      <td className="px-4 py-3 whitespace-nowrap text-[12px] font-semibold text-gray-500">{dependent.middleName}</td>
-                      <td className="px-4 py-3 whitespace-nowrap text-[12px] font-semibold text-gray-500">{dependent.lastName}</td>
+                    <tr
+                      key={dependent.dependentsId}
+                      className="hover:bg-gray-50 transition-colors"
+                    >
+                      <td className="px-4 py-3 whitespace-nowrap text-[12px] font-semibold text-gray-500">
+                        {index + 1}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-[12px] font-semibold text-gray-500">
+                        {dependent.firstName}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-[12px] font-semibold text-gray-500">
+                        {dependent.middleName}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-[12px] font-semibold text-gray-500">
+                        {dependent.lastName}
+                      </td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <span className={`px-2 py-1 text-[12px] font-semibold rounded-full ${
-                          dependent.relationship === 'Wife' || dependent.relationship === 'Husband' 
-                            ? 'bg-gradient-to-r from-purple-100 to-purple-50 text-purple-800 border border-purple-200' 
-                            : 'bg-gradient-to-r from-blue-100 to-blue-50 text-blue-800 border border-blue-200'
-                        }`}>
+                        <span
+                          className={`px-2 py-1 text-[12px] font-semibold rounded-full ${
+                            dependent.relationship === "Wife" ||
+                            dependent.relationship === "Husband"
+                              ? "bg-gradient-to-r from-purple-100 to-purple-50 text-purple-800 border border-purple-200"
+                              : "bg-gradient-to-r from-blue-100 to-blue-50 text-blue-800 border border-blue-200"
+                          }`}
+                        >
                           {dependent.relationship}
                         </span>
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-[12px] font-semibold text-gray-500">{dependent.emergencyContact}</td>
-                      <td className="px-4 py-3 whitespace-nowrap text-[12px] font-semibold text-gray-500">{dependent.dateOfBirth}</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-[12px] font-semibold text-gray-500">
+                        {dependent.emergencyContact}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-[12px] font-semibold text-gray-500">
+                        {dependent.dateOfBirth}
+                      </td>
                       <td className="px-4 py-3 whitespace-nowrap text-[12px] font-semibold flex gap-2">
-                        <button 
+                        <button
                           onClick={() => {
                             setCurrentDependent(dependent);
                             setIsFormOpen(true);
@@ -512,8 +592,12 @@ export default function FamilyPage({ empId }: { empId: string }) {
                     <td colSpan={8} className="px-6 py-12 text-center">
                       <div className="flex flex-col items-center justify-center">
                         <FiUsers className="text-gray-300 text-4xl mb-3" />
-                        <h3 className="text-base font-medium text-gray-500">No dependents found</h3>
-                        <p className="text-gray-400 mt-1 text-sm">Click "Add Dependent" to add your first dependent</p>
+                        <h3 className="text-base font-medium text-gray-500">
+                          No dependents found
+                        </h3>
+                        <p className="text-gray-400 mt-1 text-sm">
+                          Click "Add Dependent" to add your first dependent
+                        </p>
                         <button
                           onClick={() => setIsFormOpen(true)}
                           className="mt-3 flex items-center bg-[#3c8dbc] hover:bg-[#367fa9] text-white px-4 py-1.5 rounded-md shadow-sm hover:shadow transition-all duration-300 text-sm"
@@ -533,7 +617,11 @@ export default function FamilyPage({ empId }: { empId: string }) {
           {dependents.length > 0 && (
             <div className="bg-gray-50 px-6 py-3 border-t border-gray-200">
               <div className="flex items-center justify-between text-xs text-gray-600">
-                <div>Showing <span className="font-semibold">{dependents.length}</span> dependents</div>
+                <div>
+                  Showing{" "}
+                  <span className="font-semibold">{dependents.length}</span>{" "}
+                  dependents
+                </div>
                 <div className="flex items-center space-x-3">
                   <div className="flex items-center">
                     <span className="w-2 h-2 rounded-full bg-purple-500 mr-1.5"></span>
@@ -550,12 +638,12 @@ export default function FamilyPage({ empId }: { empId: string }) {
         </div>
 
         {isFormOpen && (
-          <DependentsForm 
+          <DependentsForm
             empId={empId}
             onClose={() => {
               setIsFormOpen(false);
               setCurrentDependent(null);
-            }} 
+            }}
             onSave={fetchDependents}
             initialData={currentDependent}
           />

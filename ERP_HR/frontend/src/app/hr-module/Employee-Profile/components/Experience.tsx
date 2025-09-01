@@ -1,7 +1,8 @@
-'use client';
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { FiPlus, FiX, FiCalendar, FiEdit2, FiCheck } from 'react-icons/fi';
+"use client";
+import { useState, useEffect } from "react";
+import { authFetch } from "@/utils/authFetch";
+import { motion, AnimatePresence } from "framer-motion";
+import { FiPlus, FiX, FiCalendar, FiEdit2, FiCheck } from "react-icons/fi";
 
 interface EmploymentTypeDto {
   id: number;
@@ -52,11 +53,26 @@ interface ExperienceTabProps {
   empId: string;
 }
 
-const API_BASE_URL = 'http://localhost:8080/api';
+const API_BASE_URL = "http://localhost:8080/api";
 
-const DEFAULT_ORGANIZATION_TYPES = ['Private', 'Public', 'Government', 'Non-profit'];
-const DEFAULT_EMPLOYMENT_TYPES = ['Full-time', 'Part-time', 'Contract', 'Internship'];
-const DEFAULT_TERMINATION_REASONS = ['Resigned', 'Terminated', 'Contract Ended', 'Retired'];
+const DEFAULT_ORGANIZATION_TYPES = [
+  "Private",
+  "Public",
+  "Government",
+  "Non-profit",
+];
+const DEFAULT_EMPLOYMENT_TYPES = [
+  "Full-time",
+  "Part-time",
+  "Contract",
+  "Internship",
+];
+const DEFAULT_TERMINATION_REASONS = [
+  "Resigned",
+  "Terminated",
+  "Contract Ended",
+  "Retired",
+];
 
 export default function ExperienceTab({ empId }: ExperienceTabProps) {
   const [showForm, setShowForm] = useState(false);
@@ -72,61 +88,71 @@ export default function ExperienceTab({ empId }: ExperienceTabProps) {
   const [terminationReasons, setTerminationReasons] = useState<string[]>([]);
   const [institutions, setInstitutions] = useState<string[]>([]);
 
-  const [formData, setFormData] = useState<Omit<ExperienceRecord, 'empExpeId'>>({
-    expId: null,
-    jobTitle: '',
-    institution: '',
-    organizationType: '',
-    reasonForTermination: '',
-    startDate: '',
-    duration: '',
-    employmentType: '',
-    responsibility: '',
-    salary: undefined,
-    endDate: '',
-    currentJobFlag: 'N',
-    empId: empId,
-    empExeId: 0,
-    orgType: 'EXTERNAL'
-  });
+  const [formData, setFormData] = useState<Omit<ExperienceRecord, "empExpeId">>(
+    {
+      expId: null,
+      jobTitle: "",
+      institution: "",
+      organizationType: "",
+      reasonForTermination: "",
+      startDate: "",
+      duration: "",
+      employmentType: "",
+      responsibility: "",
+      salary: undefined,
+      endDate: "",
+      currentJobFlag: "N",
+      empId: empId,
+      empExeId: 0,
+      orgType: "EXTERNAL",
+    }
+  );
 
-  const processLookupData = <T extends { [key: string]: any }>(data: T[]): string[] => {
+  const processLookupData = <T extends { [key: string]: any }>(
+    data: T[]
+  ): string[] => {
     if (!data || !Array.isArray(data)) return [];
-    return data.map(item => {
-      if ('type' in item) return item.type;
-      if ('name' in item) return item.name;
-      if ('reason' in item) return item.reason;
-      return JSON.stringify(item);
-    }).filter(Boolean);
+    return data
+      .map((item) => {
+        if ("type" in item) return item.type;
+        if ("name" in item) return item.name;
+        if ("reason" in item) return item.reason;
+        return JSON.stringify(item);
+      })
+      .filter(Boolean);
   };
 
   const fetchLookups = async () => {
     try {
       const responses = await Promise.all([
-        fetch(`${API_BASE_URL}/organization-title`),
-        fetch(`${API_BASE_URL}/employment-types`),
-        fetch(`${API_BASE_URL}/termination-reasons`),
-        fetch(`${API_BASE_URL}/institutions`)
+        authFetch(`${API_BASE_URL}/organization-title`),
+        authFetch(`${API_BASE_URL}/employment-types`),
+        authFetch(`${API_BASE_URL}/termination-reasons`),
+        authFetch(`${API_BASE_URL}/institutions`),
       ]);
 
-      const results = await Promise.all(responses.map(async (res) => {
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
-        }
-        const contentType = res.headers.get('content-type');
-        if (!contentType?.includes('application/json')) {
-          const text = await res.text();
-          throw new Error(`Invalid content type: ${contentType}. Response: ${text}`);
-        }
-        return res.json();
-      }));
+      const results = await Promise.all(
+        responses.map(async (res) => {
+          if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+          }
+          const contentType = res.headers.get("content-type");
+          if (!contentType?.includes("application/json")) {
+            const text = await res.text();
+            throw new Error(
+              `Invalid content type: ${contentType}. Response: ${text}`
+            );
+          }
+          return res.json();
+        })
+      );
 
       setOrganizationTypes(processLookupData(results[0]));
       setEmploymentTypes(processLookupData(results[1]));
       setTerminationReasons(processLookupData(results[2]));
       setInstitutions(processLookupData(results[3]));
     } catch (err) {
-      console.error('Error fetching lookups:', err);
+      console.error("Error fetching lookups:", err);
       setOrganizationTypes(DEFAULT_ORGANIZATION_TYPES);
       setEmploymentTypes(DEFAULT_EMPLOYMENT_TYPES);
       setTerminationReasons(DEFAULT_TERMINATION_REASONS);
@@ -138,28 +164,36 @@ export default function ExperienceTab({ empId }: ExperienceTabProps) {
 
   const fetchExperiences = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/employees/${empId}/experiences`);
+      const response = await authFetch(
+        `${API_BASE_URL}/employees/${empId}/experiences`
+      );
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      const contentType = response.headers.get('content-type');
-      if (!contentType?.includes('application/json')) {
+      const contentType = response.headers.get("content-type");
+      if (!contentType?.includes("application/json")) {
         const text = await response.text();
-        throw new Error(`Invalid content type: ${contentType}. Response: ${text}`);
+        throw new Error(
+          `Invalid content type: ${contentType}. Response: ${text}`
+        );
       }
       const data = await response.json();
-      setExperiences(data.experiences.map((exp: any) => ({
-        ...exp,
-        empExpeId: Number(exp.empExpeId),
-        expId: Number(exp.expId),
-        empExeId: Number(exp.empExeId),
-        currentJobFlag: exp.currentJobFlag === 'Y' ? 'Y' : 'N',
-        salary: exp.salary ? parseFloat(exp.salary) : undefined,
-        employee: exp.employee
-      })));
+      setExperiences(
+        data.experiences.map((exp: any) => ({
+          ...exp,
+          empExpeId: Number(exp.empExpeId),
+          expId: Number(exp.expId),
+          empExeId: Number(exp.empExeId),
+          currentJobFlag: exp.currentJobFlag === "Y" ? "Y" : "N",
+          salary: exp.salary ? parseFloat(exp.salary) : undefined,
+          employee: exp.employee,
+        }))
+      );
     } catch (err) {
-      console.error('Fetch error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load experiences');
+      console.error("Fetch error:", err);
+      setError(
+        err instanceof Error ? err.message : "Failed to load experiences"
+      );
     } finally {
       setIsExperiencesLoading(false);
     }
@@ -171,8 +205,8 @@ export default function ExperienceTab({ empId }: ExperienceTabProps) {
     try {
       await Promise.all([fetchExperiences(), fetchLookups()]);
     } catch (err) {
-      console.error('Error fetching data:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load data');
+      console.error("Error fetching data:", err);
+      setError(err instanceof Error ? err.message : "Failed to load data");
     } finally {
       setIsLoading(false);
     }
@@ -188,85 +222,106 @@ export default function ExperienceTab({ empId }: ExperienceTabProps) {
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
   ) => {
     const { name, value, type } = e.target as HTMLInputElement;
     const checked = (e.target as HTMLInputElement).checked;
-    
-    setFormData(prev => ({
+
+    setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? (checked ? 'Y' : 'N') : value
+      [name]: type === "checkbox" ? (checked ? "Y" : "N") : value,
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (formData.endDate && formData.currentJobFlag !== 'Y' && 
-        new Date(formData.startDate) > new Date(formData.endDate)) {
-      setError('End date must be after start date');
+
+    if (
+      formData.endDate &&
+      formData.currentJobFlag !== "Y" &&
+      new Date(formData.startDate) > new Date(formData.endDate)
+    ) {
+      setError("End date must be after start date");
       return;
     }
 
     try {
       setIsLoading(true);
       setError(null);
-      
+
       const payload = {
         ...formData,
         empExpeId: editingId,
         expId: formData.expId,
         startDate: formatDateForBackend(formData.startDate),
-        endDate: formData.currentJobFlag === 'Y' ? null : formatDateForBackend(formData.endDate || ''),
+        endDate:
+          formData.currentJobFlag === "Y"
+            ? null
+            : formatDateForBackend(formData.endDate || ""),
         salary: formData.salary ? Number(formData.salary) : null,
-        reasonForTermination: formData.currentJobFlag === 'Y' ? null : formData.reasonForTermination,
+        reasonForTermination:
+          formData.currentJobFlag === "Y"
+            ? null
+            : formData.reasonForTermination,
         currentJobFlag: formData.currentJobFlag,
         employee: {
-          empId: empId
-        }
+          empId: empId,
+        },
       };
 
-      const url = editingId 
-        ? `${API_BASE_URL}/employees/${empId}/experiences/${editingId}` 
+      const url = editingId
+        ? `${API_BASE_URL}/employees/${empId}/experiences/${editingId}`
         : `${API_BASE_URL}/employees/${empId}/experiences`;
-      const method = editingId ? 'PUT' : 'POST';
+      const method = editingId ? "PUT" : "POST";
 
-      const response = await fetch(url, {
+      const response = await authFetch(url, {
         method,
         headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          "Content-Type": "application/json",
+          Accept: "application/json",
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(errorText || `Failed to ${editingId ? 'update' : 'create'} experience`);
+        throw new Error(
+          errorText || `Failed to ${editingId ? "update" : "create"} experience`
+        );
       }
 
       const savedRecord = await response.json();
-      
+
       if (editingId) {
-        setExperiences(experiences.map(exp => 
-          exp.empExpeId === savedRecord.empExpeId ? {
+        setExperiences(
+          experiences.map((exp) =>
+            exp.empExpeId === savedRecord.empExpeId
+              ? {
+                  ...savedRecord,
+                  empExpeId: Number(savedRecord.empExpeId),
+                  expId: Number(savedRecord.expId),
+                  empExeId: Number(savedRecord.empExeId),
+                  currentJobFlag:
+                    savedRecord.currentJobFlag === "Y" ? "Y" : "N",
+                  employee: savedRecord.employee,
+                }
+              : exp
+          )
+        );
+      } else {
+        setExperiences([
+          ...experiences,
+          {
             ...savedRecord,
             empExpeId: Number(savedRecord.empExpeId),
             expId: Number(savedRecord.expId),
             empExeId: Number(savedRecord.empExeId),
-            currentJobFlag: savedRecord.currentJobFlag === 'Y' ? 'Y' : 'N',
-            employee: savedRecord.employee
-          } : exp
-        ));
-      } else {
-        setExperiences([...experiences, {
-          ...savedRecord,
-          empExpeId: Number(savedRecord.empExpeId),
-          expId: Number(savedRecord.expId),
-          empExeId: Number(savedRecord.empExeId),
-          currentJobFlag: savedRecord.currentJobFlag === 'Y' ? 'Y' : 'N',
-          employee: savedRecord.employee
-        }]);
+            currentJobFlag: savedRecord.currentJobFlag === "Y" ? "Y" : "N",
+            employee: savedRecord.employee,
+          },
+        ]);
       }
 
       setSubmitSuccess(true);
@@ -274,8 +329,10 @@ export default function ExperienceTab({ empId }: ExperienceTabProps) {
       setShowForm(false);
       resetForm();
     } catch (err) {
-      console.error('Save error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to save experience');
+      console.error("Save error:", err);
+      setError(
+        err instanceof Error ? err.message : "Failed to save experience"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -287,17 +344,19 @@ export default function ExperienceTab({ empId }: ExperienceTabProps) {
       jobTitle: experience.jobTitle,
       institution: experience.institution,
       organizationType: experience.organizationType,
-      reasonForTermination: experience.reasonForTermination || '',
+      reasonForTermination: experience.reasonForTermination || "",
       startDate: parseDateFromBackend(experience.startDate),
-      duration: experience.duration || '',
+      duration: experience.duration || "",
       employmentType: experience.employmentType,
-      responsibility: experience.responsibility || '',
+      responsibility: experience.responsibility || "",
       salary: experience.salary,
-      endDate: experience.endDate ? parseDateFromBackend(experience.endDate) : '',
+      endDate: experience.endDate
+        ? parseDateFromBackend(experience.endDate)
+        : "",
       currentJobFlag: experience.currentJobFlag,
       empId: experience.empId,
       empExeId: experience.empExeId,
-      orgType: experience.orgType
+      orgType: experience.orgType,
     });
     setEditingId(experience.empExpeId);
     setShowForm(true);
@@ -306,62 +365,73 @@ export default function ExperienceTab({ empId }: ExperienceTabProps) {
   const resetForm = () => {
     setFormData({
       expId: null,
-      jobTitle: '',
-      institution: '',
-      organizationType: '',
-      reasonForTermination: '',
-      startDate: '',
-      duration: '',
-      employmentType: '',
-      responsibility: '',
+      jobTitle: "",
+      institution: "",
+      organizationType: "",
+      reasonForTermination: "",
+      startDate: "",
+      duration: "",
+      employmentType: "",
+      responsibility: "",
       salary: undefined,
-      endDate: '',
-      currentJobFlag: 'N',
+      endDate: "",
+      currentJobFlag: "N",
       empId: empId,
       empExeId: 0,
-      orgType: 'EXTERNAL'
+      orgType: "EXTERNAL",
     });
     setEditingId(null);
     setError(null);
   };
 
   const formatDate = (dateString: string) => {
-    if (!dateString) return '';
+    if (!dateString) return "";
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+    });
   };
 
   const formatSalary = (salary?: number) => {
-    if (!salary) return '-';
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0
+    if (!salary) return "-";
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      maximumFractionDigits: 0,
     }).format(salary);
   };
 
   const formatDateForBackend = (dateString: string): string => {
-    if (!dateString) return '';
-    return dateString.split('T')[0];
+    if (!dateString) return "";
+    return dateString.split("T")[0];
   };
 
   const parseDateFromBackend = (dateString: string): string => {
-    if (!dateString) return '';
-    return dateString.split('T')[0];
+    if (!dateString) return "";
+    return dateString.split("T")[0];
   };
 
   const getStatusColor = (isCurrent: boolean) => {
-    return isCurrent ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800';
+    return isCurrent
+      ? "bg-green-100 text-green-800"
+      : "bg-gray-100 text-gray-800";
   };
 
   const getTerminationColor = (reason?: string) => {
     switch (reason) {
-      case 'Resigned': return 'bg-blue-100 text-blue-800';
-      case 'Terminated': return 'bg-red-100 text-red-800';
-      case 'Contract Ended': return 'bg-purple-100 text-purple-800';
-      case 'Retired': return 'bg-amber-100 text-amber-800';
-      case 'Military Service': return 'bg-indigo-100 text-indigo-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case "Resigned":
+        return "bg-blue-100 text-blue-800";
+      case "Terminated":
+        return "bg-red-100 text-red-800";
+      case "Contract Ended":
+        return "bg-purple-100 text-purple-800";
+      case "Retired":
+        return "bg-amber-100 text-amber-800";
+      case "Military Service":
+        return "bg-indigo-100 text-indigo-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -369,8 +439,12 @@ export default function ExperienceTab({ empId }: ExperienceTabProps) {
     return (
       <div className="flex flex-col items-center justify-center h-64 space-y-4">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-        {isLookupsLoading && <p className="text-sm text-gray-600">Loading dropdown options...</p>}
-        {isExperiencesLoading && <p className="text-sm text-gray-600">Loading experience data...</p>}
+        {isLookupsLoading && (
+          <p className="text-sm text-gray-600">Loading dropdown options...</p>
+        )}
+        {isExperiencesLoading && (
+          <p className="text-sm text-gray-600">Loading experience data...</p>
+        )}
       </div>
     );
   }
@@ -380,8 +454,16 @@ export default function ExperienceTab({ empId }: ExperienceTabProps) {
       <div className="bg-red-50 border-l-4 border-red-500 p-4">
         <div className="flex">
           <div className="flex-shrink-0">
-            <svg className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+            <svg
+              className="h-5 w-5 text-red-500"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                clipRule="evenodd"
+              />
             </svg>
           </div>
           <div className="ml-3">
@@ -398,7 +480,9 @@ export default function ExperienceTab({ empId }: ExperienceTabProps) {
     );
   }
 
-  const formTitle = editingId ? 'Edit Experience Record' : 'Add New Experience Record';
+  const formTitle = editingId
+    ? "Edit Experience Record"
+    : "Add New Experience Record";
 
   return (
     <div className="space-y-6 relative">
@@ -437,7 +521,10 @@ export default function ExperienceTab({ empId }: ExperienceTabProps) {
                   }}
                   className="p-1 rounded-full hover:bg-gray-100 transition-all"
                 >
-                  <FiX size={18} className="text-gray-500 hover:text-gray-700" />
+                  <FiX
+                    size={18}
+                    className="text-gray-500 hover:text-gray-700"
+                  />
                 </button>
               </div>
               {error && (
@@ -544,7 +631,10 @@ export default function ExperienceTab({ empId }: ExperienceTabProps) {
                       Start Date*
                     </label>
                     <div className="relative">
-                      <FiCalendar className="absolute left-3 top-2.5 text-gray-400" size={14} />
+                      <FiCalendar
+                        className="absolute left-3 top-2.5 text-gray-400"
+                        size={14}
+                      />
                       <input
                         type="date"
                         name="startDate"
@@ -561,17 +651,22 @@ export default function ExperienceTab({ empId }: ExperienceTabProps) {
                     transition={{ delay: 0.45 }}
                   >
                     <label className="block text-xs font-medium text-gray-700 mb-1">
-                      {formData.currentJobFlag === 'Y' ? "Currently Working" : "End Date"}
+                      {formData.currentJobFlag === "Y"
+                        ? "Currently Working"
+                        : "End Date"}
                     </label>
                     <div className="relative">
-                      <FiCalendar className="absolute left-3 top-2.5 text-gray-400" size={14} />
+                      <FiCalendar
+                        className="absolute left-3 top-2.5 text-gray-400"
+                        size={14}
+                      />
                       <input
                         type="date"
                         name="endDate"
                         value={formData.endDate}
                         onChange={handleChange}
                         className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pl-9 disabled:bg-gray-100"
-                        disabled={formData.currentJobFlag === 'Y'}
+                        disabled={formData.currentJobFlag === "Y"}
                       />
                     </div>
                     <div className="flex items-center mt-1">
@@ -579,16 +674,19 @@ export default function ExperienceTab({ empId }: ExperienceTabProps) {
                         type="checkbox"
                         id="currentJob"
                         name="currentJobFlag"
-                        checked={formData.currentJobFlag === 'Y'}
+                        checked={formData.currentJobFlag === "Y"}
                         onChange={(e) =>
                           setFormData({
                             ...formData,
-                            currentJobFlag: e.target.checked ? 'Y' : 'N'
+                            currentJobFlag: e.target.checked ? "Y" : "N",
                           })
                         }
                         className="h-3 w-3 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                       />
-                      <label htmlFor="currentJob" className="ml-2 text-xs text-gray-700">
+                      <label
+                        htmlFor="currentJob"
+                        className="ml-2 text-xs text-gray-700"
+                      >
                         Currently working here
                       </label>
                     </div>
@@ -622,7 +720,7 @@ export default function ExperienceTab({ empId }: ExperienceTabProps) {
                       <input
                         type="number"
                         name="salary"
-                        value={formData.salary || ''}
+                        value={formData.salary || ""}
                         onChange={handleChange}
                         className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pr-10"
                         placeholder="50000"
@@ -646,7 +744,7 @@ export default function ExperienceTab({ empId }: ExperienceTabProps) {
                       value={formData.reasonForTermination}
                       onChange={handleChange}
                       className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                      disabled={formData.currentJobFlag === 'Y'}
+                      disabled={formData.currentJobFlag === "Y"}
                     >
                       <option value="">Select reason (if applicable)</option>
                       {terminationReasons.map((reason, index) => (
@@ -684,7 +782,9 @@ export default function ExperienceTab({ empId }: ExperienceTabProps) {
                     type="submit"
                     disabled={isLoading}
                     className={`px-3 py-1.5 ${
-                      submitSuccess ? 'bg-green-600 hover:bg-green-700' : 'bg-[#3c8dbc] hover:bg-[#367fa9]'
+                      submitSuccess
+                        ? "bg-green-600 hover:bg-green-700"
+                        : "bg-[#3c8dbc] hover:bg-[#367fa9]"
                     } text-white rounded-md transition-all shadow hover:shadow-md text-xs font-medium flex items-center gap-1 disabled:opacity-70`}
                   >
                     {isLoading ? (
@@ -709,7 +809,7 @@ export default function ExperienceTab({ empId }: ExperienceTabProps) {
                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                           ></path>
                         </svg>
-                        {editingId ? 'Updating...' : 'Saving...'}
+                        {editingId ? "Updating..." : "Saving..."}
                       </>
                     ) : submitSuccess ? (
                       <>
@@ -717,9 +817,9 @@ export default function ExperienceTab({ empId }: ExperienceTabProps) {
                         Success!
                       </>
                     ) : editingId ? (
-                      'Update'
+                      "Update"
                     ) : (
-                      'Save'
+                      "Save"
                     )}
                   </button>
                   <button
@@ -742,7 +842,9 @@ export default function ExperienceTab({ empId }: ExperienceTabProps) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3 }}
-        className={`bg-white rounded-xl shadow-lg overflow-hidden ${showForm ? 'blur-sm' : ''}`}
+        className={`bg-white rounded-xl shadow-lg overflow-hidden ${
+          showForm ? "blur-sm" : ""
+        }`}
       >
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 bg-[#3c8dbc] rounded-lg shadow-md p-2 md:p-3 text-white h-[50px]">
           <div className="flex items-center">
@@ -762,7 +864,9 @@ export default function ExperienceTab({ empId }: ExperienceTabProps) {
             </svg>
             <div>
               <h1 className="text-[14px] font-bold">Work Experience</h1>
-              <p className="text-blue-100 text-xs">Manage your professional work history</p>
+              <p className="text-blue-100 text-xs">
+                Manage your professional work history
+              </p>
             </div>
           </div>
           <button
@@ -781,14 +885,14 @@ export default function ExperienceTab({ empId }: ExperienceTabProps) {
             <thead className="bg-gray-50">
               <tr>
                 {[
-                  'NO',
-                  'Job Title',
-                  'Institution',
-                  'Duration',
-                  'Salary',
-                  'Status',
-                  'Termination',
-                  'Actions'
+                  "NO",
+                  "Job Title",
+                  "Institution",
+                  "Duration",
+                  "Salary",
+                  "Status",
+                  "Termination",
+                  "Actions",
                 ].map((header, idx) => (
                   <motion.th
                     key={header}
@@ -796,7 +900,7 @@ export default function ExperienceTab({ empId }: ExperienceTabProps) {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 * idx }}
                     className="px-6 py-3 text-left font-bold text-gray-700 tracking-wider"
-                    style={{ fontSize: '12px' }}
+                    style={{ fontSize: "12px" }}
                   >
                     {header}
                   </motion.th>
@@ -810,7 +914,7 @@ export default function ExperienceTab({ empId }: ExperienceTabProps) {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.05 * idx }}
-                  whileHover={{ backgroundColor: '#f8fafc' }}
+                  whileHover={{ backgroundColor: "#f8fafc" }}
                   className="transition-colors"
                 >
                   <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">
@@ -827,7 +931,9 @@ export default function ExperienceTab({ empId }: ExperienceTabProps) {
                         <div className="text-xs font-semibold text-gray-500">
                           {exp.jobTitle}
                         </div>
-                        <div className="text-xs text-gray-400">{exp.employmentType}</div>
+                        <div className="text-xs text-gray-400">
+                          {exp.employmentType}
+                        </div>
                       </div>
                     </div>
                   </td>
@@ -835,13 +941,17 @@ export default function ExperienceTab({ empId }: ExperienceTabProps) {
                     <div className="text-xs font-semibold text-gray-500">
                       {exp.institution}
                     </div>
-                    <div className="text-xs text-gray-400">{exp.organizationType}</div>
+                    <div className="text-xs text-gray-400">
+                      {exp.organizationType}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-1 text-xs text-gray-500">
                       <FiCalendar className="text-gray-400" size={12} />
-                      {formatDate(exp.startDate)} -{' '}
-                      {exp.currentJobFlag === 'Y' ? 'Present' : formatDate(exp.endDate || '')}
+                      {formatDate(exp.startDate)} -{" "}
+                      {exp.currentJobFlag === "Y"
+                        ? "Present"
+                        : formatDate(exp.endDate || "")}
                     </div>
                     <div className="text-xs text-gray-400">{exp.duration}</div>
                   </td>
@@ -853,10 +963,10 @@ export default function ExperienceTab({ empId }: ExperienceTabProps) {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
                       className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
-                        exp.currentJobFlag === 'Y'
+                        exp.currentJobFlag === "Y"
                       )}`}
                     >
-                      {exp.currentJobFlag === 'Y' ? 'Current' : 'Past'}
+                      {exp.currentJobFlag === "Y" ? "Current" : "Past"}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -865,7 +975,7 @@ export default function ExperienceTab({ empId }: ExperienceTabProps) {
                         exp.reasonForTermination
                       )}`}
                     >
-                      {exp.reasonForTermination || '-'}
+                      {exp.reasonForTermination || "-"}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap font-medium">
@@ -886,8 +996,9 @@ export default function ExperienceTab({ empId }: ExperienceTabProps) {
         <div className="bg-gray-50 px-6 py-3 border-t border-gray-200">
           <div className="flex items-center justify-between text-xs text-gray-600">
             <div>
-              Showing{' '}
-              <span className="font-semibold">{experiences.length}</span> experience records
+              Showing{" "}
+              <span className="font-semibold">{experiences.length}</span>{" "}
+              experience records
             </div>
             <div className="flex items-center space-x-3">
               <div className="flex items-center">

@@ -27,7 +27,7 @@ const DepartmentForm = ({
   const [fax, setFax] = useState("");
   const [tele1, setTele1] = useState("");
   const [tele2, setTele2] = useState("");
-  const [pobox, setPobox] = useState("");
+  const [poBox, setPoBox] = useState("");
   const [deptLevel, setDeptLevel] = useState(0);
   const [message, setMessage] = useState<{
     text: string;
@@ -60,7 +60,7 @@ const DepartmentForm = ({
       setFax(dept.fax || "");
       setTele1(dept.tele1 || "");
       setTele2(dept.tele2 || "");
-      setPobox(dept.pobox || "");
+      setPoBox(dept.poBox || "");
       setDeptLevel(dept.deptLevel || 0);
     }
   }, [dept]);
@@ -72,7 +72,7 @@ const DepartmentForm = ({
         (department) => department.deptId === parentDeptId
       );
       if (parentDepartment) {
-        setDeptLevel(parentDepartment.deptLevel + 1); // Increment deptLevel based on parent's level
+        setDeptLevel((parentDepartment.deptLevel ?? 0) + 1); // Increment deptLevel based on parent's level, default to 0 if undefined
       }
     } else {
       setDeptLevel(0);
@@ -97,7 +97,7 @@ const DepartmentForm = ({
       fax,
       tele1,
       tele2,
-      pobox,
+      poBox,
       deptLevel,
     };
 
@@ -271,8 +271,8 @@ const DepartmentForm = ({
             </label>
             <input
               type="text"
-              value={pobox}
-              onChange={(e) => setPobox(e.target.value)}
+              value={poBox}
+              onChange={(e) => setPoBox(e.target.value)}
               className="w-full p-2 border rounded"
             />
           </div>

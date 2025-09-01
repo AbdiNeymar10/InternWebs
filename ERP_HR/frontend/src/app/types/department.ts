@@ -1,25 +1,10 @@
+// Unified DepartmentDto interface
 export interface DepartmentDto {
   deptId: number;
   deptName: string;
-  deptLevel: number;
-  parentId?: number;
-  children?: DepartmentDto[]; // Ensure this is typed correctly
-}
-
-
-
-// Example of DepartmentDto definition in TypeScript
-export interface DepartmentDto {
-
-  parentDeptId: number | null;
-
-}
-export interface DepartmentDto {
-  deptId: number;
-  deptName: string;
+  parentDeptId?: number | null;
+  deptLevel?: number;
   deptDescription?: string;
-
-
   estDate?: string;
   mission?: string;
   vision?: string;
@@ -28,5 +13,8 @@ export interface DepartmentDto {
   fax?: string;
   tele1?: string;
   tele2?: string;
-  pobox?: string;
+  poBox?: string;
+  children?: DepartmentDto[];
 }
+  
+

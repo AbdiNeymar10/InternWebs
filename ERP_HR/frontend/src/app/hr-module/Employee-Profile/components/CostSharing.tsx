@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import axios from "axios";
+import { authFetch } from "@/utils/authFetch";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiPlus, FiX, FiDollarSign, FiEdit2, FiTrash2 } from "react-icons/fi";
 
@@ -31,7 +31,7 @@ export default function CostSharingTab({ empId }: { empId: string }) {
   const fetchCostSharings = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(
+      const response = await authFetch(
         `http://localhost:8080/api/employees/${empId}/cost-sharings`,
         {
           headers: {
@@ -40,7 +40,11 @@ export default function CostSharingTab({ empId }: { empId: string }) {
           },
         }
       );
-      setCostSharings(response.data);
+      if (!response.ok) {
+        throw new Error("Failed to fetch cost sharings. Please try again.");
+      }
+      const data = await response.json();
+      setCostSharings(data);
       setError(null);
     } catch (err) {
       setError("Failed to fetch cost sharings. Please try again.");
@@ -77,35 +81,37 @@ export default function CostSharingTab({ empId }: { empId: string }) {
       const url = isUpdate
         ? `http://localhost:8080/api/employees/${empId}/cost-sharings/${costSharingData.id}`
         : `http://localhost:8080/api/employees/${empId}/cost-sharings`;
-
-      const method = isUpdate ? 'put' : 'post';
-      
-      const response = await axios[method](url, {
-        ...costSharingData,
-        totalAmount: Number(costSharingData.totalAmount),
-        amountPaid: Number(costSharingData.amountPaid),
-        employeeId: empId
-      }, {
-        headers: {
-          'Content-Type': 'application/json',
-          ...(isUpdate && { 'If-Match': '*' }) // For optimistic locking
-        }
+      const method = isUpdate ? "PUT" : "POST";
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (isUpdate) headers["If-Match"] = "*";
+      const response = await authFetch(url, {
+        method,
+        headers,
+        body: JSON.stringify({
+          ...costSharingData,
+          totalAmount: Number(costSharingData.totalAmount),
+          amountPaid: Number(costSharingData.amountPaid),
+          employeeId: empId,
+        }),
       });
-
+      if (!response.ok) {
+        if (response.status === 409) {
+          throw new Error(
+            "This record was modified by another user. Please refresh and try again."
+          );
+        }
+        const errorBody = await response.text();
+        throw new Error(errorBody || "Failed to save cost sharing");
+      }
       await fetchCostSharings();
       return true;
     } catch (err: any) {
-      let errorMessage = "Failed to save cost sharing";
-      if (err.response) {
-        if (err.response.status === 409) {
-          errorMessage = "This record was modified by another user. Please refresh and try again.";
-        } else {
-          errorMessage = err.response.data?.message || errorMessage;
-        }
-      }
-
+      let errorMessage =
+        err instanceof Error ? err.message : "Failed to save cost sharing";
       setError(errorMessage);
-      console.error("Detailed error:", err.response?.data);
+      console.error("Detailed error:", err);
       return false;
     }
   };
@@ -113,21 +119,30 @@ export default function CostSharingTab({ empId }: { empId: string }) {
   // Delete cost sharing
   const deleteCostSharing = async (id: number) => {
     try {
-      await axios.delete(
+      const response = await authFetch(
         `http://localhost:8080/api/employees/${empId}/cost-sharings/${id}`,
         {
+          method: "DELETE",
           headers: {
             "If-Match": "*",
           },
         }
       );
-
+      if (!response.ok) {
+        if (response.status === 409) {
+          throw new Error(
+            "This record was modified by another user. Please refresh and try again."
+          );
+        }
+        const errorBody = await response.text();
+        throw new Error(errorBody || "Failed to delete cost sharing");
+      }
       await fetchCostSharings();
       return true;
     } catch (err: any) {
       const errorMessage =
-        err.response?.status === 409
-          ? "This record was modified by another user. Please refresh and try again."
+        err instanceof Error && err.message
+          ? err.message
           : "Failed to delete cost sharing";
       setError(errorMessage);
       console.error("Error deleting cost sharing:", err);

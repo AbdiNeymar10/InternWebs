@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
-import axios from "axios";
+import { authFetch } from "@/utils/authFetch";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FiPlus,
@@ -171,12 +171,18 @@ const initialNewJobTypeFormData = {
   description: "",
 };
 
-export default function ExperienceTab() {
+interface EditExperienceTabProps {
+  empId: string;
+}
+
+export default function EditExperienceTab({ empId }: EditExperienceTabProps) {
   const [showExperienceForm, setShowExperienceForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [experiences, setExperiences] = useState<Experience[]>([]);
-  const [formData, setFormData] =
-    useState<Omit<Experience, "id">>(initialFormData);
+  const [formData, setFormData] = useState<Omit<Experience, "id">>({
+    ...initialFormData,
+    employeeId: empId,
+  });
   const [jobTypeOptions, setJobTypeOptions] = useState<JobTypeOption[]>([]);
 
   const [showNewJobTypeModal, setShowNewJobTypeModal] = useState(false);
@@ -197,27 +203,20 @@ export default function ExperienceTab() {
       try {
         setLoading(true);
         setError(null);
-        const response = await axios.get<Experience[]>(
-          `${API_URL}/employees/${employeeIdToFetch}/experience-records`, // UPDATED
+        const response = await authFetch(
+          `${API_URL}/employees/${employeeIdToFetch}/experience-records`,
           {
-            timeout: 5000,
             headers: { Accept: "application/json" },
           }
         );
-        setExperiences(response.data || []);
-      } catch (err) {
-        let errorMessage = "Failed to fetch experiences";
-        if (axios.isAxiosError(err)) {
-          if (err.code === "ECONNABORTED") {
-            errorMessage = "Request timeout. Please check your connection.";
-          } else if (err.response) {
-            errorMessage = `Server error: ${err.response.status} - ${
-              err.response.data?.message || err.response.statusText
-            }`;
-          } else if (err.request) {
-            errorMessage = "No response from server. Is the backend running?";
-          }
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(errorText || "Failed to fetch experiences");
         }
+        const data = await response.json();
+        setExperiences(data || []);
+      } catch (err: any) {
+        let errorMessage = err.message || "Failed to fetch experiences";
         setError(errorMessage);
         console.error("Error fetching experiences:", err);
         setExperiences([]);
@@ -230,29 +229,34 @@ export default function ExperienceTab() {
 
   const fetchJobTypes = useCallback(async () => {
     try {
-      const response = await axios.get<JobTypeOption[]>(
+      const response = await authFetch(
         `${API_URL}/jobtypes/titles-for-dropdown`
       );
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || "Failed to fetch job types");
+      }
+      const data = await response.json();
       setJobTypeOptions(
-        response.data.map((jobType) => ({
+        data.map((jobType: JobTypeOption) => ({
           id: jobType.id,
           jobTitle: jobType.jobTitle,
           jobTitleInAmharic: jobType.jobTitleInAmharic,
           code: jobType.code,
         }))
       );
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error fetching job types:", err);
-      setError("Failed to load job types for dropdowns.");
+      setError(err.message || "Failed to load job types for dropdowns.");
       setJobTypeOptions([]);
     }
   }, []);
 
   useEffect(() => {
-    setFormData((prev) => ({ ...prev, employeeId: "1" }));
-    fetchExperiences("1");
+    setFormData((prev) => ({ ...prev, employeeId: empId }));
+    fetchExperiences(empId);
     fetchJobTypes();
-  }, [fetchExperiences, fetchJobTypes]);
+  }, [fetchExperiences, fetchJobTypes, empId]);
 
   const saveExperience = async (
     experienceDataToSave: Omit<Experience, "id">,
@@ -268,44 +272,41 @@ export default function ExperienceTab() {
 
       let response;
       if (currentId) {
-        // For updates, we no longer need to fetch for version.
-        // We directly use the currentId for the PUT request.
         payloadForSave.id = currentId;
-
-        response = await axios.put(
-          `${API_URL}/employees/${pathEmployeeId}/experience-records/${currentId}`, // UPDATED
-          payloadForSave
+        response = await authFetch(
+          `${API_URL}/employees/${pathEmployeeId}/experience-records/${currentId}`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payloadForSave),
+          }
         );
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(errorText || "Failed to update experience");
+        }
         setSuccessMessage("Experience updated successfully!");
       } else {
-        // For creates, remove id (it's already omitted in the type)
-        const { id, ...createPayload } = payloadForSave as Experience; // Cast to include id for destructuring
-        response = await axios.post(
-          `${API_URL}/employees/${pathEmployeeId}/experience-records`, // UPDATED
-          createPayload
+        const { id, ...createPayload } = payloadForSave as Experience;
+        response = await authFetch(
+          `${API_URL}/employees/${pathEmployeeId}/experience-records`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(createPayload),
+          }
         );
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(errorText || "Failed to add experience");
+        }
         setSuccessMessage("Experience added successfully!");
       }
 
       await fetchExperiences(pathEmployeeId);
       return true;
-    } catch (err) {
-      let errorMessage = "Failed to save experience";
-      if (axios.isAxiosError(err)) {
-        // Note: 409 conflict for versioning is removed as version field is gone
-        if (err.response?.data?.message) {
-          errorMessage = err.response.data.message;
-        } else if (err.response?.data) {
-          errorMessage =
-            typeof err.response.data === "string"
-              ? err.response.data
-              : JSON.stringify(err.response.data);
-        } else if (err.code === "ECONNABORTED") {
-          errorMessage = "Request timeout.";
-        } else if (err.request) {
-          errorMessage = "No response from server.";
-        }
-      }
+    } catch (err: any) {
+      let errorMessage = err.message || "Failed to save experience";
       setError(errorMessage);
       console.error("Error saving experience:", err);
       return false;
@@ -423,35 +424,30 @@ export default function ExperienceTab() {
       setNewJobTypeLoading(true);
       setNewJobTypeError(null);
 
-      const response = await axios.post<JobTypeOption>(
-        `${API_URL}/jobtypes`,
-        newJobTypeFormData
-      );
-
+      const response = await authFetch(`${API_URL}/jobtypes`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newJobTypeFormData),
+      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || "Failed to add new job type");
+      }
       await fetchJobTypes();
       setShowNewJobTypeModal(false);
       setNewJobTypeFormData(initialNewJobTypeFormData);
-
-      if (response.data) {
+      const data = await response.json();
+      if (data) {
         setFormData((prev) => ({
           ...prev,
-          jobTitle: response.data.jobTitle,
-          jobTitleInAmharic: response.data.jobTitleInAmharic || "",
+          jobTitle: data.jobTitle,
+          jobTitleInAmharic: data.jobTitleInAmharic || "",
         }));
       }
       setSuccessMessage("New job type added successfully!");
-    } catch (err) {
-      let errorMessage = "Failed to save new job type.";
-      if (axios.isAxiosError(err)) {
-        if (err.response?.data?.message) {
-          errorMessage = err.response.data.message;
-        } else if (err.response?.data) {
-          errorMessage =
-            typeof err.response.data === "string"
-              ? err.response.data
-              : JSON.stringify(err.response.data);
-        }
-      }
+    } catch (err: any) {
+      let errorMessage =
+        err && err.message ? err.message : "Failed to save new job type.";
       setNewJobTypeError(errorMessage);
       console.error("Error saving new job type:", err);
     } finally {

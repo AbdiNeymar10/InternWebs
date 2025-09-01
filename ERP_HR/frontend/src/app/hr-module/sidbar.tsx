@@ -616,7 +616,7 @@ export default function Sidebar({ className, hidden = false }: SidebarProps) {
               </div>
             )}
           </div>
-
+ 
           {/* Authority Delegation Dropdown */}
           <div>
             <button
@@ -624,7 +624,7 @@ export default function Sidebar({ className, hidden = false }: SidebarProps) {
               className="flex items-center justify-between w-full p-2 hover:bg-gray-700 rounded"
             >
               <div className="flex items-center gap-2">
-                <FaUserShield className="text-[#3c8dbc] mr-2" />
+                <FaUserShield className="w-4 h-4" />
                 <span>Authority Delegation</span>
               </div>
               {openMenus.AuthorityDelegation ? (
@@ -639,7 +639,7 @@ export default function Sidebar({ className, hidden = false }: SidebarProps) {
                   href="/hr-module/Authority-Delegation/Assign-Delegation"
                   className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
                 >
-                  <FontAwesomeIcon icon={faUserPlus} className="mr-2" />
+                  <FontAwesomeIcon icon={faUserPlus} className="w-4 h-4" />
                   Assign Delegation
                 </Link>
                 <Link
@@ -648,7 +648,7 @@ export default function Sidebar({ className, hidden = false }: SidebarProps) {
                 >
                   <FontAwesomeIcon
                     icon={faUserFriendsSolid}
-                    className="text-[#3c8dbc] w-5 h-5"
+                    className="w-4 h-4"
                   />
                   Delegation Benefit
                 </Link>
@@ -656,14 +656,14 @@ export default function Sidebar({ className, hidden = false }: SidebarProps) {
                   href="/hr-module/Authority-Delegation/Terminate-Delegation"
                   className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
                 >
-                  <XCircleIcon className="h-5 w-5 mr-2" />
+                  <XCircleIcon className="w-4 h-4 " />
                   Terminate Delegation
                 </Link>
                 <Link
                   href="/hr-module/Authority-Delegation/Delegation-History"
                   className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
                 >
-                  <FaHistory />
+                  <FaHistory className="w-4 h-4" />
                   Delegation History
                 </Link>
               </div>

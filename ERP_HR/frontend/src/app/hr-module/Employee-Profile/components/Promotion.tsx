@@ -1,7 +1,7 @@
-'use client';
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { FiPlus, FiX, FiCalendar, FiEdit2, FiCheck } from 'react-icons/fi';
+"use client";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { FiPlus, FiX, FiCalendar, FiEdit2, FiCheck } from "react-icons/fi";
 
 type PromotionRecord = {
   id: string;
@@ -19,9 +19,13 @@ type PromotionRecord = {
   branchTo: string;
 };
 
-const statusOptions = ['Approved', 'Pending', 'Rejected'];
+const statusOptions = ["Approved", "Pending", "Rejected"];
 
-export default function PromotionTab() {
+interface PromotionTabProps {
+  empId: string;
+}
+
+export default function PromotionTab({ empId }: PromotionTabProps) {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
@@ -32,9 +36,9 @@ export default function PromotionTab() {
   useEffect(() => {
     const fetchPromotions = async () => {
       try {
-        const response = await fetch('http://localhost:8081/api/promotions');
+        const response = await fetch("http://localhost:8081/api/promotions");
         if (!response.ok) {
-          throw new Error('Failed to fetch promotions');
+          throw new Error("Failed to fetch promotions");
         }
         const data = await response.json();
         setPromotions(
@@ -45,7 +49,7 @@ export default function PromotionTab() {
           }))
         );
       } catch (error) {
-        console.error('Error fetching promotions:', error);
+        console.error("Error fetching promotions:", error);
       } finally {
         setIsLoading(false);
       }
@@ -53,23 +57,25 @@ export default function PromotionTab() {
     fetchPromotions();
   }, []);
 
-  const [formData, setFormData] = useState<Omit<PromotionRecord, 'id'>>({
-    fromDepartment: '',
-    toDepartment: '',
-    jobTitle: '',
-    icfLabel: '',
-    stepNo: '',
-    salary: '',
-    promotedDate: '',
-    jobResponse: '',
-    status: '',
-    refNo: '',
-    branchFrom: '',
-    branchTo: '',
+  const [formData, setFormData] = useState<Omit<PromotionRecord, "id">>({
+    fromDepartment: "",
+    toDepartment: "",
+    jobTitle: "",
+    icfLabel: "",
+    stepNo: "",
+    salary: "",
+    promotedDate: "",
+    jobResponse: "",
+    status: "",
+    refNo: "",
+    branchFrom: "",
+    branchTo: "",
   });
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
   ) => {
     const { name, value } = e.target;
     setFormData({
@@ -88,21 +94,21 @@ export default function PromotionTab() {
 
     try {
       let response;
-      let method = editingId ? 'PUT' : 'POST';
+      let method = editingId ? "PUT" : "POST";
       let url = editingId
         ? `http://localhost:8080/api/hr-emp-promotion/${editingId}`
-        : 'http://localhost:8080/api/hr-emp-promotion';
+        : "http://localhost:8080/api/hr-emp-promotion";
 
       response = await fetch(url, {
         method,
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(promotionRecord),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to save record');
+        throw new Error("Failed to save record");
       }
 
       const savedRecord = await response.json();
@@ -114,7 +120,10 @@ export default function PromotionTab() {
           )
         );
       } else {
-        setPromotions([...promotions, { ...savedRecord, id: savedRecord.id.toString() }]);
+        setPromotions([
+          ...promotions,
+          { ...savedRecord, id: savedRecord.id.toString() },
+        ]);
       }
 
       setSubmitSuccess(true);
@@ -122,8 +131,8 @@ export default function PromotionTab() {
       setShowForm(false);
       resetForm();
     } catch (error) {
-      console.error('Error saving promotion:', error);
-      alert('Failed to save promotion. Please try again.');
+      console.error("Error saving promotion:", error);
+      alert("Failed to save promotion. Please try again.");
     }
   };
 
@@ -148,51 +157,57 @@ export default function PromotionTab() {
 
   const resetForm = () => {
     setFormData({
-      fromDepartment: '',
-      toDepartment: '',
-      jobTitle: '',
-      icfLabel: '',
-      stepNo: '',
-      salary: '',
-      promotedDate: '',
-      jobResponse: '',
-      status: '',
-      refNo: '',
-      branchFrom: '',
-      branchTo: '',
+      fromDepartment: "",
+      toDepartment: "",
+      jobTitle: "",
+      icfLabel: "",
+      stepNo: "",
+      salary: "",
+      promotedDate: "",
+      jobResponse: "",
+      status: "",
+      refNo: "",
+      branchFrom: "",
+      branchTo: "",
     });
     setEditingId(null);
   };
 
   const formatDate = (dateString: string) => {
-    if (!dateString) return '';
+    if (!dateString) return "";
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
   };
 
   const formatSalary = (salary: string) => {
-    if (!salary) return '-';
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
+    if (!salary) return "-";
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
       maximumFractionDigits: 0,
     }).format(Number(salary));
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Approved':
-        return 'bg-green-100 text-green-800';
-      case 'Pending':
-        return 'bg-amber-100 text-amber-800';
-      case 'Rejected':
-        return 'bg-red-100 text-red-800';
+      case "Approved":
+        return "bg-green-100 text-green-800";
+      case "Pending":
+        return "bg-amber-100 text-amber-800";
+      case "Rejected":
+        return "bg-red-100 text-red-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   };
 
-  const formTitle = editingId ? 'Edit Promotion Record' : 'Add New Promotion Record';
+  const formTitle = editingId
+    ? "Edit Promotion Record"
+    : "Add New Promotion Record";
 
   return (
     <div className="space-y-6 relative">
@@ -231,7 +246,10 @@ export default function PromotionTab() {
                   }}
                   className="p-1 rounded-full hover:bg-gray-100 transition-all"
                 >
-                  <FiX size={18} className="text-gray-500 hover:text-gray-700" />
+                  <FiX
+                    size={18}
+                    className="text-gray-500 hover:text-gray-700"
+                  />
                 </button>
               </div>
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -390,7 +408,9 @@ export default function PromotionTab() {
                       Salary*
                     </label>
                     <div className="relative">
-                      <span className="absolute left-2 top-2 text-gray-400 text-xs">$</span>
+                      <span className="absolute left-2 top-2 text-gray-400 text-xs">
+                        $
+                      </span>
                       <input
                         type="number"
                         name="salary"
@@ -452,7 +472,9 @@ export default function PromotionTab() {
                   <button
                     type="submit"
                     className={`px-3 py-1.5 ${
-                      submitSuccess ? 'bg-green-600 hover:bg-green-700' : 'bg-[#3c8dbc] hover:bg-[#367fa9]'
+                      submitSuccess
+                        ? "bg-green-600 hover:bg-green-700"
+                        : "bg-[#3c8dbc] hover:bg-[#367fa9]"
                     } text-white rounded-md transition-all shadow hover:shadow-md text-xs font-medium flex items-center gap-1`}
                   >
                     {submitSuccess ? (
@@ -461,9 +483,9 @@ export default function PromotionTab() {
                         Success!
                       </>
                     ) : editingId ? (
-                      'Update'
+                      "Update"
                     ) : (
-                      'Save'
+                      "Save"
                     )}
                   </button>
                   <button
@@ -486,7 +508,9 @@ export default function PromotionTab() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3 }}
-        className={`bg-white rounded-xl shadow-lg overflow-hidden ${showForm ? 'blur-sm' : ''}`}
+        className={`bg-white rounded-xl shadow-lg overflow-hidden ${
+          showForm ? "blur-sm" : ""
+        }`}
       >
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 bg-[#3c8dbc] rounded-lg shadow-md p-2 md:p-3 text-white h-[50px]">
           <div className="flex items-center">
@@ -506,7 +530,9 @@ export default function PromotionTab() {
             </svg>
             <div>
               <h1 className="text-[14px] font-bold">Promotion Records</h1>
-              <p className="text-blue-100 text-xs">Manage your promotion history</p>
+              <p className="text-blue-100 text-xs">
+                Manage your promotion history
+              </p>
             </div>
           </div>
           <button
@@ -525,22 +551,22 @@ export default function PromotionTab() {
             <thead className="bg-gray-50">
               <tr>
                 {[
-                  'NO',
-                  'From Department',
-                  'To Department',
-                  'Job Title',
-                  'Promoted Date',
-                  'Status',
-                  'Salary',
+                  "NO",
+                  "From Department",
+                  "To Department",
+                  "Job Title",
+                  "Promoted Date",
+                  "Status",
+                  "Salary",
                   <FiEdit2 key="edit-icon" size={16} className="inline" />,
                 ].map((header, idx) => (
                   <motion.th
-                    key={typeof header === 'string' ? header : 'edit-header'}
+                    key={typeof header === "string" ? header : "edit-header"}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 * idx }}
                     className="px-6 py-3 text-left font-bold text-gray-700 tracking-wider"
-                    style={{ fontSize: '12px' }}
+                    style={{ fontSize: "12px" }}
                   >
                     {header}
                   </motion.th>
@@ -554,10 +580,12 @@ export default function PromotionTab() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.05 * idx }}
-                  whileHover={{ backgroundColor: '#f8fafc' }}
+                  whileHover={{ backgroundColor: "#f8fafc" }}
                   className="transition-colors"
                 >
-                  <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{idx + 1}</td>
+                  <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">
+                    {idx + 1}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gradient-to-r from-blue-100 to-indigo-100 flex items-center justify-center">
@@ -566,17 +594,27 @@ export default function PromotionTab() {
                         </span>
                       </div>
                       <div className="ml-3">
-                        <div className="text-xs font-semibold text-gray-500">{promo.fromDepartment}</div>
-                        <div className="text-xs text-gray-400">{promo.branchFrom}</div>
+                        <div className="text-xs font-semibold text-gray-500">
+                          {promo.fromDepartment}
+                        </div>
+                        <div className="text-xs text-gray-400">
+                          {promo.branchFrom}
+                        </div>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-xs font-semibold text-gray-500">{promo.toDepartment}</div>
-                    <div className="text-xs text-gray-400">{promo.branchTo}</div>
+                    <div className="text-xs font-semibold text-gray-500">
+                      {promo.toDepartment}
+                    </div>
+                    <div className="text-xs text-gray-400">
+                      {promo.branchTo}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-xs font-semibold text-gray-500">{promo.jobTitle}</div>
+                    <div className="text-xs font-semibold text-gray-500">
+                      {promo.jobTitle}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-1 text-xs text-gray-500">
@@ -586,13 +624,17 @@ export default function PromotionTab() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
-                      className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(promo.status)}`}
+                      className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
+                        promo.status
+                      )}`}
                     >
                       {promo.status}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-xs font-semibold text-gray-500">{formatSalary(promo.salary)}</div>
+                    <div className="text-xs font-semibold text-gray-500">
+                      {formatSalary(promo.salary)}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap font-medium">
                     <div className="flex gap-3">
@@ -614,7 +656,8 @@ export default function PromotionTab() {
         <div className="bg-gray-50 px-6 py-3 border-t border-gray-200">
           <div className="flex items-center justify-between text-xs text-gray-600">
             <div>
-              Showing <span className="font-semibold">{promotions.length}</span> promotion records
+              Showing <span className="font-semibold">{promotions.length}</span>{" "}
+              promotion records
             </div>
             <div className="flex items-center space-x-3">
               <div className="flex items-center">

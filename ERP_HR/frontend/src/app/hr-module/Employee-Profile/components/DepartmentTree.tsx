@@ -1,8 +1,8 @@
 // DepartmentTree.tsx
-import { useEffect, useState } from 'react';
-import { getChildren } from '../services/departmentService';
-import { DepartmentDto } from '../types/department';
-import { FaPlusSquare, FaMinusSquare } from 'react-icons/fa';
+import { useEffect, useState } from "react";
+import { getChildren } from "../services/departmentService";
+import { DepartmentDto } from "../types/department";
+import { FaPlusSquare, FaMinusSquare } from "react-icons/fa";
 
 interface DepartmentTreeProps {
   dept: DepartmentDto;
@@ -38,7 +38,7 @@ const DepartmentTree = ({
 
   // Auto-expand root department
   useEffect(() => {
-    if (dept.deptId === 61) {
+    if (dept.deptId === 2) {
       toggle();
     }
   }, [dept]);
@@ -46,19 +46,19 @@ const DepartmentTree = ({
   return (
     <div style={{ marginLeft: level * 20 }} className="mb-1">
       <div
-        className={`flex items-center hover:bg-gray-100 p-1 rounded cursor-pointer ${
-          selectedDeptId === dept.deptId ? 'bg-blue-100' : ''
-        }`}
+        className={`flex items-center hover:bg-gray-100 p-1 rounded cursor-pointer`}
+        onClick={() => onSelect && onSelect(dept)}
       >
-        <button onClick={toggle} className="mr-2">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            toggle();
+          }}
+          className="mr-2"
+        >
           {expanded ? <FaMinusSquare /> : <FaPlusSquare />}
         </button>
-        <span
-          onClick={() => (onSelect ? onSelect(dept) : onEdit?.(dept))}
-          className="flex-grow"
-        >
-          {dept.deptName}
-        </span>
+        <span className="flex-grow">{dept.deptName}</span>
       </div>
       {expanded &&
         children.map((child) => (

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { authFetch } from "@/utils/authFetch";
 import LanguageForm from "./LanguageForm";
 import { FiTrash2, FiEdit2, FiPlus, FiX, FiCheck } from "react-icons/fi";
 import { motion } from "framer-motion";
@@ -20,7 +21,9 @@ interface LanguageOption {
 
 const LanguageSkillsTable = ({ empId }: { empId: string }) => {
   const [showForm, setShowForm] = useState(false);
-  const [currentLanguage, setCurrentLanguage] = useState<LanguageSkill | null>(null);
+  const [currentLanguage, setCurrentLanguage] = useState<LanguageSkill | null>(
+    null
+  );
   const [languages, setLanguages] = useState<LanguageSkill[]>([]);
   const [languageOptions, setLanguageOptions] = useState<LanguageOption[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -30,15 +33,17 @@ const LanguageSkillsTable = ({ empId }: { empId: string }) => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch(`http://localhost:8080/api/employees/${empId}/languages`);
+      const response = await authFetch(
+        `http://localhost:8080/api/employees/${empId}/languages`
+      );
       if (!response.ok) {
-        throw new Error('Failed to fetch language skills');
+        throw new Error("Failed to fetch language skills");
       }
       const data = await response.json();
       setLanguages(data);
     } catch (err) {
-      console.error('Error fetching language skills:', err);
-      setError('Failed to load language skills');
+      console.error("Error fetching language skills:", err);
+      setError("Failed to load language skills");
     } finally {
       setIsLoading(false);
     }
@@ -46,33 +51,35 @@ const LanguageSkillsTable = ({ empId }: { empId: string }) => {
 
   const fetchLanguageOptions = async () => {
     try {
-      const response = await fetch('http://localhost:8080/api/languages');
+      const response = await authFetch("http://localhost:8080/api/languages");
       if (!response.ok) {
-        throw new Error('Failed to fetch language options');
+        throw new Error("Failed to fetch language options");
       }
       const data = await response.json();
       setLanguageOptions(data);
     } catch (err) {
-      console.error('Error fetching language options:', err);
+      console.error("Error fetching language options:", err);
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this language skill?')) {
+    if (
+      window.confirm("Are you sure you want to delete this language skill?")
+    ) {
       try {
-        const response = await fetch(
+        const response = await authFetch(
           `http://localhost:8080/api/employees/${empId}/languages/${id}`,
-          { method: 'DELETE' }
+          { method: "DELETE" }
         );
-        
+
         if (!response.ok) {
-          throw new Error('Failed to delete language skill');
+          throw new Error("Failed to delete language skill");
         }
-        
+
         fetchLanguages();
       } catch (error) {
-        console.error('Error deleting language skill:', error);
-        alert('Failed to delete language skill');
+        console.error("Error deleting language skill:", error);
+        alert("Failed to delete language skill");
       }
     }
   };
@@ -92,50 +99,63 @@ const LanguageSkillsTable = ({ empId }: { empId: string }) => {
     listening: string;
   }) => {
     try {
-      const url = currentLanguage 
+      const url = currentLanguage
         ? `http://localhost:8080/api/employees/${empId}/languages/${currentLanguage.id}`
         : `http://localhost:8080/api/employees/${empId}/languages`;
-      
-      const method = currentLanguage ? 'PUT' : 'POST';
-      
-      const response = await fetch(url, {
+
+      const method = currentLanguage ? "PUT" : "POST";
+
+      const response = await authFetch(url, {
         method,
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           languageTypeId: formData.languageTypeId,
           reading: formData.reading,
           writing: formData.writing,
           listening: formData.listening,
-          speaking: formData.speaking
+          speaking: formData.speaking,
         }),
       });
 
       if (!response.ok) {
         const errorBody = await response.text();
-        console.error("API Error saving language skill:", response.status, errorBody);
-        const baseMessage = currentLanguage ? 'Failed to update language skill' : 'Failed to add language skill';
-        throw new Error(`${baseMessage}. Server responded with: ${response.status} ${errorBody || ''}`);
+        console.error(
+          "API Error saving language skill:",
+          response.status,
+          errorBody
+        );
+        const baseMessage = currentLanguage
+          ? "Failed to update language skill"
+          : "Failed to add language skill";
+        throw new Error(
+          `${baseMessage}. Server responded with: ${response.status} ${
+            errorBody || ""
+          }`
+        );
       }
 
       fetchLanguages();
       setShowForm(false);
       setCurrentLanguage(null);
     } catch (error) {
-      console.error('Error saving language skill:', error);
-      const message = error instanceof Error ? error.message : 'Error saving language skill. Please try again.';
+      console.error("Error saving language skill:", error);
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Error saving language skill. Please try again.";
       alert(message);
     }
   };
 
   const getSkillColor = (skill: string) => {
     const colors: Record<string, string> = {
-      "Excellent": "bg-emerald-100 text-emerald-800",
+      Excellent: "bg-emerald-100 text-emerald-800",
       "Very Good": "bg-teal-100 text-teal-800",
-      "Good": "bg-blue-100 text-blue-800",
-      "Fair": "bg-amber-100 text-amber-800",
-      "Poor": "bg-red-100 text-red-800",
+      Good: "bg-blue-100 text-blue-800",
+      Fair: "bg-amber-100 text-amber-800",
+      Poor: "bg-red-100 text-red-800",
     };
     return colors[skill] || "bg-gray-100 text-gray-800";
   };
@@ -175,18 +195,25 @@ const LanguageSkillsTable = ({ empId }: { empId: string }) => {
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 bg-[#3c8dbc] rounded-lg shadow-md p-2 md:p-3 text-white h-[50px]">
           <div className="flex items-center">
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              className="h-5 w-5 mr-2 text-blue-100" 
-              fill="none" 
-              viewBox="0 0 24 24" 
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5 mr-2 text-blue-100"
+              fill="none"
+              viewBox="0 0 24 24"
               stroke="currentColor"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"
+              />
             </svg>
             <div>
               <h1 className="text-[14px] font-bold">Language Proficiency</h1>
-              <p className="text-blue-100 text-xs">Manage your language skills</p>
+              <p className="text-blue-100 text-xs">
+                Manage your language skills
+              </p>
             </div>
           </div>
           <button
@@ -204,78 +231,123 @@ const LanguageSkillsTable = ({ empId }: { empId: string }) => {
         <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
           {showForm ? (
             <div className="p-6">
-              <LanguageForm 
-                onSubmit={handleAddLanguage} 
+              <LanguageForm
+                onSubmit={handleAddLanguage}
                 onCancel={() => {
                   setShowForm(false);
                   setCurrentLanguage(null);
                 }}
                 languageOptions={languageOptions}
-                initialData={currentLanguage ? {
-                  languageTypeId: currentLanguage.languageTypeId,
-                  reading: currentLanguage.reading,
-                  writing: currentLanguage.writing,
-                  listening: currentLanguage.listening,
-                  speaking: currentLanguage.speaking
-                } : null}
+                initialData={
+                  currentLanguage
+                    ? {
+                        languageTypeId: currentLanguage.languageTypeId,
+                        reading: currentLanguage.reading,
+                        writing: currentLanguage.writing,
+                        listening: currentLanguage.listening,
+                        speaking: currentLanguage.speaking,
+                      }
+                    : null
+                }
               />
             </div>
           ) : (
             <>
-              <div className="overflow-x-auto" style={{ maxHeight: 'calc(100vh - 250px)', overflowY: 'auto' }}>
+              <div
+                className="overflow-x-auto"
+                style={{ maxHeight: "calc(100vh - 250px)", overflowY: "auto" }}
+              >
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50 sticky top-0">
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-black-500 uppercase tracking-wider">NO</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-black-500 uppercase tracking-wider">Language</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-black-500 uppercase tracking-wider">Reading</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-black-500 uppercase tracking-wider">Writing</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-black-500 uppercase tracking-wider">Listening</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-black-500 uppercase tracking-wider">Speaking</th>
-                      <th className="px-4 py-3 text-right text-xs font-semibold text-black-500 uppercase tracking-wider">Actions</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-black-500 uppercase tracking-wider">
+                        NO
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-black-500 uppercase tracking-wider">
+                        Language
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-black-500 uppercase tracking-wider">
+                        Reading
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-black-500 uppercase tracking-wider">
+                        Writing
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-black-500 uppercase tracking-wider">
+                        Listening
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-black-500 uppercase tracking-wider">
+                        Speaking
+                      </th>
+                      <th className="px-4 py-3 text-right text-xs font-semibold text-black-500 uppercase tracking-wider">
+                        Actions
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {languages.length > 0 ? (
                       languages.map((lang, index) => (
-                        <tr key={lang.id} className="hover:bg-gray-50 transition-colors">
-                          <td className="px-4 py-3 whitespace-nowrap text-xs font-semibold text-gray-500">{index + 1}</td>
+                        <tr
+                          key={lang.id}
+                          className="hover:bg-gray-50 transition-colors"
+                        >
+                          <td className="px-4 py-3 whitespace-nowrap text-xs font-semibold text-gray-500">
+                            {index + 1}
+                          </td>
                           <td className="px-4 py-3 whitespace-nowrap">
                             <div className="flex items-center">
                               <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gradient-to-r from-purple-100 to-indigo-100 flex items-center justify-center">
                                 <span className="text-indigo-600 font-semibold text-xs uppercase">
-                                  {lang.languageName && lang.languageName.length > 0
+                                  {lang.languageName &&
+                                  lang.languageName.length > 0
                                     ? lang.languageName.charAt(0)
-                                    : '?'}
+                                    : "?"}
                                 </span>
                               </div>
                               <div className="ml-3">
-                                <div className="text-xs font-semibold text-gray-500">{lang.languageName}</div>
+                                <div className="text-xs font-semibold text-gray-500">
+                                  {lang.languageName}
+                                </div>
                               </div>
                             </div>
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
-                            <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getSkillColor(lang.reading)}`}>
+                            <span
+                              className={`px-2 py-1 text-xs font-semibold rounded-full ${getSkillColor(
+                                lang.reading
+                              )}`}
+                            >
                               {lang.reading}
                             </span>
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
-                            <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getSkillColor(lang.writing)}`}>
+                            <span
+                              className={`px-2 py-1 text-xs font-semibold rounded-full ${getSkillColor(
+                                lang.writing
+                              )}`}
+                            >
                               {lang.writing}
                             </span>
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
-                            <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getSkillColor(lang.listening)}`}>
+                            <span
+                              className={`px-2 py-1 text-xs font-semibold rounded-full ${getSkillColor(
+                                lang.listening
+                              )}`}
+                            >
                               {lang.listening}
                             </span>
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
-                            <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getSkillColor(lang.speaking)}`}>
+                            <span
+                              className={`px-2 py-1 text-xs font-semibold rounded-full ${getSkillColor(
+                                lang.speaking
+                              )}`}
+                            >
                               {lang.speaking}
                             </span>
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap text-right text-xs font-medium flex gap-2 justify-end">
-                            <button 
+                            <button
                               className="p-1.5 rounded-md bg-blue-50 hover:bg-blue-100 text-blue-600 transition-colors duration-200"
                               onClick={() => {
                                 setCurrentLanguage(lang);
@@ -299,17 +371,27 @@ const LanguageSkillsTable = ({ empId }: { empId: string }) => {
                       <tr>
                         <td colSpan={7} className="px-6 py-12 text-center">
                           <div className="flex flex-col items-center justify-center">
-                            <svg 
-                              xmlns="http://www.w3.org/2000/svg" 
-                              className="text-gray-300 text-4xl mb-3 h-12 w-12" 
-                              fill="none" 
-                              viewBox="0 0 24 24" 
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="text-gray-300 text-4xl mb-3 h-12 w-12"
+                              fill="none"
+                              viewBox="0 0 24 24"
                               stroke="currentColor"
                             >
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"
+                              />
                             </svg>
-                            <h3 className="text-base font-medium text-gray-500">No language skills found</h3>
-                            <p className="text-gray-400 mt-1 text-sm">Click "Add Language" to add your first language skill</p>
+                            <h3 className="text-base font-medium text-gray-500">
+                              No language skills found
+                            </h3>
+                            <p className="text-gray-400 mt-1 text-sm">
+                              Click "Add Language" to add your first language
+                              skill
+                            </p>
                             <button
                               onClick={() => setShowForm(true)}
                               className="mt-3 flex items-center bg-[#3c8dbc] hover:bg-[#367fa9] text-white px-4 py-1.5 rounded-md shadow-sm hover:shadow transition-all duration-300 text-sm"
@@ -328,7 +410,11 @@ const LanguageSkillsTable = ({ empId }: { empId: string }) => {
               {languages.length > 0 && (
                 <div className="bg-gray-50 px-6 py-3 border-t border-gray-200">
                   <div className="flex items-center justify-between text-xs text-gray-600">
-                    <div>Showing <span className="font-semibold">{languages.length}</span> languages</div>
+                    <div>
+                      Showing{" "}
+                      <span className="font-semibold">{languages.length}</span>{" "}
+                      languages
+                    </div>
                     <div className="flex items-center space-x-3">
                       <div className="flex items-center">
                         <span className="w-2 h-2 rounded-full bg-emerald-500 mr-1.5"></span>

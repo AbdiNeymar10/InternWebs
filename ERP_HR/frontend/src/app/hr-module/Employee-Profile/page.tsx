@@ -1,5 +1,6 @@
 "use client";
 import EmployeeProfile from "../Employee-Profile/components/profile";
+import { authFetch } from "@/utils/authFetch";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import LanguageSkillsTable from "../Employee-Profile/components/LanguageSkillsTable";
@@ -9,10 +10,10 @@ import AddressTab from "../Employee-Profile/components/Address";
 import TrainingTab from "../Employee-Profile/components/Training";
 import CostSharingTab from "../Employee-Profile/components/CostSharing";
 import EditExperienceTab from "../Employee-Profile/components/EditExperience";
-import Education from '../Employee-Profile/components/Education';
-import Experience from '../Employee-Profile/components/Experience';
-import Promotion from '../Employee-Profile/components/Promotion';
-import Upload from '../Employee-Profile/components/Upload';
+import Education from "../Employee-Profile/components/Education";
+import Experience from "../Employee-Profile/components/Experience";
+import Promotion from "../Employee-Profile/components/Promotion";
+import Upload from "../Employee-Profile/components/Upload";
 
 import {
   FiUserPlus,
@@ -62,25 +63,87 @@ type Employee = {
   gender: string;
   dateOfBirth: string;
   nationality?: string | NationalityDetail | null;
-  position: string | PositionDetail;
-  department: string | Department;
+  position?: PositionDetail | null;
+  department?: Department | null;
   status: string | number | null;
   photo?: string;
   [key: string]: any;
 };
 
+// Map Employee to EmployeeFormProps['employeeData']
+function mapEmployeeToFormData(employee: Employee | null): any {
+  if (!employee) return null;
+  return {
+    empId: employee.empId,
+    firstName: employee.firstName,
+    middleName: employee.middleName || "",
+    lastName: employee.lastName,
+    efirstName: employee.efirstName || "",
+    emiddleName: employee.emiddleName || "",
+    elastName: employee.elastName || "",
+    dateOfBirth: employee.dateOfBirth || "",
+    sex: employee.gender || "Male",
+    maritalStatus: employee.maritalStatus || "",
+    salary: employee.salary || "",
+    hiredDate: employee.hiredDate || "",
+    birthDate: employee.birthDate || "",
+    accountNo: employee.accountNo || "",
+    positionStatus: employee.positionStatus || "",
+    terminationDate: employee.terminationDate || "",
+    tinNumer: employee.tinNumer || "",
+    rankId: employee.rankId || "",
+    pensionNumber: employee.pensionNumber || "",
+    tess: employee.tess || "",
+    dedactionDescriptive: employee.dedactionDescriptive || "",
+    contractEnd: employee.contractEnd || "",
+    department: employee.department
+      ? {
+          deptId: employee.department.deptId,
+          depName: employee.department.depName,
+        }
+      : undefined,
+    nationality: employee.nationality
+      ? {
+          nationalityId:
+            typeof employee.nationality === "object"
+              ? employee.nationality.nationalityId
+              : employee.nationality,
+        }
+      : undefined,
+    religion: employee.religion ? { id: employee.religion.id } : undefined,
+    nation: employee.nation
+      ? { nationCode: employee.nation.nationCode }
+      : undefined,
+    jobType: employee.position ? { id: employee.position.id } : undefined,
+    icf: employee.icf ? { id: employee.icf.id } : undefined,
+    jobResponsibility: employee.jobResponsibility
+      ? { id: employee.jobResponsibility.id }
+      : undefined,
+    position: employee.position ? { id: employee.position.id } : undefined,
+    title: employee.title ? { titleId: employee.title.titleId } : undefined,
+    employmentType: employee.employmentType
+      ? { id: employee.employmentType.id }
+      : undefined,
+    recruitmentType: employee.recruitmentType
+      ? { recruitmentType: employee.recruitmentType.recruitmentType }
+      : undefined,
+    jobFamily: employee.jobFamily ? { id: employee.jobFamily.id } : undefined,
+    branch: employee.branch ? { id: employee.branch.id } : undefined,
+    retirementNo: employee.retirementNo || "",
+  };
+}
 // Maps backend HrEmployee to frontend Employee
 const mapHrEmployeeToEmployee = (hrEmployee: any): Employee => ({
   id: hrEmployee.id || parseInt(hrEmployee.empId, 10),
   empId: hrEmployee.empId,
-  firstName: hrEmployee.firstName || '',
+  firstName: hrEmployee.firstName || "",
   middleName: hrEmployee.middleName,
-  lastName: hrEmployee.lastName || '',
+  lastName: hrEmployee.lastName || "",
   efirstName: hrEmployee.efirstName,
   emiddleName: hrEmployee.emiddleName,
   elastName: hrEmployee.elastName,
-  gender: hrEmployee.sex || 'Unknown',
-  dateOfBirth: hrEmployee.dateOfBirth || hrEmployee.birthDate || '',
+  gender: hrEmployee.sex || "Unknown",
+  dateOfBirth: hrEmployee.dateOfBirth || hrEmployee.birthDate || "",
   nationality: hrEmployee.nationality
     ? {
         nationalityId: hrEmployee.nationality.nationalityId,
@@ -97,34 +160,37 @@ const mapHrEmployeeToEmployee = (hrEmployee: any): Employee => ({
     : hrEmployee.payGrade
     ? {
         id: hrEmployee.payGrade.payGradeId,
-        name: hrEmployee.payGrade.payGradeName || 'Unknown',
+        name: hrEmployee.payGrade.payGradeName || "Unknown",
         salary: hrEmployee.salary,
       }
-    : hrEmployee.position || 'Unknown',
+    : null,
   department: hrEmployee.department
     ? {
         deptId: hrEmployee.department.deptId,
-        depName: hrEmployee.department.depName || 'Unknown',
+        depName: hrEmployee.department.depName || "Unknown",
         parentDeptId: hrEmployee.department.parentDeptId,
       }
-    : hrEmployee.department || 'Unknown',
-  status: hrEmployee.empStatus != null ? hrEmployee.empStatus : hrEmployee.positionStatus || null,
+    : null,
+  status:
+    hrEmployee.empStatus != null
+      ? hrEmployee.empStatus
+      : hrEmployee.positionStatus || null,
   photo: hrEmployee.photo, // Use the Base64 string directly from backend
 });
 
 const mockEmployees: Employee[] = [
   {
     id: 20005835,
-    empId: '20005835',
-    firstName: 'John',
-    lastName: 'Doe',
-    position: 'Unknown',
-    department: 'Engineering',
-    status: 'Active',
-    photo: '/profile1.jpg',
-    gender: 'Male',
-    dateOfBirth: '1985-05-15',
-    nationality: 'American',
+    empId: "20005835",
+    firstName: "John",
+    lastName: "Doe",
+    position: { id: 0, name: "Unknown" },
+    department: { deptId: 0, depName: "Engineering" },
+    status: "Active",
+    photo: "/profile1.jpg",
+    gender: "Male",
+    dateOfBirth: "1985-05-15",
+    nationality: "American",
   },
 ];
 
@@ -150,14 +216,19 @@ export default function EmployeeProfilePage() {
     { id: "print", name: "Print Experience", icon: <FiPrinter /> },
     { id: "upload", name: "Upload", icon: <FiUpload /> },
     { id: "job-description", name: "Job Description", icon: <FiFileText /> },
-    { id: "position-description", name: "Position Description", icon: <FiBriefcase /> },
+    {
+      id: "position-description",
+      name: "Position Description",
+      icon: <FiBriefcase />,
+    },
   ];
 
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
-        const response = await fetch('http://localhost:8080/api/employees');
-        if (!response.ok) throw new Error(`Failed to fetch employees: ${response.statusText}`);
+        const response = await authFetch("http://localhost:8080/api/employees");
+        if (!response.ok)
+          throw new Error(`Failed to fetch employees: ${response.statusText}`);
         const data = await response.json();
         if (data && data.length > 0) {
           const mappedEmployees = data.map(mapHrEmployeeToEmployee);
@@ -165,7 +236,7 @@ export default function EmployeeProfilePage() {
           setCurrentEmployee(mappedEmployees[0]);
         }
       } catch (error) {
-        console.error('Error fetching employees:', error);
+        console.error("Error fetching employees:", error);
         setEmployees(mockEmployees);
         if (mockEmployees.length > 0) {
           setCurrentEmployee(mockEmployees[0]);
@@ -195,21 +266,23 @@ export default function EmployeeProfilePage() {
 
   const handleRefresh = async () => {
     try {
-      const response = await fetch('http://localhost:8080/api/employees');
-      if (!response.ok) throw new Error(`Failed to fetch employees: ${response.statusText}`);
+      const response = await authFetch("http://localhost:8080/api/employees");
+      if (!response.ok)
+        throw new Error(`Failed to fetch employees: ${response.statusText}`);
       const data = await response.json();
       const mappedEmployees = data.map(mapHrEmployeeToEmployee);
       setEmployees(mappedEmployees);
       setLastRefresh(new Date());
       alert("Employee data refreshed successfully!");
     } catch (error) {
-      console.error('Error refreshing data:', error);
+      console.error("Error refreshing data:", error);
       alert("Failed to refresh employee data");
     }
   };
 
   const handleFormSubmit = async (formData: any) => {
     try {
+      console.log("Submitted form data:", formData);
       if (isEditMode && currentEmployee) {
         // Include the existing photo in formData if not provided
         const updatedFormData = {
@@ -217,57 +290,75 @@ export default function EmployeeProfilePage() {
           photo: formData.photo || currentEmployee.photo, // Preserve existing photo
         };
 
-        const response = await fetch(`http://localhost:8080/api/employees/${formData.empId}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(updatedFormData),
-        });
+        const response = await authFetch(
+          `http://localhost:8080/api/employees/${formData.empId}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(updatedFormData),
+          }
+        );
 
         if (!response.ok) {
           const errorBody = await response.text();
-          throw new Error(`Failed to update employee: ${response.statusText}, ${errorBody}`);
+          throw new Error(
+            `Failed to update employee: ${response.statusText}, ${errorBody}`
+          );
         }
 
         // Fetch the updated employee with all relations to include the photo
-        const updatedResponse = await fetch(`http://localhost:8080/api/employees/${formData.empId}/with-relations`);
+        const updatedResponse = await authFetch(
+          `http://localhost:8080/api/employees/${formData.empId}/with-relations`
+        );
         if (!updatedResponse.ok) {
-          throw new Error(`Failed to fetch updated employee: ${updatedResponse.statusText}`);
+          throw new Error(
+            `Failed to fetch updated employee: ${updatedResponse.statusText}`
+          );
         }
         const updatedEmployeeData = await updatedResponse.json();
-        console.log('Updated employee data:', updatedEmployeeData); // Log to verify photo field
+        console.log("Updated employee data:", updatedEmployeeData); // Log to verify photo field
         const updatedEmployee = mapHrEmployeeToEmployee(updatedEmployeeData);
-        const updatedEmployees = employees.map(emp =>
+        const updatedEmployees = employees.map((emp) =>
           emp.empId === updatedEmployee.empId ? updatedEmployee : emp
         );
         setEmployees(updatedEmployees);
         setCurrentEmployee(updatedEmployee);
         alert("Employee updated successfully!");
       } else {
-        const response = await fetch('http://localhost:8080/api/employees', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(formData),
-        });
+        const response = await authFetch(
+          "http://localhost:8080/api/employees",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(formData),
+          }
+        );
 
         if (!response.ok) {
           const errorBody = await response.text();
-          console.error("Failed to create employee. Server response:", response.status, errorBody);
-          throw new Error(`Failed to create employee. Status: ${response.status}, Message: ${errorBody}`);
+          console.error(
+            "Failed to create employee. Server response:",
+            response.status,
+            errorBody
+          );
+          throw new Error(
+            `Failed to create employee. Status: ${response.status}, Message: ${errorBody}`
+          );
         }
 
         const newEmployee = mapHrEmployeeToEmployee(await response.json());
-        setEmployees(prev => [...prev, newEmployee]);
+        setEmployees((prev) => [...prev, newEmployee]);
         setCurrentEmployee(newEmployee);
         alert("Employee created successfully!");
       }
       setActiveTab("profile");
     } catch (error) {
-      console.error('Error handling form submission:', error);
-      alert('Error processing employee. Please try again.');
+      console.error("Error handling form submission:", error);
+      alert("Error processing employee. Please try again.");
     }
   };
 
@@ -304,7 +395,9 @@ export default function EmployeeProfilePage() {
             {tabs.map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => tab.id === "new" ? handleNewEmployee() : setActiveTab(tab.id)}
+                onClick={() =>
+                  tab.id === "new" ? handleNewEmployee() : setActiveTab(tab.id)
+                }
                 className={`px-4 py-2 flex items-center gap-2 text-sm font-medium whitespace-nowrap border-b-2 transition-all ${
                   activeTab === tab.id
                     ? "border-blue-500 text-blue-600 bg-blue-50"
@@ -343,31 +436,51 @@ export default function EmployeeProfilePage() {
             <AddressTab empId={currentEmployee.empId} />
           </div>
         )}
-        
+
         {activeTab === "training" && currentEmployee && (
           <div className="mt-10">
-            <TrainingTab empId={currentEmployee.empId}/>
+            <TrainingTab empId={currentEmployee.empId} />
           </div>
         )}
         {activeTab === "cost-sharing" && currentEmployee && (
           <div className="mt-10">
-            <CostSharingTab empId={currentEmployee.empId}/>
+            <CostSharingTab empId={currentEmployee.empId} />
           </div>
         )}
         {activeTab === "edit" && currentEmployee && (
           <div className="mt-10">
-            <EditExperienceTab empId={currentEmployee.empId}/>
+            <EditExperienceTab empId={currentEmployee.empId} />
           </div>
         )}
-        {activeTab === "education" && currentEmployee &&( <div className="mt-10"> <Education empId={currentEmployee.empId}/></div>)}
-        {activeTab === "experience" && currentEmployee && (<div className="mt-10"> <Experience empId={currentEmployee.empId}/></div>)}
-        {activeTab === "promotion" && currentEmployee && (<div className="mt-10"> <Promotion empId={currentEmployee.empId}/></div>)}
-        {activeTab === "upload" && currentEmployee && (<div className="mt-10"> <Upload empId={currentEmployee.empId}/></div>)}
+        {activeTab === "education" && currentEmployee && (
+          <div className="mt-10">
+            {" "}
+            <Education empId={currentEmployee.empId} />
+          </div>
+        )}
+        {activeTab === "experience" && currentEmployee && (
+          <div className="mt-10">
+            {" "}
+            <Experience empId={currentEmployee.empId} />
+          </div>
+        )}
+        {activeTab === "promotion" && currentEmployee && (
+          <div className="mt-10">
+            {" "}
+            <Promotion empId={currentEmployee.empId} />
+          </div>
+        )}
+        {activeTab === "upload" && currentEmployee && (
+          <div className="mt-10">
+            {" "}
+            <Upload empId={currentEmployee.empId} />
+          </div>
+        )}
 
         {activeTab === "new" && (
           <div className="bg-white rounded-lg shadow-md p-4 mt-3">
             <EmployeeForm
-              employeeData={currentEmployee}
+              employeeData={mapEmployeeToFormData(currentEmployee)}
               isEditMode={isEditMode}
               onSubmit={handleFormSubmit}
               onCancel={() => setActiveTab("profile")}
@@ -376,22 +489,25 @@ export default function EmployeeProfilePage() {
         )}
 
         {activeTab !== "profile" &&
-         activeTab !== "language" &&
-         activeTab !== "family" &&
-         activeTab !== "new" &&
-         activeTab !== "address" &&
-         activeTab !== "training" &&
-         activeTab !== "cost-sharing" &&
-         activeTab !== "edit" &&
-         activeTab !== "print" &&
-         activeTab !== "education" &&
-         activeTab !=="experience" &&
-         activeTab !== "promotion" &&
-         activeTab !== "upload" && (
-          <div className="flex items-center justify-center h-64 text-gray-500">
-            <p>{tabs.find(t => t.id === activeTab)?.name} content will appear here</p>
-          </div>
-        )}
+          activeTab !== "language" &&
+          activeTab !== "family" &&
+          activeTab !== "new" &&
+          activeTab !== "address" &&
+          activeTab !== "training" &&
+          activeTab !== "cost-sharing" &&
+          activeTab !== "edit" &&
+          activeTab !== "print" &&
+          activeTab !== "education" &&
+          activeTab !== "experience" &&
+          activeTab !== "promotion" &&
+          activeTab !== "upload" && (
+            <div className="flex items-center justify-center h-64 text-gray-500">
+              <p>
+                {tabs.find((t) => t.id === activeTab)?.name} content will appear
+                here
+              </p>
+            </div>
+          )}
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import axios from "axios";
+import { authFetch } from "@/utils/authFetch";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FiEdit2,
@@ -89,23 +89,23 @@ export default function AddressPage({ empId }: { empId: string }) {
   const fetchAddressTypes = async () => {
     try {
       setAddressTypesLoading(true);
-      const response = await axios.get<HrLuAddressTypeDTO[]>(
+      const response = await authFetch(
         "http://localhost:8080/api/hr-lu-address-type",
         {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
           },
-          withCredentials: true,
         }
       );
 
-      if (!response.data || response.data.length === 0) {
+      const data = await response.json();
+      if (!data || data.length === 0) {
         setAddressTypes([]);
         return;
       }
 
-      const validTypes = response.data.map((type) => ({
+      const validTypes = data.map((type: HrLuAddressTypeDTO) => ({
         id: type.id,
         addressType: type.addressType,
         description: type.description || "",
@@ -124,29 +124,23 @@ export default function AddressPage({ empId }: { empId: string }) {
   const fetchRegions = async () => {
     try {
       setRegionsLoading(true);
-      interface HrLuRegionDTO {
-        id: number;
-        regionName: string;
-        description?: string;
-      }
-
-      const response = await axios.get<HrLuRegionDTO[]>(
+      const response = await authFetch(
         "http://localhost:8080/api/hr-lu-region",
         {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
           },
-          withCredentials: true,
         }
       );
 
-      if (!response.data || response.data.length === 0) {
+      const data = await response.json();
+      if (!data || data.length === 0) {
         setRegions([]);
         return;
       }
 
-      const validRegions = response.data.map((region) => ({
+      const validRegions = data.map((region: Region) => ({
         id: region.id,
         regionName: region.regionName,
         description: region.description || "",
@@ -165,22 +159,22 @@ export default function AddressPage({ empId }: { empId: string }) {
   const fetchAddresses = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(
+      const response = await authFetch(
         `http://localhost:8080/api/employees/${empId}/addresses`,
         {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
           },
-          withCredentials: true,
         }
       );
 
-      if (response.status !== 200) {
+      if (!response.ok) {
         throw new Error(`Request failed with status ${response.status}`);
       }
 
-      const processedData = (response.data || []).map((addr: any) => ({
+      const data = await response.json();
+      const processedData = (data || []).map((addr: any) => ({
         ...addr,
         id: addr.id ? Number(addr.id) : 0,
         addressType: addr.addressType ? Number(addr.addressType) : 0,
@@ -197,16 +191,9 @@ export default function AddressPage({ empId }: { empId: string }) {
       setError(null);
     } catch (err: any) {
       let errorMessage = "Failed to fetch addresses";
-
-      if (err.response) {
-        errorMessage =
-          err.response.data?.message || `Server error: ${err.response.status}`;
-      } else if (err.request) {
-        errorMessage = "No response received from server";
-      } else {
-        errorMessage = err.message || "Unknown error occurred";
+      if (err instanceof Error) {
+        errorMessage = err.message;
       }
-
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -215,55 +202,78 @@ export default function AddressPage({ empId }: { empId: string }) {
 
   const saveAddress = async (addressData: Address) => {
     try {
-      const config = {
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        withCredentials: true,
-      };
-
       const payload = {
         ...addressData,
         addressType: Number(addressData.addressType),
         employeeId: empId,
       };
 
+      let response;
       if (addressData.id) {
-        await axios.put(
+        response = await authFetch(
           `http://localhost:8080/api/employees/${empId}/addresses/${addressData.id}`,
-          payload,
-          config
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            body: JSON.stringify(payload),
+          }
         );
       } else {
-        delete payload.id;
-        await axios.post(
+        const { id, ...rest } = payload;
+        response = await authFetch(
           `http://localhost:8080/api/employees/${empId}/addresses`,
-          payload,
-          config
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            body: JSON.stringify(rest),
+          }
         );
       }
+
+      if (!response.ok) {
+        const errorBody = await response.text();
+        throw new Error(
+          `Failed to save address. Server responded with: ${response.status} ${
+            errorBody || ""
+          }`
+        );
+      }
+
       await fetchAddresses();
       return true;
     } catch (err: any) {
       console.error("Error saving address:", err);
-      setError(err.response?.data?.message || "Failed to save address");
+      setError(err instanceof Error ? err.message : "Failed to save address");
       return false;
     }
   };
 
   const deleteAddress = async (id: number) => {
     try {
-      await axios.delete(
+      const response = await authFetch(
         `http://localhost:8080/api/employees/${empId}/addresses/${id}`,
         {
+          method: "DELETE",
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
           },
-          withCredentials: true,
         }
       );
+      if (!response.ok) {
+        const errorBody = await response.text();
+        throw new Error(
+          `Failed to delete address. Server responded with: ${
+            response.status
+          } ${errorBody || ""}`
+        );
+      }
       await fetchAddresses();
       return true;
     } catch (err) {
