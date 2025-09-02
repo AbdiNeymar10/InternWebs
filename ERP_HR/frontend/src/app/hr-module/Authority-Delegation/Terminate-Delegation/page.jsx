@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Select from 'react-select';
-import Head from 'next/head';
 import axios from 'axios';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const containerVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -159,10 +160,25 @@ function FileUploadComponent({ formData, handleChange }) {
 }
 
 function Home({ formData, onTerminate, selectedFile, onFileSelect }) {
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    console.log('Selected file:', file); // Debug log
-    onFileSelect(file);
+  const containerVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        when: "beforeChildren",
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      onFileSelect(file);
+    } else {
+      onFileSelect(null);
+    }
   };
 
   return (
@@ -174,42 +190,75 @@ function Home({ formData, onTerminate, selectedFile, onFileSelect }) {
     >
       <div className="w-full max-w-6xl">
         <h2 className="text-lg font-semibold text-gray-600 mb-4">
-          Supportive File Information
+          Supportive File Information ፡
         </h2>
-        <div className="bg-gray-100 border border-gray-300 rounded-lg p-4 mb-6">
-          <div className="flex items-center space-x-2 flex-wrap">
-            <label htmlFor="file-upload" className="bg-gray-200 text-blue-600 font-semibold py-2 px-4 rounded-lg flex items-center space-x-2 hover:bg-gray-300 cursor-pointer">
-              <span className="text-xl">+</span>
-              <span>Browse & Upload</span>
-              <input id="file-upload" type="file" className="hidden" onChange={handleFileChange} />
-            </label>
-            <button className="bg-gray-200 text-blue-600 font-semibold py-2 px-4 rounded-lg flex items-center space-x-2 hover:bg-gray-300">
-              <span className="text-xl">↑</span>
-              <span>Upload</span>
-            </button>
-            <button className="bg-gray-200 text-gray-500 font-semibold py-2 px-4 rounded-lg flex items-center space-x-2 hover:bg-gray-300">
-              <span className="text-xl">×</span>
-              <span>Cancel</span>
-            </button>
+        <div className="space-y-4">
+          <div className="bg-gray-100 border border-gray-300 rounded-lg p-4 flex-1">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="bg-gray-100 border border-gray-300 rounded-lg p-4 flex-1">
+                <div className="flex flex-col h-full">
+                  <div className="flex items-center space-x-2 mb-4 flex-wrap">
+                    <label htmlFor="file-upload-input" className="bg-gray-200 text-blue-600 font-semibold py-2 px-4 rounded-lg flex items-center space-x-2 hover:bg-gray-300 cursor-pointer">
+                      <span className="text-xl">+</span>
+                      <span>Browse File</span>
+                      <input id="file-upload-input" type="file" className="hidden" onChange={handleFileChange} />
+                    </label>
+                    {selectedFile && (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                onFileSelect(null);
+                                const fileInput = document.getElementById('file-upload-input');
+                                if (fileInput) {
+                                    fileInput.value = "";
+                                }
+                            }}
+                            className="bg-red-100 text-red-600 font-semibold py-2 px-4 rounded-lg flex items-center space-x-2 hover:bg-red-200"
+                        >
+                            <span className="text-xl">×</span>
+                            <span>Clear Selection</span>
+                        </button>
+                    )}
+                  </div>
+                  {selectedFile && (
+                    <div className="mt-2 text-sm text-gray-700">
+                      Selected file: <strong>{selectedFile.name}</strong> ({(selectedFile.size / 1024).toFixed(2)} KB)
+                    </div>
+                  )}
+                  {formData?.doctRete && !selectedFile && (
+                    <div className="mt-2 text-sm text-gray-700">
+                      Existing file: <strong>{formData.doctRete}</strong>
+                    </div>
+                  )}
+                  <div className="flex-grow"></div>
+                </div>
+              </div>
+              <div className="bg-gray-100 border border-gray-300 rounded-lg p-4 flex-1">
+                <div className="flex flex-col h-full">
+                  <div className="flex justify-end items-center mb-4">
+                    <span className="text-gray-600 mr-2">(1 of 1)</span>
+                    <button className="text-gray-400 hover:text-gray-600">«</button>
+                    <button className="text-gray-400 hover:text-gray-600 ml-1">{'<'}</button>
+                    <button className="text-gray-400 hover:text-gray-600 ml-1">{'>'}</button>
+                    <button className="text-gray-400 hover:text-gray-600 ml-1">»</button>
+                  </div>
+                  <div className="flex-grow flex items-center justify-center">
+                    <div className="text-center text-gray-600">
+                      {selectedFile ? `Preview for ${selectedFile.name} (if applicable)` : 
+                       formData?.doctRete ? `Existing file: ${formData.doctRete}` : "No file selected for preview."}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          {formData?.doctRete && (
-            <div className="mt-2 text-sm text-gray-700">
-              Existing File: <strong>{formData.doctRete}</strong>
-            </div>
-          )}
-          {selectedFile && (
-            <div className="mt-2 text-sm text-gray-700">
-              Selected: <strong>{selectedFile.name}</strong> ({(selectedFile.size / 1024).toFixed(2)} KB)
-            </div>
-          )}
         </div>
-        <div className="flex justify-center">
+        <div className="flex justify-center mt-6">
           <button
-            className="bg-gray-200 text-blue-600 font-semibold py-2 px-6 rounded-lg flex items-center space-x-2 hover:bg-gray-300"
+            className="bg-gradient-to-r from-[#3c8dbc] to-[#2c6da4] text-white font-semibold py-2 px-6 rounded-lg flex items-center space-x-2 hover:opacity-90 transition-colors duration-200"
             onClick={onTerminate}
           >
-            <span>£</span>
-            <span className="ml-1">Terminate</span>
+            <span>Terminate Delegation</span>
           </button>
         </div>
       </div>
@@ -243,13 +292,15 @@ export default function TerminateDelegation() {
   const [delegations, setDelegations] = useState([]);
 
   useEffect(() => {
-    // Fetch delegations on mount
     axios.get('http://localhost:8080/api/hr-power-delegation')
       .then(response => {
-        setDelegations(response.data);
+        // Filter delegations to include only those with status "Pending"
+        const pendingDelegations = response.data.filter(delegation => delegation.status === "Pending");
+        setDelegations(pendingDelegations);
       })
       .catch(error => {
         console.error('Failed to fetch delegations:', error);
+        toast.error(`Failed to fetch delegations: ${error.message}`);
       });
   }, []);
 
@@ -271,7 +322,7 @@ export default function TerminateDelegation() {
 
   const handleDelegationSelect = async (selectedOption) => {
     if (selectedOption && selectedOption.value !== "") {
-      const delegation = delegations.find(d => d.id === parseInt(selectedOption.value));
+      const delegation = delegations.find(d => d.id.toString() === selectedOption.value);
       if (delegation) {
         try {
           const delegatorRes = await axios.get(`http://localhost:8080/api/employees/${delegation.delegatorId}/delegation-details`);
@@ -299,6 +350,7 @@ export default function TerminateDelegation() {
           });
         } catch (error) {
           console.error('Failed to fetch employee details:', error);
+          toast.error(`Failed to fetch employee details: ${error.message}`);
           setFormData(prev => ({
             ...prev,
             id: delegation.id,
@@ -338,7 +390,7 @@ export default function TerminateDelegation() {
 
   const handleTerminate = async () => {
     if (!formData.id || !formData.updatedBy || !formData.updatedDate || !formData.updatorRemark) {
-      alert("Please fill in all termination fields (Updated By, Updated Date, Updator Remark).");
+      toast.warn("Please fill in all termination fields (Updated By, Updated Date, Updator Remark).");
       return;
     }
 
@@ -364,18 +416,13 @@ export default function TerminateDelegation() {
       formDataPayload.append('file', selectedFile);
     }
 
-    // Debug FormData contents
-    for (let [key, value] of formDataPayload.entries()) {
-      console.log(`FormData entry: ${key}=${value instanceof File ? value.name : value}`);
-    }
-
     try {
       const response = await axios.put(`http://localhost:8080/api/hr-power-delegation/${formData.id}`, formDataPayload, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
-      alert("Delegation terminated successfully!");
+      toast.success("Delegation terminated successfully!");
       setFormData({
         id: "",
         formType: "",
@@ -400,7 +447,6 @@ export default function TerminateDelegation() {
       setSelectedFile(null);
     } catch (error) {
       console.error('Error during termination:', error);
-      // Improved error message extraction
       let errorMessage = error.message;
       if (error.response?.data) {
         if (typeof error.response.data === 'string') {
@@ -413,12 +459,13 @@ export default function TerminateDelegation() {
           errorMessage = JSON.stringify(error.response.data);
         }
       }
-      alert(`Failed to terminate delegation: ${errorMessage}`);
+      toast.error(`Failed to terminate delegation: ${errorMessage}`);
     }
   };
 
   return (
     <div className="min-h-screen p-6 font-sans relative overflow-y-auto">
+      <ToastContainer position="top-right" autoClose={5000} />
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-br from-[#3c8dbc]/10 to-purple-50 opacity-30"></div>
       </div>

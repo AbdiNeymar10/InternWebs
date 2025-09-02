@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useEffect, Component } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import AsyncSelect from 'react-select/async';
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-// import { format } from 'date-fns'; // Currently unused, can be removed if not needed elsewhere
+import { FiBell } from "react-icons/fi";
 
 // Error Boundary Component
 class ErrorBoundary extends Component {
@@ -58,7 +58,7 @@ function HomeThree({ onFileSelect, selectedFile }) {
     if (file) {
       onFileSelect(file);
     } else {
-      onFileSelect(null); // Notify parent if file selection is cleared
+      onFileSelect(null);
     }
   };
 
@@ -85,21 +85,20 @@ function HomeThree({ onFileSelect, selectedFile }) {
                       <input id="file-upload-input" type="file" className="hidden" onChange={handleFileChange} />
                     </label>
                     {selectedFile && (
-                        <button
-                            type="button"
-                            onClick={() => {
-                                onFileSelect(null);
-                                // Reset the file input visually
-                                const fileInput = document.getElementById('file-upload-input');
-                                if (fileInput) {
-                                    fileInput.value = "";
-                                }
-                            }}
-                            className="bg-red-100 text-red-600 font-semibold py-2 px-4 rounded-lg flex items-center space-x-2 hover:bg-red-200"
-                        >
-                            <span className="text-xl">×</span>
-                            <span>Clear Selection</span>
-                        </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onFileSelect(null);
+                          const fileInput = document.getElementById('file-upload-input');
+                          if (fileInput) {
+                            fileInput.value = "";
+                          }
+                        }}
+                        className="bg-red-100 text-red-600 font-semibold py-2 px-4 rounded-lg flex items-center space-x-2 hover:bg-red-200"
+                      >
+                        <span className="text-xl">×</span>
+                        <span>Clear Selection</span>
+                      </button>
                     )}
                   </div>
                   {selectedFile && (
@@ -114,7 +113,6 @@ function HomeThree({ onFileSelect, selectedFile }) {
                 <div className="flex flex-col h-full">
                   <div className="bg-gray-100 border border-gray-300 rounded-lg p-4 flex-1 pt-0 pb-0">
                     <div className="flex justify-end items-center mb-4">
-                      {/* Pagination UI - kept as is */}
                       <span className="text-gray-600 mr-2">(1 of 1)</span>
                       <button className="text-gray-400 hover:text-gray-600">«</button>
                       <button className="text-gray-400 hover:text-gray-600 ml-1">{'<'}</button>
@@ -144,7 +142,9 @@ function HomeTwo({
   setDelegateeData,
   delegationData,
   setDelegationData,
-  loadEmployeeOptions
+  loadEmployeeOptions,
+  delegateeSelectValue,
+  setDelegateeSelectValue
 }) {
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -167,31 +167,33 @@ function HomeTwo({
   };
 
   useEffect(() => {
-    // Update the 'user' field in the main delegationData state when delegatorName changes
     setDelegationData(prev => ({ ...prev, user: delegatorName || "" }));
   }, [delegatorName, setDelegationData]);
 
   const handleDelegateeSelect = async (selectedOption) => {
+    setDelegateeSelectValue(selectedOption);
     if (selectedOption && selectedOption.value) {
       try {
         const response = await axios.get(`http://localhost:8080/api/employees/${selectedOption.value}/delegation-details`, {
           timeout: 5000,
         });
         const { employeeName, employeeId, department } = response.data;
-        setDelegateeData({ // Update display state for delegatee
+        setDelegateeData({
           delegateeName: employeeName || "",
           delegateeId: employeeId || "",
           department: department || "",
         });
-        setDelegationData(prev => ({ ...prev, delegateeId: employeeId || "" })); // Update main form data
+        setDelegationData(prev => ({ ...prev, delegateeId: employeeId || "" }));
       } catch (error) {
         toast.error(`Failed to fetch delegatee details: ${error.message}`);
         setDelegateeData({ delegateeName: "", delegateeId: "", department: "" });
         setDelegationData(prev => ({ ...prev, delegateeId: "" }));
+        setDelegateeSelectValue(null);
       }
     } else {
       setDelegateeData({ delegateeName: "", delegateeId: "", department: "" });
       setDelegationData(prev => ({ ...prev, delegateeId: "" }));
+      setDelegateeSelectValue(null);
     }
   };
 
@@ -217,6 +219,7 @@ function HomeTwo({
               defaultOptions={[{ value: "", label: "Start typing to search..." }]}
               loadOptions={loadEmployeeOptions}
               onChange={handleDelegateeSelect}
+              value={delegateeSelectValue}
               placeholder="Search by ID or Name"
               isClearable
               styles={{
@@ -242,32 +245,30 @@ function HomeTwo({
             <label className="block text-sm font-medium text-gray-700 mb-1">User :</label>
             <input type="text" value={delegationData.user} className="w-3/4 p-2 border border-gray-300 rounded-md bg-gray-100 text-gray-600 cursor-not-allowed" readOnly />
           </motion.div>
-          
         </div>
         <div className="space-y-4 ml-14">
           <motion.div variants={itemVariants}>
             <label className="block text-sm font-medium text-gray-700 mb-1">Delegatee ID :</label>
             <input type="text" value={delegateeData.delegateeId} className="w-3/4 p-2 border border-gray-300 rounded-md bg-gray-100 text-gray-600 cursor-not-allowed" readOnly />
           </motion.div>
-            <motion.div variants={itemVariants}>
+          <motion.div variants={itemVariants}>
             <label className="block text-sm font-medium text-gray-700 mb-1">Position ፡</label>
             <input type="text" value={delegateeData.department} className="w-3/4 p-2 border border-gray-300 rounded-md bg-gray-100 text-gray-600 cursor-not-allowed" readOnly />
           </motion.div>
-          
           <motion.div variants={itemVariants}>
             <label className="block text-sm font-medium text-gray-700 mb-1">To Date:</label>
             <input type="date" name="toDate" value={delegationData.toDate} onChange={handleInputChange} className="w-3/4 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3c8dbc] transition-all duration-200" />
           </motion.div>
-         <motion.div variants={itemVariants}>
-  <label className="block text-sm font-medium text-gray-700 mb-1">Reason :</label>
-  <textarea 
-    name="requesterNotice" 
-    value={delegationData.requesterNotice} 
-    onChange={handleInputChange} 
-    className="w-3/4 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3c8dbc] transition-all duration-200"
-    rows={4} // You can adjust the number of rows as needed
-  />
-</motion.div>
+          <motion.div variants={itemVariants}>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Reason :</label>
+            <textarea 
+              name="requesterNotice" 
+              value={delegationData.requesterNotice} 
+              onChange={handleInputChange} 
+              className="w-3/4 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3c8dbc] transition-all duration-200"
+              rows={4}
+            />
+          </motion.div>
         </div>
       </div>
     </motion.div>
@@ -278,24 +279,53 @@ function HomeTwo({
 export default function AssignDelegation() {
   const [delegatorData, setDelegatorData] = useState({ delegatorName: "", delegatorId: "", department: "" });
   const [delegateeData, setDelegateeData] = useState({ delegateeName: "", delegateeId: "", department: "" });
-  const [powerDelegationFile, setPowerDelegationFile] = useState(null); // State for the selected file
+  const [powerDelegationFile, setPowerDelegationFile] = useState(null);
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [delegatorSelectValue, setDelegatorSelectValue] = useState(null);
+  const [delegateeSelectValue, setDelegateeSelectValue] = useState(null);
 
   const [delegationData, setDelegationData] = useState({
     fromDate: "",
     toDate: "",
     requesterNotice: "",
-    status: "Pending", // Default status
+    status: "Pending",
     delegateeId: "",
     delegatorId: "",
     requestDate: "",
-    doctRete: "", // Will be set from filename if a file is uploaded
-    user: "", // For display in HomeTwo, not part of entity save
-    // Initialize other HrPowerDelegation fields if needed, e.g., jobPosition: ""
+    doctRete: "",
+    user: "",
   });
 
   useEffect(() => {
     setDelegationData(prev => ({ ...prev, delegatorId: delegatorData.delegatorId || "" }));
+    if (delegatorData.delegatorId) {
+      fetchNotifications(delegatorData.delegatorId);
+    }
   }, [delegatorData.delegatorId]);
+
+  useEffect(() => {
+    return () => {
+      // Cleanup function runs when showNotifications changes or component unmounts
+      if (showNotifications && notifications.length > 0) {
+        // Delete all notifications when dropdown is closed
+        const deleteAllNotifications = async () => {
+          try {
+            await Promise.all(
+              notifications.map(async (notif) => {
+                await axios.delete(`http://localhost:8080/api/notifications/${notif.id}`);
+              })
+            );
+            setNotifications([]); // Clear notifications after deletion
+          } catch (error) {
+            console.error('Failed to delete notifications:', error);
+            toast.error(`Error deleting notifications: ${error.response?.data?.message || error.message}`);
+          }
+        };
+        deleteAllNotifications();
+      }
+    };
+  }, [showNotifications, notifications]);
 
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -321,7 +351,24 @@ export default function AssignDelegation() {
     }
   };
 
+  const fetchNotifications = async (employeeId) => {
+    try {
+      const response = await axios.get(`http://localhost:8080/api/notifications?employeeId=${employeeId}`);
+      if (response.status === 200) {
+        setNotifications(response.data);
+      } else {
+        setNotifications([]);
+        toast.error("Failed to load notifications.");
+      }
+    } catch (error) {
+      console.error('Failed to fetch notifications:', error);
+      setNotifications([]);
+      toast.error(`Error fetching notifications: ${error.response?.data?.message || error.message}`);
+    }
+  };
+
   const handleDelegatorSelect = async (selectedOption) => {
+    setDelegatorSelectValue(selectedOption);
     if (selectedOption && selectedOption.value) {
       try {
         const response = await axios.get(`http://localhost:8080/api/employees/${selectedOption.value}/delegation-details`, {
@@ -329,23 +376,27 @@ export default function AssignDelegation() {
         });
         const { employeeName, employeeId, department } = response.data;
         setDelegatorData({ delegatorName: employeeName || "", delegatorId: employeeId || "", department: department || "" });
-        // delegatorId in delegationData is updated by useEffect
+        setNotifications([]);
+        fetchNotifications(employeeId);
       } catch (error) {
         toast.error(`Failed to fetch delegator details: ${error.message}`);
         setDelegatorData({ delegatorName: "", delegatorId: "", department: "" });
+        setNotifications([]);
+        setDelegatorSelectValue(null);
       }
     } else {
       setDelegatorData({ delegatorName: "", delegatorId: "", department: "" });
-      setDelegationData(prev => ({ ...prev, delegatorId: "" })); // Explicitly clear if deselected
+      setDelegationData(prev => ({ ...prev, delegatorId: "" }));
+      setNotifications([]);
+      setDelegatorSelectValue(null);
     }
   };
 
   const handleFileSelectFromChild = (file) => {
     setPowerDelegationFile(file);
-    // Also update doctRete in delegationData if a file is selected or cleared
     setDelegationData(prev => ({
-        ...prev,
-        doctRete: file ? file.name.substring(0, 45) : "" // Example: use filename, truncate if needed
+      ...prev,
+      doctRete: file ? file.name.substring(0, 45) : ""
     }));
   };
 
@@ -357,14 +408,11 @@ export default function AssignDelegation() {
 
     const formData = new FormData();
 
-    // Append the file if selected
     if (powerDelegationFile) {
-      formData.append('file', powerDelegationFile); // Key 'file' must match backend @RequestPart name
+      formData.append('file', powerDelegationFile);
     }
 
-    // Prepare the delegation data object for the JSON part
     const delegationDetailsPayload = {
-      // id: null, // ID is auto-generated by backend, do not send for POST
       fromDate: delegationData.fromDate,
       toDate: delegationData.toDate,
       requesterNotice: delegationData.requesterNotice,
@@ -372,40 +420,25 @@ export default function AssignDelegation() {
       delegateeId: delegationData.delegateeId,
       delegatorId: delegationData.delegatorId,
       requestDate: delegationData.requestDate,
-      doctRete: delegationData.doctRete, // This is now set when file is selected/cleared
-      // Include other HrPowerDelegation fields from delegationData state if they are set and need to be saved
-      // e.g., jobPosition: delegationData.jobPosition,
-      // Ensure these keys match your HrPowerDelegation entity fields
+      doctRete: delegationData.doctRete,
     };
 
-    // Append the delegation data as a JSON string part
-    // The key 'delegation' must match the @RequestPart name in your Spring Boot controller
     formData.append('delegation', new Blob([JSON.stringify(delegationDetailsPayload)], { type: 'application/json' }));
 
-    console.log("Attempting to save delegation with FormData...");
-    // For debugging FormData content:
-    // for (let [key, value] of formData.entries()) {
-    //   if (value instanceof Blob) {
-    //     value.text().then(text => console.log(key, "-> JSON:", text));
-    //   } else if (value instanceof File) {
-    //     console.log(key, "-> File:", value.name, value.size, value.type);
-    //   } else {
-    //     console.log(key, "->", value);
-    //   }
-    // }
-
     try {
-      const response = await axios.post('http://localhost:8080/api/hr-power-delegation', formData, {
-        // Axios usually sets 'Content-Type': 'multipart/form-data' automatically for FormData
-      });
-      toast.success("Delegation saved successfully!");
-      console.log("Save successful:", response.data);
-      resetForm();
+      const response = await axios.post('http://localhost:8080/api/hr-power-delegation', formData);
+      if (response.status === 200 || response.status === 201) {
+        toast.success("Delegation saved successfully!");
+        resetForm();
+        if (delegationData.delegatorId) {
+          fetchNotifications(delegationData.delegatorId);
+        }
+      } else {
+        throw new Error(`Unexpected response status: ${response.status}`);
+      }
     } catch (error) {
       let detailedErrorMessage = "Failed to save delegation. Please try again.";
       if (error.response) {
-        console.error("Error saving delegation - Server Response:", error.response.data);
-        console.error("Status Code:", error.response.status);
         if (error.response.data) {
           if (typeof error.response.data === 'string') {
             detailedErrorMessage = error.response.data;
@@ -413,17 +446,11 @@ export default function AssignDelegation() {
             detailedErrorMessage = error.response.data.message;
           } else if (error.response.data.error) {
             detailedErrorMessage = error.response.data.error;
-          } else if (error.response.status === 400) {
-            detailedErrorMessage = "Bad Request: Please check the data you entered.";
-          } else if (error.response.status === 500) {
-            detailedErrorMessage = "Internal Server Error. Please contact support.";
           }
         }
       } else if (error.request) {
-        console.error("Error saving delegation - No response received:", error.request);
         detailedErrorMessage = "No response from server. Please check your network connection.";
       } else {
-        console.error("Error saving delegation - Request setup error:", error.message);
         detailedErrorMessage = `An error occurred: ${error.message}`;
       }
       toast.error(detailedErrorMessage);
@@ -433,17 +460,25 @@ export default function AssignDelegation() {
   const resetForm = () => {
     setDelegatorData({ delegatorName: "", delegatorId: "", department: "" });
     setDelegateeData({ delegateeName: "", delegateeId: "", department: "" });
-    setPowerDelegationFile(null); // Reset the file
-    // Reset the file input visually
+    setPowerDelegationFile(null);
+    setDelegatorSelectValue(null);
+    setDelegateeSelectValue(null);
     const fileInput = document.getElementById('file-upload-input');
     if (fileInput) {
-        fileInput.value = "";
+      fileInput.value = "";
     }
     setDelegationData({
-      fromDate: "", toDate: "", requesterNotice: "", status: "Pending",
-      delegateeId: "", delegatorId: "", requestDate: "", doctRete: "", user: "",
-      // Reset other fields if they were part of initial state
+      fromDate: "",
+      toDate: "",
+      requesterNotice: "",
+      status: "Pending",
+      delegateeId: "",
+      delegatorId: "",
+      requestDate: "",
+      doctRete: "",
+      user: "",
     });
+    setNotifications([]);
   };
 
   return (
@@ -456,9 +491,52 @@ export default function AssignDelegation() {
         <div className="max-w-7xl mx-auto relative z-10">
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex justify-between items-center mb-8">
             <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#3c8dbc] to-[#2c6da4]">Assign Delegation</h1>
+            {notifications.length > 0 && (
+              <div className="relative">
+                <motion.button
+                  onClick={() => setShowNotifications(!showNotifications)}
+                  className="text-[#3c8dbc] hover:text-[#367fa9] relative"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  title="View Notifications"
+                >
+                  <FiBell size={20} />
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    {notifications.length}
+                  </span>
+                </motion.button>
+                <AnimatePresence>
+                  {showNotifications && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="absolute top-full right-0 mt-2 w-80 bg-white/90 backdrop-blur-lg border border-[#3c8dbc]/30 rounded-xl shadow-xl p-4 z-50"
+                    >
+                      <h3 className="text-sm font-semibold text-[#3c8dbc] mb-2">Notifications</h3>
+                      <ul className="space-y-2 max-h-60 overflow-y-auto">
+                        {notifications.map((notif) => (
+                          <li 
+                            key={notif.id} 
+                            className={`text-sm p-2 rounded flex justify-between items-center ${
+                              notif.message.toLowerCase().includes('approved') 
+                                ? 'bg-green-100 text-green-800' 
+                                : notif.message.toLowerCase().includes('rescheduled') 
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : 'bg-red-100 text-red-800'
+                            }`}
+                          >
+                            <span>{notif.message}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
           </motion.div>
 
-          {/* Delegator Section */}
           <motion.div initial="hidden" animate="visible" variants={containerVariants} className="bg-white/80 backdrop-blur-lg rounded-xl border border-[#3c8dbc]/30 shadow-xl overflow-hidden p-6 mb-6 min-h-[300px]">
             <motion.div variants={itemVariants} className="mb-6 ml-14">
               <label className="block text-sm font-medium text-gray-700 mb-1">Search (By Delegator ID):</label>
@@ -468,6 +546,7 @@ export default function AssignDelegation() {
                 defaultOptions={[{ value: "", label: "Start typing to search..." }]}
                 loadOptions={loadEmployeeOptions}
                 onChange={handleDelegatorSelect}
+                value={delegatorSelectValue}
                 placeholder="Search by ID or Name"
                 isClearable
                 styles={{
@@ -493,13 +572,11 @@ export default function AssignDelegation() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Department:</label>
                   <input type="text" value={delegatorData.department} className="w-3/4 p-2 border border-gray-300 rounded-md bg-gray-100 text-gray-600 cursor-not-allowed" readOnly />
                 </motion.div>
-
-                 <motion.div variants={itemVariants}>
+                <motion.div variants={itemVariants}>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Position:</label>
                   <input type="text" value={delegatorData.department} className="w-3/4 p-2 border border-gray-300 rounded-md bg-gray-100 text-gray-600 cursor-not-allowed" readOnly />
                 </motion.div>
               </div>
-              
             </div>
           </motion.div>
 
@@ -510,28 +587,27 @@ export default function AssignDelegation() {
             delegationData={delegationData}
             setDelegationData={setDelegationData}
             loadEmployeeOptions={loadEmployeeOptions}
+            delegateeSelectValue={delegateeSelectValue}
+            setDelegateeSelectValue={setDelegateeSelectValue}
           />
 
-          {/* File Upload Section (HomeThree) */}
           <HomeThree onFileSelect={handleFileSelectFromChild} selectedFile={powerDelegationFile} />
 
-          {/* Save Button Section - Moved below HomeThree */}
           <motion.div
-             initial="hidden"
-             animate="visible"
-             variants={containerVariants}
-             className="bg-white/80 backdrop-blur-lg rounded-xl border border-[#3c8dbc]/30 shadow-xl overflow-hidden p-6 mb-6"
+            initial="hidden"
+            animate="visible"
+            variants={containerVariants}
+            className="bg-white/80 backdrop-blur-lg rounded-xl border border-[#3c8dbc]/30 shadow-xl overflow-hidden p-6 mb-6"
           >
-             <div className="flex justify-center">
-               <button
-                 className="bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg flex items-center space-x-2 hover:bg-blue-700 transition-colors duration-200"
-                 onClick={handleSaveDelegation}
-               >
-                 <span>Save Delegation</span>
-               </button>
-             </div>
+            <div className="flex justify-center">
+              <button
+                className="bg-gradient-to-r from-[#3c8dbc] to-[#2c6da4] text-white font-semibold py-2 px-6 rounded-lg flex items-center space-x-2 hover:opacity-90 transition-colors duration-200"
+                onClick={handleSaveDelegation}
+              >
+                <span>Save Delegation</span>
+              </button>
+            </div>
           </motion.div>
-
         </div>
       </div>
     </ErrorBoundary>
