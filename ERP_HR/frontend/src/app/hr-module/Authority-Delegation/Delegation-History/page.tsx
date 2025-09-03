@@ -51,7 +51,7 @@ const DelegationHistory = () => {
         id: d.id.toString(),
         delegateeId: d.delegateeId,
         delegatorId: d.delegatorId,
-        startDate: d.startDate || "",
+        startDate: d.startDate || d.fromDate || "",
         toDate: d.toDate || "",
       }));
 
