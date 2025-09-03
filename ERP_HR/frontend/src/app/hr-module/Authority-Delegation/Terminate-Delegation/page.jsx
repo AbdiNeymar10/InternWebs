@@ -293,15 +293,22 @@ export default function TerminateDelegation() {
 
   useEffect(() => {
   authFetch('http://localhost:8080/api/hr-power-delegation')
-      .then(response => {
-        // Filter delegations to include only those with status "Pending"
-        const pendingDelegations = response.data.filter(delegation => delegation.status === "Pending");
-        setDelegations(pendingDelegations);
-      })
-      .catch(error => {
-        console.error('Failed to fetch delegations:', error);
-        toast.error(`Failed to fetch delegations: ${error.message}`);
-      });
+    .then(async response => {
+      let data = [];
+      try {
+        data = await response.json();
+      } catch (e) {
+        console.error('Failed to parse delegations JSON:', e);
+      }
+      const pendingDelegations = Array.isArray(data)
+        ? data.filter(delegation => delegation.status === "Pending")
+        : [];
+      setDelegations(pendingDelegations);
+    })
+    .catch(error => {
+      console.error('Failed to fetch delegations:', error);
+      toast.error(`Failed to fetch delegations: ${error.message}`);
+    });
   }, []);
 
   const handleChange = (e) => {
@@ -327,21 +334,23 @@ export default function TerminateDelegation() {
         try {
           const delegatorRes = await authFetch(`http://localhost:8080/api/employees/${delegation.delegatorId}/delegation-details`);
           const delegateeRes = await authFetch(`http://localhost:8080/api/employees/${delegation.delegateeId}/delegation-details`);
+          const delegatorData = await delegatorRes.json();
+          const delegateeData = await delegateeRes.json();
           setFormData({
             id: delegation.id,
             formType: delegation.id.toString(),
-            delegatorName: delegatorRes.data.employeeName || "",
-            delegatorDepartment: delegatorRes.data.department || "",
+            delegatorName: (delegatorData && delegatorData.employeeName) || "",
+            delegatorDepartment: (delegatorData && delegatorData.department) || "",
             delegatorFromDate: delegation.fromDate ? delegation.fromDate.split('T')[0] : "",
             delegatorRequestDate: delegation.requestDate || "",
             delegatorId: delegation.delegatorId || "",
             delegatorPosition: delegation.jobPosition || "",
             delegatorToDate: delegation.toDate || "",
             delegatorReason: delegation.requesterNotice || "",
-            delegateeName: delegateeRes.data.employeeName || "",
-            delegateeDepartment: delegateeRes.data.department || "",
+            delegateeName: (delegateeData && delegateeData.employeeName) || "",
+            delegateeDepartment: (delegateeData && delegateeData.department) || "",
             delegateeId: delegation.delegateeId || "",
-            delegateePosition: delegateeRes.data.position || "",
+            delegateePosition: (delegateeData && delegateeData.position) || "",
             updatedBy: "",
             updatedDate: "",
             updatorRemark: "",
