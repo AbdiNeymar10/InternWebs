@@ -45,6 +45,13 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { MdOutlineCancel } from "react-icons/md";
 import ApprovalIcon from "@mui/icons-material/Approval";
+import {
+  ArrowUpTrayIcon,
+  BriefcaseIcon,
+  ClipboardDocumentListIcon,
+  ListBulletIcon,
+  UserPlusIcon,
+} from "@heroicons/react/24/outline";
 
 interface SidebarProps {
   className?: string;
@@ -63,6 +70,7 @@ export default function Sidebar({ className, hidden = false }: SidebarProps) {
     separation: false,
     AuthorityDelegation: false,
     transferRequest: false,
+    Requirement: false,
     UserManagement: false,
   });
 
@@ -616,7 +624,7 @@ export default function Sidebar({ className, hidden = false }: SidebarProps) {
               </div>
             )}
           </div>
- 
+
           {/* Authority Delegation Dropdown */}
           <div>
             <button
@@ -642,7 +650,7 @@ export default function Sidebar({ className, hidden = false }: SidebarProps) {
                   <FontAwesomeIcon icon={faUserPlus} className="w-4 h-4" />
                   Assign Delegation
                 </Link>
-                <Link
+                {/* <Link
                   href="/hr-module/Authority-Delegation/Assign-Delegation"
                   className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
                 >
@@ -651,7 +659,7 @@ export default function Sidebar({ className, hidden = false }: SidebarProps) {
                     className="w-4 h-4"
                   />
                   Delegation Benefit
-                </Link>
+                </Link> */}
                 <Link
                   href="/hr-module/Authority-Delegation/Terminate-Delegation"
                   className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
@@ -665,6 +673,37 @@ export default function Sidebar({ className, hidden = false }: SidebarProps) {
                 >
                   <FaHistory className="w-4 h-4" />
                   Delegation History
+                </Link>
+              </div>
+            )}
+          </div>
+          {/* requirement section */}
+          <div>
+            <button
+              onClick={() => toggleMenu("Requirement")}
+              className="flex items-center justify-between w-full p-2 hover:bg-gray-700 rounded"
+            >
+              <div className="flex items-center gap-2">
+                <ListBulletIcon className="h-4 w-4" />
+                <span>Requirement</span>
+              </div>
+              {openMenus.Requirement ? <FiChevronUp /> : <FiChevronDown />}
+            </button>
+            {openMenus.Requirement && (
+              <div className="ml-6 mt-1 space-y-2">
+                <Link
+                  href="/hr-module/Requirement/Vacancy-Post"
+                  className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
+                >
+                  <BriefcaseIcon className="h-4 w-4" />
+                  Vacancy Post
+                </Link>
+                <Link
+                  href="/hr-module/Requirement/Apply-Vacancy"
+                  className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
+                >
+                  <ArrowUpTrayIcon className="h-4 w-4" />
+                  Apply Vacancy
                 </Link>
               </div>
             )}

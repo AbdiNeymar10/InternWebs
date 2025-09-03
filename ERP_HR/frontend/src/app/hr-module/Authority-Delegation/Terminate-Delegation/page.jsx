@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Select from 'react-select';
-import axios from 'axios';
+import { authFetch } from "@/utils/authFetch";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -292,7 +292,7 @@ export default function TerminateDelegation() {
   const [delegations, setDelegations] = useState([]);
 
   useEffect(() => {
-    axios.get('http://localhost:8080/api/hr-power-delegation')
+  authFetch('http://localhost:8080/api/hr-power-delegation')
       .then(response => {
         // Filter delegations to include only those with status "Pending"
         const pendingDelegations = response.data.filter(delegation => delegation.status === "Pending");
@@ -325,8 +325,8 @@ export default function TerminateDelegation() {
       const delegation = delegations.find(d => d.id.toString() === selectedOption.value);
       if (delegation) {
         try {
-          const delegatorRes = await axios.get(`http://localhost:8080/api/employees/${delegation.delegatorId}/delegation-details`);
-          const delegateeRes = await axios.get(`http://localhost:8080/api/employees/${delegation.delegateeId}/delegation-details`);
+          const delegatorRes = await authFetch(`http://localhost:8080/api/employees/${delegation.delegatorId}/delegation-details`);
+          const delegateeRes = await authFetch(`http://localhost:8080/api/employees/${delegation.delegateeId}/delegation-details`);
           setFormData({
             id: delegation.id,
             formType: delegation.id.toString(),
@@ -417,11 +417,13 @@ export default function TerminateDelegation() {
     }
 
     try {
-      const response = await axios.put(`http://localhost:8080/api/hr-power-delegation/${formData.id}`, formDataPayload, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+        const response = await authFetch(`http://localhost:8080/api/hr-power-delegation/${formData.id}`, {
+          method: 'PUT',
+          body: formDataPayload,
+          headers: {
+            // 'Content-Type' should NOT be set for FormData; browser will set it with correct boundary
+          },
+        });
       toast.success("Delegation terminated successfully!");
       setFormData({
         id: "",

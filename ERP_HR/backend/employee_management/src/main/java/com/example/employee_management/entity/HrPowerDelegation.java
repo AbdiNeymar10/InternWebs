@@ -10,11 +10,9 @@ import java.util.Date;
 public class HrPowerDelegation {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "hr_power_delegation_seq_gen")
-    @SequenceGenerator(
-            name = "hr_power_delegation_seq_gen",
-            sequenceName = "HR_POWER_DELEGATION_SEQ", // The name of your database sequence
-            schema = "INSAHR", // Schema where the sequence exists
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "hr_power_delegation_seq")
+    @SequenceGenerator(name = "hr_power_delegation_seq", sequenceName = "HR_POWER_DELEGATION_SEQ",
+            // schema = "INSAHR", Schema where the sequence exists
             allocationSize = 1 // Standard allocation size
     )
     @Column(name = "ID")

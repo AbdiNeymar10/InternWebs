@@ -3,7 +3,7 @@
 import { useState, useEffect, Component } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import AsyncSelect from 'react-select/async';
-import axios from 'axios';
+import { authFetch } from '@/utils/authFetch';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { FiBell } from "react-icons/fi";
@@ -174,10 +174,8 @@ function HomeTwo({
     setDelegateeSelectValue(selectedOption);
     if (selectedOption && selectedOption.value) {
       try {
-        const response = await axios.get(`http://localhost:8080/api/employees/${selectedOption.value}/delegation-details`, {
-          timeout: 5000,
-        });
-        const { employeeName, employeeId, department } = response.data;
+  const response = await authFetch(`http://localhost:8080/api/employees/${selectedOption.value}/delegation-details`);
+  const { employeeName, employeeId, department } = await response.json();
         setDelegateeData({
           delegateeName: employeeName || "",
           delegateeId: employeeId || "",
@@ -313,7 +311,7 @@ export default function AssignDelegation() {
           try {
             await Promise.all(
               notifications.map(async (notif) => {
-                await axios.delete(`http://localhost:8080/api/notifications/${notif.id}`);
+                await authFetch(`http://localhost:8080/api/notifications/${notif.id}`, { method: 'DELETE' });
               })
             );
             setNotifications([]); // Clear notifications after deletion
@@ -336,12 +334,10 @@ export default function AssignDelegation() {
   const loadEmployeeOptions = async (inputValue) => {
     if (!inputValue) return [];
     try {
-      const response = await axios.get(`http://localhost:8080/api/employees/search`, {
-        params: { query: inputValue },
-        timeout: 5000,
-      });
-      if (!Array.isArray(response.data)) return [];
-      return response.data.map(emp => ({
+      const response = await authFetch(`http://localhost:8080/api/employees/search?query=${encodeURIComponent(inputValue)}`);
+      const data = await response.json();
+      if (!Array.isArray(data)) return [];
+      return data.map(emp => ({
         value: emp.id || "",
         label: `${emp.id || "N/A"} - ${emp.name || "Unknown"}`,
       }));
@@ -353,9 +349,10 @@ export default function AssignDelegation() {
 
   const fetchNotifications = async (employeeId) => {
     try {
-      const response = await axios.get(`http://localhost:8080/api/notifications?employeeId=${employeeId}`);
-      if (response.status === 200) {
-        setNotifications(response.data);
+      const response = await authFetch(`http://localhost:8080/api/notifications?employeeId=${employeeId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setNotifications(data);
       } else {
         setNotifications([]);
         toast.error("Failed to load notifications.");
@@ -371,10 +368,8 @@ export default function AssignDelegation() {
     setDelegatorSelectValue(selectedOption);
     if (selectedOption && selectedOption.value) {
       try {
-        const response = await axios.get(`http://localhost:8080/api/employees/${selectedOption.value}/delegation-details`, {
-          timeout: 5000,
-        });
-        const { employeeName, employeeId, department } = response.data;
+  const response = await authFetch(`http://localhost:8080/api/employees/${selectedOption.value}/delegation-details`);
+  const { employeeName, employeeId, department } = await response.json();
         setDelegatorData({ delegatorName: employeeName || "", delegatorId: employeeId || "", department: department || "" });
         setNotifications([]);
         fetchNotifications(employeeId);
@@ -426,8 +421,11 @@ export default function AssignDelegation() {
     formData.append('delegation', new Blob([JSON.stringify(delegationDetailsPayload)], { type: 'application/json' }));
 
     try {
-      const response = await axios.post('http://localhost:8080/api/hr-power-delegation', formData);
-      if (response.status === 200 || response.status === 201) {
+      const response = await authFetch('http://localhost:8080/api/hr-power-delegation', {
+        method: 'POST',
+        body: formData,
+      });
+      if (response.ok) {
         toast.success("Delegation saved successfully!");
         resetForm();
         if (delegationData.delegatorId) {
