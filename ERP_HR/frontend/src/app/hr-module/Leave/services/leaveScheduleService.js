@@ -1,21 +1,23 @@
-// services/leaveScheduleService.js
-const API_BASE_URL = 'http://localhost:8080/api';
+import { authFetch } from "@/utils/authFetch";
+const API_BASE_URL = "http://localhost:8080/api";
 
 export const getLeaveSchedules = async () => {
-  const response = await fetch(`${API_BASE_URL}/leave-schedules`);
+  const response = await authFetch(`${API_BASE_URL}/leave-schedules`);
   return await response.json();
 };
 
 export const getLeaveScheduleDetails = async (scheduleId) => {
-  const response = await fetch(`${API_BASE_URL}/leave-schedules/${scheduleId}/details`);
+  const response = await authFetch(
+    `${API_BASE_URL}/leave-schedules/${scheduleId}/details`
+  );
   return await response.json();
 };
 
 export const createLeaveSchedule = async (scheduleData) => {
-  const response = await fetch(`${API_BASE_URL}/leave-schedules`, {
-    method: 'POST',
+  const response = await authFetch(`${API_BASE_URL}/leave-schedules`, {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(scheduleData),
   });
@@ -23,10 +25,10 @@ export const createLeaveSchedule = async (scheduleData) => {
 };
 
 export const updateLeaveSchedule = async (id, scheduleData) => {
-  const response = await fetch(`${API_BASE_URL}/leave-schedules/${id}`, {
-    method: 'PUT',
+  const response = await authFetch(`${API_BASE_URL}/leave-schedules/${id}`, {
+    method: "PUT",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(scheduleData),
   });
@@ -34,17 +36,17 @@ export const updateLeaveSchedule = async (id, scheduleData) => {
 };
 
 export const deleteLeaveSchedule = async (id) => {
-  await fetch(`${API_BASE_URL}/leave-schedules/${id}`, {
-    method: 'DELETE',
+  await authFetch(`${API_BASE_URL}/leave-schedules/${id}`, {
+    method: "DELETE",
   });
 };
 
 // For schedule details
 export const createLeaveScheduleDetail = async (detailData) => {
-  const response = await fetch(`${API_BASE_URL}/leave-schedule-details`, {
-    method: 'POST',
+  const response = await authFetch(`${API_BASE_URL}/leave-schedule-details`, {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(detailData),
   });
@@ -52,18 +54,21 @@ export const createLeaveScheduleDetail = async (detailData) => {
 };
 
 export const updateLeaveScheduleDetail = async (id, detailData) => {
-  const response = await fetch(`${API_BASE_URL}/leave-schedule-details/${id}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(detailData),
-  });
+  const response = await authFetch(
+    `${API_BASE_URL}/leave-schedule-details/${id}`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(detailData),
+    }
+  );
   return await response.json();
 };
 
 export const deleteLeaveScheduleDetail = async (id) => {
   await fetch(`${API_BASE_URL}/leave-schedule-details/${id}`, {
-    method: 'DELETE',
+    method: "DELETE",
   });
 };
