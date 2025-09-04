@@ -688,7 +688,7 @@ export default function HRMSystem() {
     setEmployeeError(null);
     setNotifications([]);
     try {
-      const response = await fetch(
+      const response = await authFetch(
         `http://localhost:8080/api/employees/${empId}`
       );
       if (!response.ok) {
@@ -705,7 +705,7 @@ export default function HRMSystem() {
         position: employee.position?.positionName || "Unknown",
       }));
 
-      const notificationResponse = await fetch(
+      const notificationResponse = await authFetch(
         `http://localhost:8080/api/notifications?employeeId=${empId}`
       );
       if (!notificationResponse.ok) {

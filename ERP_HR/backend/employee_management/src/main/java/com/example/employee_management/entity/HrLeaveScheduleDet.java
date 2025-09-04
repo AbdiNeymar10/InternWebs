@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class HrLeaveScheduleDet {
 
-    // In HrLeaveScheduleDet.java
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "hr_leave_schedule_det_seq_gen")
     @SequenceGenerator(name = "hr_leave_schedule_det_seq_gen", sequenceName = "HR_LEAVE_SCHEDULE_DET_SEQ", allocationSize = 1)
@@ -26,6 +25,9 @@ public class HrLeaveScheduleDet {
     @Column(name = "PRIORITY", precision = 7)
     private Long priority;
 
+    @Column(name = "STATUS", length = 25, columnDefinition = "VARCHAR2(25) DEFAULT 'Pending'")
+    private String status;
+
     @Column(name = "NO_DAYS", length = 20)
     private String noDays;
 
@@ -34,12 +36,10 @@ public class HrLeaveScheduleDet {
     @JsonIgnore
     private HrLeaveSchedule hrLeaveSchedule;
 
-    // This field will be persisted to the SCHEDULE_ID column in database
     public Long getScheduleId() {
         return hrLeaveSchedule != null ? hrLeaveSchedule.getId() : null;
     }
 
-    // This setter is for convenience when receiving DTOs
     public void setScheduleId(Long scheduleId) {
         if (hrLeaveSchedule == null) {
             hrLeaveSchedule = new HrLeaveSchedule();

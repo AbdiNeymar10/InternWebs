@@ -12,7 +12,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/leave-schedules")
-@CrossOrigin(origins = "http://localhost:3000") // Allow requests from Next.js frontend
+@CrossOrigin(origins = "http://localhost:3000")
 public class HrLeaveScheduleController {
 
     private final HrLeaveScheduleService service;
@@ -65,11 +65,51 @@ public class HrLeaveScheduleController {
         return service.findByEmployeeIdAndYear(employeeId, leaveYearId);
     }
 
-    @PatchMapping("/{id}/status")
-    public ResponseEntity<HrLeaveSchedule> updateLeaveScheduleStatus(
-            @PathVariable Long id,
+    @PutMapping("/{scheduleId}/reschedule")
+    public ResponseEntity<HrLeaveSchedule> rescheduleLeave(
+            @PathVariable Long scheduleId,
+            @RequestBody RescheduleRequest request) {
+        HrLeaveSchedule rescheduledSchedule = service.rescheduleLeave(scheduleId, request.getScheduleDetails(), request.getRemark());
+        return ResponseEntity.ok(rescheduledSchedule);
+    }
+
+    @PutMapping("/{scheduleId}/details/{leaveMonth}/reschedule")
+    public ResponseEntity<HrLeaveScheduleDet> rescheduleSingleDetail(
+            @PathVariable Long scheduleId,
+            @PathVariable String leaveMonth,
+            @RequestBody HrLeaveScheduleDet detail) {
+        HrLeaveScheduleDet updatedDetail = service.rescheduleSingleDetail(scheduleId, leaveMonth, detail);
+        return ResponseEntity.ok(updatedDetail);
+    }
+
+    @PatchMapping("/{scheduleId}/details/{leaveMonth}/status")
+    public ResponseEntity<Void> updateLeaveScheduleDetailStatus(
+            @PathVariable Long scheduleId,
+            @PathVariable String leaveMonth,
             @RequestBody StatusUpdateRequest request) {
-        return ResponseEntity.ok(service.updateStatus(id, request.getStatus(), request.getRemark()));
+        service.updateDetailStatus(scheduleId, leaveMonth, request.getStatus(), request.getRemark());
+        return ResponseEntity.ok().build();
+    }
+
+    public static class RescheduleRequest {
+        private List<HrLeaveScheduleDet> scheduleDetails;
+        private String remark;
+
+        public List<HrLeaveScheduleDet> getScheduleDetails() {
+            return scheduleDetails;
+        }
+
+        public void setScheduleDetails(List<HrLeaveScheduleDet> scheduleDetails) {
+            this.scheduleDetails = scheduleDetails;
+        }
+
+        public String getRemark() {
+            return remark;
+        }
+
+        public void setRemark(String remark) {
+            this.remark = remark;
+        }
     }
 
     public static class StatusUpdateRequest {

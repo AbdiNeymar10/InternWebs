@@ -2,12 +2,14 @@ package com.example.employee_management.controller;
 
 import com.example.employee_management.entity.HrLuLeaveType;
 import com.example.employee_management.service.HrLuLeaveTypeService;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid; // Use jakarta validation
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/leave-types")
@@ -15,43 +17,50 @@ public class HrLuLeaveTypeController {
 
     private final HrLuLeaveTypeService service;
 
-    @Autowired
+    // Constructor injection is already correctly used - great job!
     public HrLuLeaveTypeController(HrLuLeaveTypeService service) {
         this.service = service;
     }
 
     @GetMapping
-    public List<HrLuLeaveType> getAll() {
-        return service.findAll();
+    public ResponseEntity<List<HrLuLeaveType>> getAll() {
+        return ResponseEntity.ok(service.findAll());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<HrLuLeaveType> getById(@PathVariable Long id) {
-        Optional<HrLuLeaveType> leaveType = service.findById(id);
-        return leaveType.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        // The service will throw an exception if not found, which is handled globally.
+        HrLuLeaveType leaveType = service.findById(id);
+        return ResponseEntity.ok(leaveType);
     }
 
     @PostMapping
-    public HrLuLeaveType create(@RequestBody HrLuLeaveType leaveType) {
-        return service.save(leaveType);
+    public ResponseEntity<HrLuLeaveType> create(@Valid @RequestBody HrLuLeaveType leaveType) {
+        // Ensure the ID is null so the database generates a new one.
+        leaveType.setId(null);
+        HrLuLeaveType savedLeaveType = service.save(leaveType);
+
+        // Build the location URI of the new resource for the response header.
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(savedLeaveType.getId())
+                .toUri();
+
+        // Return 201 Created status, the location, and the created object.
+        return ResponseEntity.created(location).body(savedLeaveType);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<HrLuLeaveType> update(@PathVariable Long id, @RequestBody HrLuLeaveType leaveType) {
-        if (!service.findById(id).isPresent()) {
-            return ResponseEntity.notFound().build();
-        }
-        leaveType.setId(id);
-        return ResponseEntity.ok(service.save(leaveType));
+    public ResponseEntity<HrLuLeaveType> update(@PathVariable Long id, @Valid @RequestBody HrLuLeaveType leaveTypeDetails) {
+        // The service's update method will handle the "not found" case internally.
+        HrLuLeaveType updatedLeaveType = service.update(id, leaveTypeDetails);
+        return ResponseEntity.ok(updatedLeaveType);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        if (!service.findById(id).isPresent()) {
-            return ResponseEntity.notFound().build();
-        }
+        // The service will throw an exception if the ID to delete is not found.
         service.deleteById(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.noContent().build(); // Return 204 No Content on successful deletion.
     }
 }
