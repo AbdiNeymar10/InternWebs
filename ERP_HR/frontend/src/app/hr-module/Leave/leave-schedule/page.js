@@ -221,7 +221,7 @@ function LowSwitchOptions({ employeeId, year }) {
           scheduleId: formData.scheduleId,
         };
 
-        const response = await fetch(
+        const response = await authFetch(
           `http://localhost:8080/api/leave-schedules/${formData.scheduleId}/details/${reschedulingMonth}/reschedule`,
           {
             method: "PUT",
@@ -259,7 +259,7 @@ function LowSwitchOptions({ employeeId, year }) {
         setTimeout(() => setSuccessMessage(""), 3000);
 
         // Refresh notifications
-        const notificationResponse = await fetch(
+        const notificationResponse = await authFetch(
           `http://localhost:8080/api/notifications?employeeId=${employeeId}`
         );
         if (notificationResponse.ok) {
@@ -759,7 +759,7 @@ export default function HRMSystem() {
           try {
             await Promise.all(
               notifications.map(async (notif) => {
-                const response = await fetch(
+                const response = await authFetch(
                   `http://localhost:8080/api/notifications/${notif.id}`,
                   {
                     method: "DELETE",

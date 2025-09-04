@@ -1,8 +1,8 @@
-
 "use client";
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from "react";
 import { motion, Variants } from "framer-motion";
-import Select from 'react-select';
+import { authFetch } from "@/utils/authFetch";
+import Select from "react-select";
 
 interface EmployeeDetails {
   fullName: string;
@@ -42,22 +42,24 @@ const ApproverDecisionForm = ({
   scheduleId,
   onStatusUpdate,
   leaveMonths,
-  onSuccess
+  onSuccess,
 }: {
   scheduleId: string;
   onStatusUpdate: () => void;
   leaveMonths: LeaveDetail[];
   onSuccess: (message: string) => void;
 }) => {
-  const [selectedMonth, setSelectedMonth] = useState('');
-  const [approverDecision, setApproverDecision] = useState('');
-  const [remark, setRemark] = useState('');
+  const [selectedMonth, setSelectedMonth] = useState("");
+  const [approverDecision, setApproverDecision] = useState("");
+  const [remark, setRemark] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async () => {
     if (!scheduleId || !approverDecision || !selectedMonth) {
-      setError('Please select a month, decision, and ensure a request is selected.');
+      setError(
+        "Please select a month, decision, and ensure a request is selected."
+      );
       return;
     }
 
@@ -65,15 +67,15 @@ const ApproverDecisionForm = ({
     setError(null);
 
     try {
-      const response = await fetch(
+      const response = await authFetch(
         `http://localhost:8080/api/leave-schedules/${scheduleId}/details/${selectedMonth}/status`,
         {
-          method: 'PATCH',
+          method: "PATCH",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            status: approverDecision === 'approve' ? 'Approved' : 'Rejected',
+            status: approverDecision === "approve" ? "Approved" : "Rejected",
             remark,
           }),
         }
@@ -81,18 +83,23 @@ const ApproverDecisionForm = ({
 
       if (!response.ok) {
         const errorData = await response.text();
-        throw new Error(`Failed to update status: ${response.status} ${response.statusText} - ${errorData}`);
+        throw new Error(
+          `Failed to update status: ${response.status} ${response.statusText} - ${errorData}`
+        );
       }
 
-      onSuccess(`You have successfully ${approverDecision === 'approve' ? 'approved' : 'rejected'} the leave request for ${selectedMonth}.`);
-      setApproverDecision('');
-      setRemark('');
-      setSelectedMonth('');
+      onSuccess(
+        `You have successfully ${
+          approverDecision === "approve" ? "approved" : "rejected"
+        } the leave request for ${selectedMonth}.`
+      );
+      setApproverDecision("");
+      setRemark("");
+      setSelectedMonth("");
       onStatusUpdate();
-
     } catch (err: any) {
       setError(`Failed to update status: ${err.message}`);
-      console.error('Error updating status:', err);
+      console.error("Error updating status:", err);
     } finally {
       setIsLoading(false);
     }
@@ -112,7 +119,9 @@ const ApproverDecisionForm = ({
     visible: { y: 0, opacity: 1 },
   };
 
-  const pendingMonths = leaveMonths.filter(m => m.status === 'Pending' || !m.status);
+  const pendingMonths = leaveMonths.filter(
+    (m) => m.status === "Pending" || !m.status
+  );
 
   return (
     <motion.div
@@ -121,10 +130,14 @@ const ApproverDecisionForm = ({
       variants={containerVariants}
       className="bg-white/80 backdrop-blur-lg rounded-xl border border-[#3c8dbc]/30 shadow-xl overflow-hidden p-6 mb-6"
     >
-      <h2 className="text-xl font-semibold text-[#3c8dbc] mb-4">Approver Decision</h2>
+      <h2 className="text-xl font-semibold text-[#3c8dbc] mb-4">
+        Approver Decision
+      </h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 ml-14">
         <motion.div variants={itemVariants}>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Leave Month:</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Leave Month:
+          </label>
           <select
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
@@ -132,7 +145,7 @@ const ApproverDecisionForm = ({
             disabled={isLoading || pendingMonths.length === 0}
           >
             <option value="">--Select Pending Month--</option>
-            {pendingMonths.map(month => (
+            {pendingMonths.map((month) => (
               <option key={month.leaveMonth} value={month.leaveMonth}>
                 {month.leaveMonth}
               </option>
@@ -141,7 +154,9 @@ const ApproverDecisionForm = ({
         </motion.div>
 
         <motion.div variants={itemVariants}>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Approver Decision:</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Approver Decision:
+          </label>
           <select
             value={approverDecision}
             onChange={(e) => setApproverDecision(e.target.value)}
@@ -155,7 +170,9 @@ const ApproverDecisionForm = ({
         </motion.div>
 
         <motion.div variants={itemVariants} className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Remark:</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Remark:
+          </label>
           <textarea
             value={remark}
             onChange={(e) => setRemark(e.target.value)}
@@ -165,7 +182,9 @@ const ApproverDecisionForm = ({
           />
         </motion.div>
       </div>
-      {error && <div className="text-red-500 text-sm mt-4 text-center">{error}</div>}
+      {error && (
+        <div className="text-red-500 text-sm mt-4 text-center">{error}</div>
+      )}
       <motion.div
         variants={itemVariants}
         className="pt-6 flex justify-center"
@@ -178,7 +197,7 @@ const ApproverDecisionForm = ({
           className="px-4 py-2 bg-[#3c8dbc] text-white rounded-md text-sm font-medium hover:bg-[#3c8dbc]/90 transition-colors shadow-md disabled:bg-gray-400 disabled:cursor-not-allowed"
           disabled={isLoading || !selectedMonth || !approverDecision}
         >
-          {isLoading ? 'Processing...' : 'Submit Decision'}
+          {isLoading ? "Processing..." : "Submit Decision"}
         </button>
       </motion.div>
     </motion.div>
@@ -196,15 +215,19 @@ const LeaveMonthOptions = ({ scheduleId }: { scheduleId: string }) => {
         setIsLoading(true);
         setError(null);
         try {
-          const response = await fetch(`http://localhost:8080/api/leave-schedules/${scheduleId}/details`);
+          const response = await authFetch(
+            `http://localhost:8080/api/leave-schedules/${scheduleId}/details`
+          );
           if (!response.ok) {
-            throw new Error(`Failed to fetch details: ${response.status} ${response.statusText}`);
+            throw new Error(
+              `Failed to fetch details: ${response.status} ${response.statusText}`
+            );
           }
           const details = await response.json();
           setRecords(details);
         } catch (err: any) {
           setError(`Failed to fetch leave schedule details: ${err.message}`);
-          console.error('Error fetching details:', err);
+          console.error("Error fetching details:", err);
         } finally {
           setIsLoading(false);
         }
@@ -221,39 +244,75 @@ const LeaveMonthOptions = ({ scheduleId }: { scheduleId: string }) => {
       animate={{ opacity: 1, y: 0 }}
       className="bg-white/80 backdrop-blur-lg rounded-xl border border-[#3c8dbc]/30 shadow-xl overflow-hidden p-6 mb-6"
     >
-      <h2 className="text-xl font-semibold text-[#3c8dbc] mb-4">Leave Month Options</h2>
+      <h2 className="text-xl font-semibold text-[#3c8dbc] mb-4">
+        Leave Month Options
+      </h2>
       <div className="border border-[#3c8dbc]/30 rounded-lg overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-[#3c8dbc]/10">
-              <th className="text-left py-3 px-4 text-sm font-medium text-[#3c8dbc]">No</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-[#3c8dbc]">Leave Month</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-[#3c8dbc]">No_Days</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-[#3c8dbc]">Description</th>
-              <th className="text-left py-3 px-4 text-sm font-medium text-[#3c8dbc]">Status</th>
+              <th className="text-left py-3 px-4 text-sm font-medium text-[#3c8dbc]">
+                No
+              </th>
+              <th className="text-left py-3 px-4 text-sm font-medium text-[#3c8dbc]">
+                Leave Month
+              </th>
+              <th className="text-left py-3 px-4 text-sm font-medium text-[#3c8dbc]">
+                No_Days
+              </th>
+              <th className="text-left py-3 px-4 text-sm font-medium text-[#3c8dbc]">
+                Description
+              </th>
+              <th className="text-left py-3 px-4 text-sm font-medium text-[#3c8dbc]">
+                Status
+              </th>
             </tr>
           </thead>
           <tbody>
             {isLoading ? (
-              <tr><td colSpan={5} className="py-4 px-4 text-center text-gray-500">Loading...</td></tr>
+              <tr>
+                <td colSpan={5} className="py-4 px-4 text-center text-gray-500">
+                  Loading...
+                </td>
+              </tr>
             ) : error ? (
-              <tr><td colSpan={5} className="py-4 px-4 text-center text-red-500">{error}</td></tr>
+              <tr>
+                <td colSpan={5} className="py-4 px-4 text-center text-red-500">
+                  {error}
+                </td>
+              </tr>
             ) : records.length === 0 ? (
-              <tr><td colSpan={5} className="py-4 px-4 text-center text-gray-500">No request selected or no details found.</td></tr>
+              <tr>
+                <td colSpan={5} className="py-4 px-4 text-center text-gray-500">
+                  No request selected or no details found.
+                </td>
+              </tr>
             ) : (
               records.map((record, index) => (
                 <tr key={record.id} className="border-t border-[#3c8dbc]/20">
-                  <td className="py-3 px-4 text-sm text-gray-700">{index + 1}</td>
-                  <td className="py-3 px-4 text-sm text-gray-700">{record.leaveMonth}</td>
-                  <td className="py-3 px-4 text-sm text-gray-700">{record.noDays}</td>
-                  <td className="py-3 px-4 text-sm text-gray-700">{record.description}</td>
                   <td className="py-3 px-4 text-sm text-gray-700">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      record.status === 'Approved' ? 'bg-green-100 text-green-800' :
-                      record.status === 'Rejected' ? 'bg-red-100 text-red-800' :
-                      'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {record.status || 'Pending'}
+                    {index + 1}
+                  </td>
+                  <td className="py-3 px-4 text-sm text-gray-700">
+                    {record.leaveMonth}
+                  </td>
+                  <td className="py-3 px-4 text-sm text-gray-700">
+                    {record.noDays}
+                  </td>
+                  <td className="py-3 px-4 text-sm text-gray-700">
+                    {record.description}
+                  </td>
+                  <td className="py-3 px-4 text-sm text-gray-700">
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        record.status === "Approved"
+                          ? "bg-green-100 text-green-800"
+                          : record.status === "Rejected"
+                          ? "bg-red-100 text-red-800"
+                          : "bg-yellow-100 text-yellow-800"
+                      }`}
+                    >
+                      {record.status || "Pending"}
                     </span>
                   </td>
                 </tr>
@@ -267,10 +326,14 @@ const LeaveMonthOptions = ({ scheduleId }: { scheduleId: string }) => {
 };
 
 const LeaveScheduleApprove = () => {
-  const [requestId, setRequestId] = useState('');
+  const [requestId, setRequestId] = useState("");
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [employeeDetails, setEmployeeDetails] = useState<EmployeeDetails>({
-    fullName: '', department: '', year: '', requesterName: '', position: '',
+    fullName: "",
+    department: "",
+    year: "",
+    requesterName: "",
+    position: "",
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -290,9 +353,13 @@ const LeaveScheduleApprove = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch('http://localhost:8080/api/leave-schedules');
+      const response = await authFetch(
+        "http://localhost:8080/api/leave-schedules"
+      );
       if (!response.ok) {
-        throw new Error(`Failed to fetch schedules: ${response.status} ${response.statusText}`);
+        throw new Error(
+          `Failed to fetch schedules: ${response.status} ${response.statusText}`
+        );
       }
       const data = await response.json();
       // Add validation to ensure the API returned an array
@@ -302,18 +369,23 @@ const LeaveScheduleApprove = () => {
 
       const schedulesWithData = await Promise.all(
         data.map(async (schedule: Schedule) => {
-          let fullName = 'Unknown';
+          let fullName = "Unknown";
           let employeeData: Employee | undefined = undefined;
 
           try {
             if (!schedule.employeeId) {
               console.warn("Schedule found with missing employeeId:", schedule);
-              fullName = 'Unknown (No ID)';
+              fullName = "Unknown (No ID)";
             } else {
-              const empResponse = await fetch(`http://localhost:8080/api/employees/${schedule.employeeId}`);
+              const empResponse = await authFetch(
+                `http://localhost:8080/api/employees/${schedule.employeeId}`
+              );
               if (empResponse.ok) {
                 employeeData = await empResponse.json();
-                fullName = `${employeeData?.firstName || ''} ${employeeData?.lastName || ''}`.trim() || `Unnamed (${schedule.employeeId})`;
+                fullName =
+                  `${employeeData?.firstName || ""} ${
+                    employeeData?.lastName || ""
+                  }`.trim() || `Unnamed (${schedule.employeeId})`;
               } else {
                 // Handle 404 or other errors silently by setting fallback name
                 fullName = `Unknown (${schedule.employeeId})`;
@@ -344,39 +416,59 @@ const LeaveScheduleApprove = () => {
   }, [fetchAllSchedules]);
 
   const handleRequestChange = (selectedOption: any) => {
-    const selectedId = selectedOption ? selectedOption.value : '';
+    const selectedId = selectedOption ? selectedOption.value : "";
     setRequestId(selectedId);
 
     if (selectedId) {
-      const selectedSchedule = schedules.find(s => s.id.toString() === selectedId);
+      const selectedSchedule = schedules.find(
+        (s) => s.id.toString() === selectedId
+      );
 
       if (selectedSchedule) {
         setLeaveMonths(selectedSchedule.scheduleDetails || []);
         setEmployeeDetails({
           fullName: selectedSchedule.employeeId, // This is the ID field
-          department: selectedSchedule.employee?.department?.depName || 'Unknown',
+          department:
+            selectedSchedule.employee?.department?.depName || "Unknown",
           year: selectedSchedule.leaveYearId.toString(),
           requesterName: selectedSchedule.fullName,
-          position: selectedSchedule.employee?.position?.positionName || 'Unknown',
+          position:
+            selectedSchedule.employee?.position?.positionName || "Unknown",
         });
       }
     } else {
-      setRequestId('');
-      setEmployeeDetails({ fullName: '', department: '', year: '', requesterName: '', position: '' });
+      setRequestId("");
+      setEmployeeDetails({
+        fullName: "",
+        department: "",
+        year: "",
+        requesterName: "",
+        position: "",
+      });
       setLeaveMonths([]);
     }
   };
 
   const handleStatusUpdate = () => {
-    setRequestId('');
-    setEmployeeDetails({ fullName: '', department: '', year: '', requesterName: '', position: '' });
+    setRequestId("");
+    setEmployeeDetails({
+      fullName: "",
+      department: "",
+      year: "",
+      requesterName: "",
+      position: "",
+    });
     setLeaveMonths([]);
     fetchAllSchedules();
   };
 
   const containerVariants: Variants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { when: "beforeChildren", staggerChildren: 0.1 } },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { when: "beforeChildren", staggerChildren: 0.1 },
+    },
   };
 
   const itemVariants: Variants = {
@@ -385,11 +477,14 @@ const LeaveScheduleApprove = () => {
   };
 
   const scheduleOptions = schedules
-    .filter(schedule =>
-      schedule.scheduleDetails &&
-      schedule.scheduleDetails.some(detail => detail.status === 'Pending' || !detail.status)
+    .filter(
+      (schedule) =>
+        schedule.scheduleDetails &&
+        schedule.scheduleDetails.some(
+          (detail) => detail.status === "Pending" || !detail.status
+        )
     )
-    .map(schedule => ({
+    .map((schedule) => ({
       value: schedule.id.toString(),
       label: `${schedule.employeeId} - ${schedule.fullName} - ${schedule.leaveYearId}`,
     }));
@@ -422,7 +517,10 @@ const LeaveScheduleApprove = () => {
         )}
 
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
+          <div
+            className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6"
+            role="alert"
+          >
             {error}
           </div>
         )}
@@ -442,50 +540,106 @@ const LeaveScheduleApprove = () => {
                 <Select
                   options={scheduleOptions}
                   onChange={handleRequestChange}
-                  value={scheduleOptions.find(option => option.value === requestId) || null}
+                  value={
+                    scheduleOptions.find(
+                      (option) => option.value === requestId
+                    ) || null
+                  }
                   isLoading={isLoading}
                   placeholder="--Select a request with pending items--"
                   className="w-3/4"
                   styles={{
-                    control: (provided) => ({ ...provided, borderColor: '#d1d5db', borderRadius: '0.375rem', padding: '0.1rem', '&:hover': { borderColor: '#3c8dbc' }, boxShadow: 'none' }),
+                    control: (provided) => ({
+                      ...provided,
+                      borderColor: "#d1d5db",
+                      borderRadius: "0.375rem",
+                      padding: "0.1rem",
+                      "&:hover": { borderColor: "#3c8dbc" },
+                      boxShadow: "none",
+                    }),
                     menu: (provided) => ({ ...provided, zIndex: 20 }),
-                    option: (provided, state) => ({ ...provided, backgroundColor: state.isSelected ? '#3c8dbc' : state.isFocused ? '#e6f0fa' : 'white', color: state.isSelected ? 'white' : '#374151' }),
+                    option: (provided, state) => ({
+                      ...provided,
+                      backgroundColor: state.isSelected
+                        ? "#3c8dbc"
+                        : state.isFocused
+                        ? "#e6f0fa"
+                        : "white",
+                      color: state.isSelected ? "white" : "#374151",
+                    }),
                   }}
                 />
               </motion.div>
               <motion.div variants={itemVariants}>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Requester Id:</label>
-                <input type="text" value={employeeDetails.fullName} readOnly className="w-3/4 px-2 py-1 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed" />
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Requester Id:
+                </label>
+                <input
+                  type="text"
+                  value={employeeDetails.fullName}
+                  readOnly
+                  className="w-3/4 px-2 py-1 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
+                />
               </motion.div>
               <motion.div variants={itemVariants}>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Department:</label>
-                <input type="text" value={employeeDetails.department} readOnly className="w-3/4 px-2 py-1 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed" />
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Department:
+                </label>
+                <input
+                  type="text"
+                  value={employeeDetails.department}
+                  readOnly
+                  className="w-3/4 px-2 py-1 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
+                />
               </motion.div>
             </div>
             <div className="space-y-4 ml-12 mr-4">
               <motion.div variants={itemVariants}>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Requester Name:</label>
-                <input type="text" value={employeeDetails.requesterName} readOnly className="w-3/4 px-2 py-1 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed" />
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Requester Name:
+                </label>
+                <input
+                  type="text"
+                  value={employeeDetails.requesterName}
+                  readOnly
+                  className="w-3/4 px-2 py-1 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
+                />
               </motion.div>
               <motion.div variants={itemVariants}>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Position:</label>
-                <input type="text" value={employeeDetails.position} readOnly className="w-3/4 px-2 py-1 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed" />
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Position:
+                </label>
+                <input
+                  type="text"
+                  value={employeeDetails.position}
+                  readOnly
+                  className="w-3/4 px-2 py-1 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
+                />
               </motion.div>
               <motion.div variants={itemVariants}>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Year:</label>
-                <input type="text" value={employeeDetails.year} readOnly className="w-3/4 px-2 py-1 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed" />
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Year:
+                </label>
+                <input
+                  type="text"
+                  value={employeeDetails.year}
+                  readOnly
+                  className="w-3/4 px-2 py-1 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
+                />
               </motion.div>
             </div>
           </div>
         </motion.div>
 
         {requestId && <LeaveMonthOptions scheduleId={requestId} />}
-        {requestId && <ApproverDecisionForm
-          scheduleId={requestId}
-          onStatusUpdate={handleStatusUpdate}
-          leaveMonths={leaveMonths}
-          onSuccess={(message) => setSuccessMessage(message)}
-        />}
+        {requestId && (
+          <ApproverDecisionForm
+            scheduleId={requestId}
+            onStatusUpdate={handleStatusUpdate}
+            leaveMonths={leaveMonths}
+            onSuccess={(message) => setSuccessMessage(message)}
+          />
+        )}
       </div>
     </div>
   );

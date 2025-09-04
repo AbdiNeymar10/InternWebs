@@ -68,7 +68,7 @@ export const updateLeaveScheduleDetail = async (id, detailData) => {
 };
 
 export const deleteLeaveScheduleDetail = async (id) => {
-  await fetch(`${API_BASE_URL}/leave-schedule-details/${id}`, {
+  await authFetch(`${API_BASE_URL}/leave-schedule-details/${id}`, {
     method: "DELETE",
   });
 };
