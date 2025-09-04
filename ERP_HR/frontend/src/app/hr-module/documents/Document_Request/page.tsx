@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+import { motion } from "framer-motion";
+import { useState, useEffect, useCallback } from "react";
+import { authFetch } from "@/utils/authFetch";
 import {
   FiFileText,
   FiCheck,
   FiRefreshCw,
   FiAlertTriangle,
-} from 'react-icons/fi';
-import { toast, Toaster } from 'react-hot-toast';
+} from "react-icons/fi";
+import { toast, Toaster } from "react-hot-toast";
 
 // Interface for DocumentType
 interface DocumentType {
@@ -19,12 +19,12 @@ interface DocumentType {
 }
 
 // API Configuration
-const API_BASE_URL = 'http://localhost:8080/api/hrdocument';
+const API_BASE_URL = "http://localhost:8080/api/hrdocument";
 
 const DocumentRequest = () => {
-  const [workId, setWorkId] = useState('');
+  const [workId, setWorkId] = useState("");
   const [documentTypeId, setDocumentTypeId] = useState<number | null>(null);
-  const [remark, setRemark] = useState('');
+  const [remark, setRemark] = useState("");
   const [documentTypes, setDocumentTypes] = useState<DocumentType[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingTypes, setIsLoadingTypes] = useState(false);
@@ -34,24 +34,23 @@ const DocumentRequest = () => {
     setIsLoadingTypes(true);
     setError(null);
     try {
-      const response = await axios.get(`${API_BASE_URL}/document-types`);
-      console.log('API Response for Document Types:', response);
-      console.log('Document types data from API:', response.data);
-
-      if (!Array.isArray(response.data)) {
-        console.error('Error: Document types response is not an array!', response.data);
+      const response = await authFetch(`${API_BASE_URL}/document-types`);
+      const data = await response.json();
+      console.log("API Response for Document Types:", data);
+      if (!Array.isArray(data)) {
+        console.error("Error: Document types response is not an array!", data);
         setDocumentTypes([]);
-        throw new Error('Received invalid data format for document types.');
+        throw new Error("Received invalid data format for document types.");
       }
-      const validatedTypes = response.data.map((dt: any) => ({
+      const validatedTypes = data.map((dt: any) => ({
         id: dt.id || 0,
-        type: dt.name || dt.type || 'Unknown Type',
+        type: dt.name || dt.type || "Unknown Type",
         description: dt.description,
       }));
       setDocumentTypes(validatedTypes);
     } catch (err: any) {
-      console.error('Error fetching document types:', err);
-      const message = err.response?.data?.message || err.message || 'Failed to load document types';
+      console.error("Error fetching document types:", err);
+      const message = err.message || "Failed to load document types";
       setError(message);
       toast.error(message);
       setDocumentTypes([]);
@@ -66,33 +65,44 @@ const DocumentRequest = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Submitting request with data:', { workId, documentTypeId, remark });
+    console.log("Submitting request with data:", {
+      workId,
+      documentTypeId,
+      remark,
+    });
 
     if (!workId || documentTypeId === null || !remark) {
-      toast.error('Please fill out all fields');
+      toast.error("Please fill out all fields");
       return;
     }
 
     setIsSubmitting(true);
     setError(null);
     try {
-      const currentDateTime = new Date().toISOString(); // e.g., "2025-06-02T12:58:00.000Z"
-      const response = await axios.post(`${API_BASE_URL}/request`, {
-        documentType: { id: documentTypeId },
-        workId,
-        remark,
-        requester: `Employee ${workId}`,
-        requestedDate: currentDateTime,
-        referenceNo: `REF-${workId}-${Date.now()}`,
+      const currentDateTime = new Date().toISOString();
+      const response = await authFetch(`${API_BASE_URL}/request`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          documentType: { id: documentTypeId },
+          workId,
+          remark,
+          requester: `Employee ${workId}`,
+          requestedDate: currentDateTime,
+          referenceNo: `REF-${workId}-${Date.now()}`,
+        }),
       });
-      console.log('Submit request response:', response);
+      const data = await response.json();
+      console.log("Submit request response:", data);
 
-      toast.success('Request submitted successfully!');
-      setRemark('');
+      toast.success("Request submitted successfully!");
+      setRemark("");
       setDocumentTypeId(null);
     } catch (err: any) {
-      console.error('Error submitting request:', err);
-      const message = err.response?.data?.message || err.message || 'Failed to submit request';
+      console.error("Error submitting request:", err);
+      const message = err.message || "Failed to submit request";
       setError(message);
       toast.error(message);
     } finally {
@@ -110,15 +120,15 @@ const DocumentRequest = () => {
         position="top-center"
         toastOptions={{
           style: {
-            borderRadius: '12px',
-            background: 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(10px)',
-            boxShadow: '0 8px 32px rgba(31, 38, 135, 0.15)',
-            padding: '16px',
-            color: '#333',
+            borderRadius: "12px",
+            background: "rgba(255, 255, 255, 0.95)",
+            backdropFilter: "blur(10px)",
+            boxShadow: "0 8px 32px rgba(31, 38, 135, 0.15)",
+            padding: "16px",
+            color: "#333",
           },
-          success: { iconTheme: { primary: '#3c8dbc', secondary: 'white' } },
-          error: { iconTheme: { primary: '#EF4444', secondary: 'white' } },
+          success: { iconTheme: { primary: "#3c8dbc", secondary: "white" } },
+          error: { iconTheme: { primary: "#EF4444", secondary: "white" } },
         }}
       />
 
@@ -156,9 +166,15 @@ const DocumentRequest = () => {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <form
+              onSubmit={handleSubmit}
+              className="grid grid-cols-1 md:grid-cols-2 gap-4"
+            >
               <div>
-                <label htmlFor="workId" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="workId"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Work ID *
                 </label>
                 <input
@@ -173,18 +189,27 @@ const DocumentRequest = () => {
               </div>
 
               <div>
-                <label htmlFor="documentType" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="documentType"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Document Type *
                 </label>
                 <select
                   id="documentType"
-                  value={documentTypeId === null ? '' : documentTypeId}
-                  onChange={(e) => setDocumentTypeId(e.target.value ? Number(e.target.value) : null)}
+                  value={documentTypeId === null ? "" : documentTypeId}
+                  onChange={(e) =>
+                    setDocumentTypeId(
+                      e.target.value ? Number(e.target.value) : null
+                    )
+                  }
                   disabled={isLoadingTypes}
                   className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-[#3c8dbc] focus:border-transparent transition-colors"
                   required
                 >
-                  <option value="">{isLoadingTypes ? "Loading..." : "Select document type"}</option>
+                  <option value="">
+                    {isLoadingTypes ? "Loading..." : "Select document type"}
+                  </option>
                   {documentTypes.map((type) => (
                     <option key={type.id} value={type.id}>
                       {type.type} {type.description && `- ${type.description}`}
@@ -192,15 +217,22 @@ const DocumentRequest = () => {
                   ))}
                 </select>
                 {isLoadingTypes && documentTypes.length === 0 && (
-                  <p className="mt-1 text-xs text-gray-500">Loading document types...</p>
+                  <p className="mt-1 text-xs text-gray-500">
+                    Loading document types...
+                  </p>
                 )}
                 {!isLoadingTypes && documentTypes.length === 0 && (
-                  <p className="mt-1 text-xs text-red-500">No document types found or failed to load.</p>
+                  <p className="mt-1 text-xs text-red-500">
+                    No document types found or failed to load.
+                  </p>
                 )}
               </div>
 
               <div className="md:col-span-2">
-                <label htmlFor="remark" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="remark"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Remarks *
                 </label>
                 <textarea
@@ -220,8 +252,8 @@ const DocumentRequest = () => {
                   disabled={isSubmitting || isLoadingTypes}
                   className={`w-full px-4 py-2 rounded-md text-white font-medium flex items-center justify-center transition-colors ${
                     isSubmitting || isLoadingTypes
-                      ? 'bg-gray-400 cursor-not-allowed'
-                      : 'bg-[#3c8dbc] hover:bg-[#367fa9]'
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-[#3c8dbc] hover:bg-[#367fa9]"
                   }`}
                 >
                   {isSubmitting ? (
