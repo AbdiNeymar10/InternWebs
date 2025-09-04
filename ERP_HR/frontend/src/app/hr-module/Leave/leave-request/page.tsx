@@ -1,6 +1,8 @@
 "use client";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef, useCallback } from "react";
+// --- FIX: Import useRouter for navigation ---
+import { useRouter } from "next/navigation";
 import {
   FiX,
   FiCalendar,
@@ -84,7 +86,7 @@ interface NewLeaveTypeData {
 interface LeaveBalanceData {
   balanceId?: number;
   initialBalance: number;
-  currentBalance: number; // This IS the remaining days from DB (CURRENT_BALANCE column) or defaulted by service
+  currentBalance: number;
   usedDays: number;
   leaveYear: number;
 }
@@ -110,15 +112,33 @@ interface LeaveScheduleAPIResponse {
 }
 
 // --- API Fetch Functions ---
-async function fetchWrapper(url: string, options?: RequestInit) {
+async function fetchWrapper(url: string, options: RequestInit = {}) {
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("jwtToken") : null;
+
+  // This console log is for debugging. You can remove it once the issue is resolved.
+  if (token) {
+    console.log(`Checking for token... Token found.`);
+  } else {
+    console.error(
+      `Checking for token... Token not found. API call to ${url} will likely fail.`
+    );
+  }
+
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+    ...options.headers,
+  };
+
+  if (token) {
+    (headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
+  }
+
   try {
     const response = await fetch(url, {
       ...options,
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        ...options?.headers,
-      },
+      headers,
     });
 
     if (!response.ok) {
@@ -315,6 +335,8 @@ const initialLeaveBalanceState: LeaveBalanceData = {
 const ANNUAL_LEAVE_TOTAL_DAYS = 30; // Fixed total for display
 
 export default function LeaveRequestForm() {
+  // --- FIX: Add router for navigation ---
+  const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const [employeeId, setEmployeeId] = useState("");
   const [selectedLeaveTypeId, setSelectedLeaveTypeId] = useState("");
@@ -354,9 +376,18 @@ export default function LeaveRequestForm() {
   const [newLeaveTypeCode, setNewLeaveTypeCode] = useState("");
   const [isSavingNewLeaveType, setIsSavingNewLeaveType] = useState(false);
 
+  // --- FIX: Add useEffect to check for authentication token ---
+  useEffect(() => {
+    const token = localStorage.getItem("jwtToken");
+    if (!token) {
+      toast.error("Authentication required. Redirecting to login...");
+      // Assuming your login page is at '/login'
+      router.push("/login");
+    }
+  }, [router]);
+
   // Derived state for the balance modal table
   const balanceDataForModalTable =
-    // If balanceId is present OR if currentBalance is not the default 0 (meaning service provided a default)
     leaveBalance.balanceId !== undefined ||
     leaveBalance.currentBalance !== 0 ||
     leaveBalance.initialBalance !== 0
@@ -430,9 +461,6 @@ export default function LeaveRequestForm() {
           balanceId: balanceResponse.data.balanceId,
         });
       } else {
-        // If backend service returns a default when no record, this 'else' might not be hit
-        // for "no record" cases if the service always provides a data object.
-        // However, it's good for handling actual API errors.
         setLeaveBalance(initialLeaveBalanceState);
         if (
           balanceResponse?.status === "error" &&
@@ -441,7 +469,7 @@ export default function LeaveRequestForm() {
             .includes("no active leave balance found") &&
           !balanceResponse?.message
             ?.toLowerCase()
-            .includes("returning a default virtual balance") // Don't toast if service provided default
+            .includes("returning a default virtual balance")
         ) {
           toast.error(
             balanceResponse.message ||
@@ -1215,7 +1243,7 @@ export default function LeaveRequestForm() {
         </motion.form>
 
         <AnimatePresence>
-          {/* History Modal (no changes needed for this request) */}
+          {/* History Modal */}
           {showHistory && employeeId && employeeId.trim() && (
             <motion.div
               key="history-modal"
@@ -1397,7 +1425,7 @@ export default function LeaveRequestForm() {
             </motion.div>
           )}
 
-          {/* Balance Modal - Updated for new display logic */}
+          {/* Balance Modal */}
           {showBalance && employeeId && employeeId.trim() && (
             <motion.div
               key="balance-modal"
@@ -1551,7 +1579,7 @@ export default function LeaveRequestForm() {
                             <p className="text-2xl font-bold text-green-600">
                               {leaveBalance.currentBalance} days
                             </p>
-                            {leaveBalance.balanceId !== undefined && ( // Show this only if a DB record was actually found
+                            {leaveBalance.balanceId !== undefined && (
                               <p className="text-xs text-gray-500 mt-1">
                                 (System record: {leaveBalance.initialBalance}{" "}
                                 initial, {leaveBalance.usedDays} used)
@@ -1577,7 +1605,7 @@ export default function LeaveRequestForm() {
             </motion.div>
           )}
 
-          {/* Schedule Modal (no changes from previous version for this request) */}
+          {/* Schedule Modal */}
           {showSchedule && (
             <motion.div
               key="schedule-modal"
@@ -1721,7 +1749,7 @@ export default function LeaveRequestForm() {
             </motion.div>
           )}
 
-          {/* New Leave Type Modal (no changes from previous version) */}
+          {/* New Leave Type Modal */}
           <AnimatePresence>
             {showNewLeaveTypeModal && (
               <motion.div
