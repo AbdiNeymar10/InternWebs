@@ -19,7 +19,7 @@ public class HrLeaveScheduleDetService {
 
     @Autowired
     public HrLeaveScheduleDetService(HrLeaveScheduleDetRepository repository,
-                                     HrLeaveScheduleRepository scheduleRepository) {
+            HrLeaveScheduleRepository scheduleRepository) {
         this.repository = repository;
         this.scheduleRepository = scheduleRepository;
     }
@@ -40,6 +40,9 @@ public class HrLeaveScheduleDetService {
             HrLeaveSchedule schedule = scheduleRepository.findById(scheduleDetail.getScheduleId())
                     .orElseThrow(() -> new RuntimeException("Parent schedule not found"));
             scheduleDetail.setHrLeaveSchedule(schedule);
+        }
+        if (scheduleDetail.getStatus() == null || scheduleDetail.getStatus().trim().isEmpty()) {
+            scheduleDetail.setStatus("Pending");
         }
         return repository.save(scheduleDetail);
     }
