@@ -4,22 +4,39 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
   FiSearch,
-  FiCheck,
+  FiCheckCircle,
   FiUsers,
-  FiList,
   FiRefreshCw,
-  FiAlertTriangle,
+  FiUserCheck,
   FiFileText,
-  FiUser,
-  FiInfo
+  FiClipboard,
 } from "react-icons/fi";
 import { toast, Toaster } from "react-hot-toast";
+
+// Custom debounce hook
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+
+const API_BASE_URL = "http://localhost:8080/api";
 
 interface Employee {
   empId: string;
   fullName: string;
   position: string;
-  department: string; // Now contains deptName
+  department: string;
   selected?: boolean;
 }
 
@@ -37,6 +54,26 @@ interface LeaveTransferRequestDTO {
   details: LeaveTransferDetailDTO[];
 }
 
+const InfoBlockStyled: React.FC<{
+  label: string;
+  value?: string | number;
+  icon?: React.ReactNode;
+  className?: string;
+  valueClassName?: string;
+}> = ({ label, value, icon, className = "", valueClassName = "" }) => (
+  <div className={` ${className}`}>
+    <label className="flex items-center text-xs font-medium text-slate-500 mb-1">
+      {icon && <span className="mr-1.5 opacity-70">{icon}</span>}
+      {label}
+    </label>
+    <div
+      className={`w-full p-2.5 text-sm bg-slate-100 text-slate-700 border border-slate-200 rounded-md min-h-[40px] flex items-center ${valueClassName}`}
+    >
+      {value || <span className="text-slate-400 italic">N/A</span>}
+    </div>
+  </div>
+);
+
 const LeaveTransferRequest = () => {
   const [empId, setEmpId] = useState<string>('');
   const [employee, setEmployee] = useState<Employee>({ empId: '', fullName: '', position: '', department: '' });
@@ -45,65 +82,72 @@ const LeaveTransferRequest = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [submittedRequests, setSubmittedRequests] = useState<LeaveTransferRequestDTO[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isDataLoading, setIsDataLoading] = useState(false);
+
+  const debouncedEmpId = useDebounce(empId, 500);
 
   useEffect(() => {
     const fetchEmployeeDetails = async () => {
-      if (!empId) return;
-      setIsLoading(true);
+      if (!debouncedEmpId) return;
+      setIsDataLoading(true);
+      const toastId = toast.loading("Fetching employee details...");
       try {
-        const response = await axios.get(`http://localhost:8080/api/leave-transfer/employee/${empId}`);
+        const response = await axios.get(`${API_BASE_URL}/leave-transfer/employee/${debouncedEmpId}`);
         setEmployee({
           empId: response.data.empId,
           fullName: response.data.fullName,
           position: response.data.position,
-          department: response.data.department || 'N/A', // department now contains deptName
+          department: response.data.department || 'N/A',
         });
-        toast.success('Employee details loaded');
-      } catch (error) {
-        toast.error('Employee not found');
+        toast.success("Employee details loaded!", { id: toastId });
+      } catch (error: any) {
+        toast.error(error.response?.data?.message || "Employee not found", { id: toastId });
         setEmployee({ empId: '', fullName: '', position: '', department: '' });
         setEmployees([]);
       } finally {
-        setIsLoading(false);
+        setIsDataLoading(false);
       }
     };
     fetchEmployeeDetails();
-  }, [empId]);
+  }, [debouncedEmpId]);
 
   useEffect(() => {
     const fetchEmployees = async () => {
-      if (!empId) return;
-      setIsLoading(true);
+      if (!debouncedEmpId) return;
+      setIsDataLoading(true);
+      const toastId = toast.loading("Fetching department employees...");
       try {
-        const response = await axios.get(`http://localhost:8080/api/leave-transfer/employees/${empId}`);
+        const response = await axios.get(`${API_BASE_URL}/leave-transfer/employees/${debouncedEmpId}`);
         setEmployees(response.data.map((emp: Employee) => ({ ...emp, selected: false })));
-      } catch (error) {
-        toast.error('Failed to load department employees');
+        toast.success("Department employees loaded!", { id: toastId });
+      } catch (error: any) {
+        toast.error(error.response?.data?.message || "Failed to load department employees", { id: toastId });
         setEmployees([]);
       } finally {
-        setIsLoading(false);
+        setIsDataLoading(false);
       }
     };
     fetchEmployees();
-  }, [empId]);
+  }, [debouncedEmpId]);
 
   useEffect(() => {
     const fetchSubmittedRequests = async () => {
-      if (!empId) return;
-      setIsLoading(true);
+      if (!debouncedEmpId) return;
+      setIsDataLoading(true);
+      const toastId = toast.loading("Fetching submitted requests...");
       try {
-        const response = await axios.get(`http://localhost:8080/api/leave-transfer/requests/${empId}`);
+        const response = await axios.get(`${API_BASE_URL}/leave-transfer/requests/${debouncedEmpId}`);
         setSubmittedRequests(response.data);
-      } catch (error) {
-        toast.error('Failed to load submitted requests');
+        toast.success("Submitted requests loaded!", { id: toastId });
+      } catch (error: any) {
+        toast.error(error.response?.data?.message || "Failed to load submitted requests", { id: toastId });
         setSubmittedRequests([]);
       } finally {
-        setIsLoading(false);
+        setIsDataLoading(false);
       }
     };
     fetchSubmittedRequests();
-  }, [empId]);
+  }, [debouncedEmpId]);
 
   const handleSelectAll = () => {
     setSelectAll(!selectAll);
@@ -118,13 +162,13 @@ const LeaveTransferRequest = () => {
 
   const handleSubmit = async () => {
     if (!empId) {
-      toast.error('Please enter an employee ID');
+      toast.error("Please enter an employee ID");
       return;
     }
 
     const selectedEmployees = employees.filter(emp => emp.selected);
     if (selectedEmployees.length === 0) {
-      toast.error('Please select at least one employee');
+      toast.error("Please select at least one employee");
       return;
     }
 
@@ -138,16 +182,16 @@ const LeaveTransferRequest = () => {
     };
 
     setIsSubmitting(true);
+    const toastId = toast.loading("Submitting request...");
     try {
-      await axios.post('http://localhost:8080/api/leave-transfer/request', requestDTO);
-      toast.success('Leave transfer request submitted successfully!');
-      
-      const response = await axios.get(`http://localhost:8080/api/leave-transfer/requests/${empId}`);
+      await axios.post(`${API_BASE_URL}/leave-transfer/request`, requestDTO);
+      const response = await axios.get(`${API_BASE_URL}/leave-transfer/requests/${empId}`);
       setSubmittedRequests(response.data);
       setEmployees(employees.map(emp => ({ ...emp, selected: false })));
       setSelectAll(false);
-    } catch (error) {
-      toast.error('Failed to submit request');
+      toast.success("Leave transfer request submitted successfully!", { id: toastId });
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Failed to submit request", { id: toastId });
     } finally {
       setIsSubmitting(false);
     }
@@ -159,35 +203,32 @@ const LeaveTransferRequest = () => {
   );
 
   return (
-    <div className="min-h-screen p-6 font-sans relative bg-slate-50">
+    <div className="min-h-screen p-6 font-sans relative bg-slate-100">
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#3c8dbc]/5 to-purple-50/5 opacity-30"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-[#3c8dbc]/5 via-[#3c8dbc]/5 to-purple-500/5 opacity-30"></div>
       </div>
       
-      <Toaster
-        position="top-center"
-        toastOptions={{
-          style: {
-            borderRadius: "12px",
-            background: "rgba(255, 255, 255, 0.95)",
-            backdropFilter: "blur(10px)",
-            boxShadow: "0 8px 32px rgba(31, 38, 135, 0.15)",
-            padding: "16px",
-            color: "#333",
-          },
-        }}
-      />
+      <Toaster position="top-center" toastOptions={{
+        style: {
+          borderRadius: "12px",
+          background: "rgba(255, 255, 255, 0.95)",
+          backdropFilter: "blur(10px)",
+          boxShadow: "0 8px 32px rgba(31, 38, 135, 0.15)",
+          padding: "16px",
+          color: "#333",
+        },
+      }} />
 
-      <div className="max-w-6xl mx-auto relative z-10">
+      <div className="max-w-7xl mx-auto relative z-10">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#2c6da4] to-[#3c8dbc]">
+          <h1 className="text-3xl font-bold text-[#3c8dbc]">
             Leave Transfer Request
           </h1>
-          <p className="text-gray-600 mt-2">
+          <p className="text-sm text-slate-600 mt-2">
             Submit leave transfer requests for employees
           </p>
         </motion.div>
@@ -196,17 +237,21 @@ const LeaveTransferRequest = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-white/90 backdrop-blur-md rounded-xl border border-[#3c8dbc]/20 shadow-xl overflow-hidden mb-8"
+          className="bg-white backdrop-blur-md rounded-xl border border-slate-200 shadow-xl overflow-hidden mb-8"
         >
           <div className="p-6">
-            <h2 className="text-xl font-semibold text-[#3c8dbc] mb-4 flex items-center">
-              <FiUser className="mr-2" />
+            <h2 className="text-lg font-semibold text-[#3c8dbc] mb-4 flex items-center">
+              <FiUserCheck className="mr-2 text-xl" />
               Employee Information
             </h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-x-6 gap-y-5">
               <div>
-                <label htmlFor="employeeId" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="employeeId"
+                  className="flex items-center text-xs font-medium text-slate-500 mb-1"
+                >
+                  <FiUserCheck className="mr-1.5 opacity-70" size={12} />
                   Employee ID
                 </label>
                 <input
@@ -215,37 +260,25 @@ const LeaveTransferRequest = () => {
                   value={empId}
                   onChange={(e) => setEmpId(e.target.value)}
                   placeholder="Enter your employee ID"
-                  disabled={isSubmitting || isLoading}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-[#3c8dbc] focus:border-transparent transition-colors"
+                  disabled={isSubmitting || isDataLoading}
+                  className="w-full p-2.5 text-sm bg-slate-50 text-slate-700 border border-slate-300 rounded-md focus:ring-2 focus:ring-[#3c8dbc] focus:border-transparent transition-colors"
                 />
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Full Name
-                </label>
-                <div className="w-full px-4 py-2 bg-gray-50 rounded-md">
-                  {employee.fullName || 'N/A'}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Position
-                </label>
-                <div className="w-full px-4 py-2 bg-gray-50 rounded-md">
-                  {employee.position || 'N/A'}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Department
-                </label>
-                <div className="w-full px-4 py-2 bg-gray-50 rounded-md">
-                  {employee.department || 'N/A'}
-                </div>
-              </div>
+              <InfoBlockStyled
+                label="Full Name"
+                value={employee.fullName}
+                icon={<FiUserCheck size={12} />}
+              />
+              <InfoBlockStyled
+                label="Position"
+                value={employee.position}
+                icon={<FiClipboard size={12} />}
+              />
+              <InfoBlockStyled
+                label="Department"
+                value={employee.department}
+                icon={<FiFileText size={12} />}
+              />
             </div>
           </div>
         </motion.div>
@@ -254,112 +287,140 @@ const LeaveTransferRequest = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="bg-white/90 backdrop-blur-md rounded-xl border border-[#3c8dbc]/20 shadow-xl overflow-hidden mb-8"
+          className="bg-white backdrop-blur-md rounded-xl border border-slate-200 shadow-xl overflow-hidden mb-8"
         >
           <div className="p-6">
-            <h2 className="text-xl font-semibold text-[#3c8dbc] mb-4 flex items-center">
-              <FiUsers className="mr-2" />
+            <h2 className="text-lg font-semibold text-[#3c8dbc] mb-4 flex items-center">
+              <FiUsers className="mr-2 text-xl" />
               Select Employees for Leave Transfer
             </h2>
 
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Search Employees</label>
+              <label
+                htmlFor="searchEmployees"
+                className="flex items-center text-xs font-medium text-slate-500 mb-1"
+              >
+                <FiSearch className="mr-1.5 opacity-70" size={12} />
+                Search Employees
+              </label>
               <div className="relative">
                 <input
+                  id="searchEmployees"
                   type="text"
-                  className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-[#3c8dbc] focus:border-transparent transition-colors"
+                  className="w-full p-2.5 pl-10 text-sm bg-slate-50 text-slate-700 border border-slate-300 rounded-md focus:ring-2 focus:ring-[#3c8dbc] focus:border-transparent transition-colors"
                   placeholder="Search by name or ID"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  disabled={!empId || isLoading}
+                  disabled={!empId || isDataLoading}
                 />
-                <FiSearch className="absolute left-3 top-2.5 text-gray-400" />
+                <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
               </div>
             </div>
 
-            <div className="overflow-x-auto rounded-lg border border-gray-200">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-[#3c8dbc]">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-slate-200 bg-slate-100/80">
+                    <th className="text-left py-3.5 px-4 text-slate-600 uppercase text-xs font-semibold tracking-wider">
                       <input
                         type="checkbox"
                         checked={selectAll}
                         onChange={handleSelectAll}
-                        disabled={!empId || isLoading}
-                        className="h-4 w-4 text-[#3c8dbc] focus:ring-[#3c8dbc] border-gray-300 rounded"
+                        disabled={!empId || isDataLoading}
+                        className="h-4 w-4 text-[#3c8dbc] focus:ring-[#3c8dbc] border-slate-300 rounded"
                       />
                     </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                      Employee ID
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                      Full Name
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                      Position
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                      Department
-                    </th>
+                    {["Employee ID", "Full Name", "Position", "Department"].map((h) => (
+                      <th
+                        key={h}
+                        className="text-left py-3.5 px-4 text-slate-600 uppercase text-xs font-semibold tracking-wider"
+                      >
+                        {h}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredEmployees.length > 0 ? (
-                    filteredEmployees.map(emp => (
-                      <tr key={emp.empId} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <tbody>
+                  {isDataLoading && filteredEmployees.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="py-10 text-center text-[#3c8dbc]">
+                        <FiRefreshCw className="animate-spin inline-block mr-2 w-5 h-5" />
+                        Loading Employees...
+                      </td>
+                    </tr>
+                  ) : !isDataLoading && filteredEmployees.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="py-10 text-center text-gray-500">
+                        {searchTerm
+                          ? "No matching employees found"
+                          : empId
+                          ? "No employees in your department"
+                          : "Enter your Employee ID to see colleagues"}
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredEmployees.map((emp) => (
+                      <tr
+                        key={emp.empId}
+                        className="border-b border-slate-100 hover:bg-slate-50/70 transition-colors duration-150"
+                      >
+                        <td className="py-3 px-4 text-sm text-gray-500">
                           <input
                             type="checkbox"
                             checked={!!emp.selected}
                             onChange={() => handleSelectEmployee(emp.empId)}
-                            disabled={!empId || isLoading}
-                            className="h-4 w-4 text-[#3c8dbc] focus:ring-[#3c8dbc] border-gray-300 rounded"
+                            disabled={!empId || isDataLoading}
+                            className="h-4 w-4 text-[#3c8dbc] focus:ring-[#3c8dbc] border-slate-300 rounded"
                           />
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        <td className="py-3 px-4 text-sm text-gray-700">
                           {emp.empId}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="py-3 px-4 text-sm font-medium text-gray-800">
                           {emp.fullName}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="py-3 px-4 text-sm text-gray-600">
                           {emp.position}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="py-3 px-4 text-sm text-gray-600">
                           {emp.department}
                         </td>
                       </tr>
                     ))
-                  ) : (
-                    <tr>
-                      <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">
-                        {searchTerm ? 'No matching employees found' : 
-                         (empId ? (isLoading ? 'Loading employees...' : 'No employees in your department') : 'Enter your Employee ID to see colleagues')}
-                      </td>
-                    </tr>
                   )}
                 </tbody>
               </table>
             </div>
 
             <div className="mt-6 flex justify-end">
-              <button
+              <motion.button
                 onClick={handleSubmit}
                 disabled={isSubmitting || !empId || employees.length === 0}
-                className={`px-6 py-2 rounded-md text-white font-medium transition-colors ${
-                  (isSubmitting || !empId || employees.length === 0) ? 
-                  'bg-gray-400 cursor-not-allowed' : 
-                  'bg-[#3c8dbc] hover:bg-[#367fa9]'
+                className={`px-5 py-2.5 text-sm text-white rounded-lg font-semibold shadow-md hover:shadow-lg flex items-center transition-all duration-200 ${
+                  isSubmitting || !empId || employees.length === 0
+                    ? "bg-slate-400 cursor-not-allowed opacity-70"
+                    : "bg-[#3c8dbc] hover:bg-[#3c8dbc]/80 focus:ring-[#3c8dbc]"
                 }`}
+                whileHover={
+                  !isSubmitting && empId && employees.length > 0
+                    ? {
+                        scale: 1.03,
+                        y: -1,
+                        boxShadow: "0 4px 15px rgba(60,141,188,0.3)",
+                      }
+                    : {}
+                }
+                whileTap={
+                  !isSubmitting && empId && employees.length > 0 ? { scale: 0.97 } : {}
+                }
               >
                 {isSubmitting ? (
-                  <>
-                    <FiRefreshCw className="animate-spin inline-block mr-2" />
-                    Submitting...
-                  </>
-                ) : 'Submit Request'}
-              </button>
+                  <FiRefreshCw className="animate-spin mr-2 h-4 w-4" />
+                ) : (
+                  <FiCheckCircle className="mr-2 h-4 w-4" />
+                )}
+                {isSubmitting ? "Submitting..." : "Submit Request"}
+              </motion.button>
             </div>
           </div>
         </motion.div>
@@ -368,63 +429,83 @@ const LeaveTransferRequest = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="bg-white/90 backdrop-blur-md rounded-xl border border-[#3c8dbc]/20 shadow-xl overflow-hidden"
+          className="bg-white backdrop-blur-md rounded-xl border border-slate-200 shadow-xl overflow-hidden"
         >
           <div className="p-6">
-            <h2 className="text-xl font-semibold text-[#3c8dbc] mb-4 flex items-center">
-              <FiFileText className="mr-2" />
+            <h2 className="text-lg font-semibold text-[#3c8dbc] mb-4 flex items-center">
+              <FiFileText className="mr-2 text-xl" />
               Submitted Leave Transfer Requests
             </h2>
 
-            <div className="overflow-x-auto rounded-lg border border-gray-200">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-[#3c8dbc]">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                      Request ID
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                      Budget Year
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                      Created Date
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                      Employees Involved
-                    </th>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-slate-200 bg-slate-100/80">
+                    {[
+                      "Request ID",
+                      "Budget Year",
+                      "Status",
+                      "Created Date",
+                      "Employees Involved",
+                    ].map((h) => (
+                      <th
+                        key={h}
+                        className="text-left py-3.5 px-4 text-slate-600 uppercase text-xs font-semibold tracking-wider"
+                      >
+                        {h}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {submittedRequests.length > 0 ? (
-                    submittedRequests.map(request => (
-                      <tr key={request.transferId} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                <tbody>
+                  {isDataLoading && submittedRequests.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="py-10 text-center text-[#3c8dbc]">
+                        <FiRefreshCw className="animate-spin inline-block mr-2 w-5 h-5" />
+                        Loading Requests...
+                      </td>
+                    </tr>
+                  ) : !isDataLoading && submittedRequests.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="py-10 text-center text-gray-500">
+                        {empId ? "No submitted requests found" : "Enter your Employee ID to see requests"}
+                      </td>
+                    </tr>
+                  ) : (
+                    submittedRequests.map((request) => (
+                      <tr
+                        key={request.transferId}
+                        className="border-b border-slate-100 hover:bg-slate-50/70 transition-colors duration-150"
+                      >
+                        <td className="py-3 px-4 text-sm text-gray-700">
                           {request.transferId}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="py-3 px-4 text-sm text-gray-600">
                           {request.budgetYear}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {request.status || 'N/A'}
+                        <td className="py-3 px-4 text-sm">
+                          <span
+                            className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
+                              request.status === "APPROVED"
+                                ? "bg-green-100 text-green-800"
+                                : request.status === "REJECTED"
+                                ? "bg-red-100 text-red-800"
+                                : "bg-yellow-100 text-yellow-800"
+                            }`}
+                          >
+                            {request.status || "Pending"}
+                          </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {request.createdDate ? new Date(request.createdDate).toLocaleDateString() : 'N/A'}
+                        <td className="py-3 px-4 text-sm text-gray-600">
+                          {request.createdDate ? new Date(request.createdDate).toLocaleDateString() : "N/A"}
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-500">
-                          {request.details && request.details.length > 0 ? 
-                           request.details.map(detail => detail.empId).join(', ') : 'N/A'}
+                        <td className="py-3 px-4 text-sm text-gray-600">
+                          {request.details && request.details.length > 0
+                            ? request.details.map((detail) => detail.empId).join(", ")
+                            : "N/A"}
                         </td>
                       </tr>
                     ))
-                  ) : (
-                    <tr>
-                      <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">
-                        {empId ? (isLoading ? 'Loading requests...' : 'No submitted requests found') : 'Enter your Employee ID to see requests'}
-                      </td>
-                    </tr>
                   )}
                 </tbody>
               </table>
