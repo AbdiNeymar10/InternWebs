@@ -1,9 +1,9 @@
-'use client';
+"use client";
 import { CalendarDaysIcon } from "@heroicons/react/24/outline";
-import useSWR from 'swr';
+import useSWR from "swr";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { useState, useEffect } from "react";
+import { authFetch } from "@/utils/authFetch";
 import {
   FiRefreshCw,
   FiUser,
@@ -12,22 +12,24 @@ import {
   FiInfo,
   FiChevronDown,
   FiChevronUp,
-  FiAlertTriangle
+  FiAlertTriangle,
 } from "react-icons/fi";
 import { toast, Toaster } from "react-hot-toast";
 
 export default function LeaveBalance() {
-  const [yearId, setYearId] = useState('');
-  const [leaveType, setLeaveType] = useState('');
-  const [employeeId, setEmployeeId] = useState('');
+  const [yearId, setYearId] = useState("");
+  const [leaveType, setLeaveType] = useState("");
+  const [employeeId, setEmployeeId] = useState("");
   type LeaveType = { id: number; leaveName: string };
   type LeaveYear = { id: number; lyear: string };
 
   const [leaveTypes, setLeaveTypes] = useState<LeaveType[]>([]);
   const [leaveYears, setLeaveYears] = useState<LeaveYear[]>([]);
   type LeaveBalanceType = { totalDays: number; remainingDays: number };
-  const [leaveBalance, setLeaveBalance] = useState<LeaveBalanceType | null>(null);
-  const [error, setError] = useState('');
+  const [leaveBalance, setLeaveBalance] = useState<LeaveBalanceType | null>(
+    null
+  );
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
 
@@ -36,14 +38,16 @@ export default function LeaveBalance() {
       setIsInitialLoading(true);
       try {
         const [typesResponse, yearsResponse] = await Promise.all([
-          axios.get('http://localhost:8080/api/leave/leave-types'),
-          axios.get('http://localhost:8080/api/leave/leave-years'),
+          authFetch("http://localhost:8080/api/leave/leave-types"),
+          authFetch("http://localhost:8080/api/leave/leave-years"),
         ]);
-        setLeaveTypes(typesResponse.data);
-        setLeaveYears(yearsResponse.data);
+        const typesData = await typesResponse.json();
+        const yearsData = await yearsResponse.json();
+        setLeaveTypes(typesData);
+        setLeaveYears(yearsData);
       } catch (err) {
-        toast.error('Failed to fetch initial data');
-        console.error('API Error (Initial Fetch):', err);
+        toast.error("Failed to fetch initial data");
+        console.error("API Error (Initial Fetch):", err);
       } finally {
         setIsInitialLoading(false);
       }
@@ -56,27 +60,36 @@ export default function LeaveBalance() {
     const fetchLeaveBalance = async () => {
       if (employeeId && yearId && leaveType) {
         setIsLoading(true);
-        setError('');
+        setError("");
         setLeaveBalance(null);
         const params = {
           employeeId,
           leaveYearId: parseInt(yearId),
           leaveTypeId: parseInt(leaveType),
         };
-        
+
         try {
-          const response = await axios.get('http://localhost:8080/api/leave/balance', { params });
-          setLeaveBalance(response.data);
-          toast.success('Leave balance loaded successfully');
+          const query = new URLSearchParams({
+            employeeId,
+            leaveYearId: params.leaveYearId.toString(),
+            leaveTypeId: params.leaveTypeId.toString(),
+          }).toString();
+          const response = await authFetch(
+            `http://localhost:8080/api/leave/balance?${query}`
+          );
+          if (!response.ok) throw response;
+          const data = await response.json();
+          setLeaveBalance(data);
+          toast.success("Leave balance loaded successfully");
         } catch (err) {
-          let errorMsg = 'No records found';
-          if (typeof err === 'object' && err !== null && 'response' in err) {
+          let errorMsg = "No records found";
+          if (typeof err === "object" && err !== null && "response" in err) {
             const response = (err as any).response;
             errorMsg = response?.data?.message || errorMsg;
           }
           setError(errorMsg);
           toast.error(errorMsg);
-          console.error('API Error (Leave Balance):', err);
+          console.error("API Error (Leave Balance):", err);
         } finally {
           setIsLoading(false);
         }
@@ -95,7 +108,7 @@ export default function LeaveBalance() {
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-br from-[#3c8dbc]/5 to-purple-50/5 opacity-30"></div>
       </div>
-      
+
       <Toaster
         position="top-center"
         toastOptions={{
@@ -139,7 +152,10 @@ export default function LeaveBalance() {
             <form className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label htmlFor="employeeId" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="employeeId"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     Employee ID
                   </label>
                   <input
@@ -154,14 +170,19 @@ export default function LeaveBalance() {
                 </div>
 
                 <div>
-                  <label htmlFor="year" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="year"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     Year
                   </label>
                   <select
                     id="year"
                     value={yearId}
                     onChange={(e) => setYearId(e.target.value)}
-                    disabled={isLoading || isInitialLoading || leaveYears.length === 0}
+                    disabled={
+                      isLoading || isInitialLoading || leaveYears.length === 0
+                    }
                     className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-[#3c8dbc] focus:border-transparent transition-colors"
                   >
                     <option value="">-- Select Year --</option>
@@ -174,14 +195,19 @@ export default function LeaveBalance() {
                 </div>
 
                 <div>
-                  <label htmlFor="leaveType" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="leaveType"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     Leave Type
                   </label>
                   <select
                     id="leaveType"
                     value={leaveType}
                     onChange={(e) => setLeaveType(e.target.value)}
-                    disabled={isLoading || isInitialLoading || leaveTypes.length === 0}
+                    disabled={
+                      isLoading || isInitialLoading || leaveTypes.length === 0
+                    }
                     className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-[#3c8dbc] focus:border-transparent transition-colors"
                   >
                     <option value="">-- Select Leave Type --</option>
@@ -234,7 +260,10 @@ export default function LeaveBalance() {
                 <tbody>
                   {isLoading ? (
                     <tr>
-                      <td colSpan={4} className="py-6 text-center text-[#3c8dbc]">
+                      <td
+                        colSpan={4}
+                        className="py-6 text-center text-[#3c8dbc]"
+                      >
                         <FiRefreshCw className="animate-spin inline-block mr-2" />
                         Loading leave balance...
                       </td>
@@ -250,12 +279,16 @@ export default function LeaveBalance() {
                         {employeeId}
                       </td>
                       <td className="py-3 px-4 text-sm text-gray-700">
-                        {leaveBalance.totalDays ?? 'N/A'}
+                        {leaveBalance.totalDays ?? "N/A"}
                       </td>
-                      <td className={`py-3 px-4 text-sm font-medium ${
-                        leaveBalance.remainingDays < 5 ? 'text-yellow-600' : 'text-gray-700'
-                      }`}>
-                        {leaveBalance.remainingDays ?? 'N/A'}
+                      <td
+                        className={`py-3 px-4 text-sm font-medium ${
+                          leaveBalance.remainingDays < 5
+                            ? "text-yellow-600"
+                            : "text-gray-700"
+                        }`}
+                      >
+                        {leaveBalance.remainingDays ?? "N/A"}
                         {leaveBalance.remainingDays < 5 && (
                           <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
                             Low Balance
@@ -265,14 +298,17 @@ export default function LeaveBalance() {
                     </motion.tr>
                   ) : (
                     <tr>
-                      <td colSpan={4} className="py-10 text-center text-gray-500">
+                      <td
+                        colSpan={4}
+                        className="py-10 text-center text-gray-500"
+                      >
                         {isInitialLoading ? (
                           <>
                             <FiRefreshCw className="animate-spin inline-block mr-2" />
                             Loading initial data...
                           </>
                         ) : (
-                          'Enter search criteria to view results'
+                          "Enter search criteria to view results"
                         )}
                       </td>
                     </tr>

@@ -21,6 +21,7 @@ import {
   FiPlus,
 } from "react-icons/fi";
 import { toast, Toaster } from "react-hot-toast";
+import { authFetch } from "@/utils/authFetch";
 
 const API_BASE_URL = "http://localhost:8080/api";
 
@@ -79,7 +80,7 @@ export function markNotificationsAsRead() {
 
 async function fetchWrapper(url: string, options?: RequestInit) {
   try {
-    const response = await fetch(url, {
+    const response = await authFetch(url, {
       ...options,
       headers: {
         "Content-Type": "application/json",

@@ -1,7 +1,7 @@
-'use client';
+"use client";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { useState, useEffect } from "react";
+import { authFetch } from "@/utils/authFetch";
 import {
   FiSearch,
   FiCheckCircle,
@@ -75,12 +75,19 @@ const InfoBlockStyled: React.FC<{
 );
 
 const LeaveTransferRequest = () => {
-  const [empId, setEmpId] = useState<string>('');
-  const [employee, setEmployee] = useState<Employee>({ empId: '', fullName: '', position: '', department: '' });
+  const [empId, setEmpId] = useState<string>("");
+  const [employee, setEmployee] = useState<Employee>({
+    empId: "",
+    fullName: "",
+    position: "",
+    department: "",
+  });
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [selectAll, setSelectAll] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [submittedRequests, setSubmittedRequests] = useState<LeaveTransferRequestDTO[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [submittedRequests, setSubmittedRequests] = useState<
+    LeaveTransferRequestDTO[]
+  >([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDataLoading, setIsDataLoading] = useState(false);
 
@@ -92,17 +99,22 @@ const LeaveTransferRequest = () => {
       setIsDataLoading(true);
       const toastId = toast.loading("Fetching employee details...");
       try {
-        const response = await axios.get(`${API_BASE_URL}/leave-transfer/employee/${debouncedEmpId}`);
+        const response = await authFetch(
+          `${API_BASE_URL}/leave-transfer/employee/${debouncedEmpId}`
+        );
+        const data = await response.json();
         setEmployee({
-          empId: response.data.empId,
-          fullName: response.data.fullName,
-          position: response.data.position,
-          department: response.data.department || 'N/A',
+          empId: data.empId,
+          fullName: data.fullName,
+          position: data.position,
+          department: data.department || "N/A",
         });
         toast.success("Employee details loaded!", { id: toastId });
       } catch (error: any) {
-        toast.error(error.response?.data?.message || "Employee not found", { id: toastId });
-        setEmployee({ empId: '', fullName: '', position: '', department: '' });
+        toast.error(error.response?.data?.message || "Employee not found", {
+          id: toastId,
+        });
+        setEmployee({ empId: "", fullName: "", position: "", department: "" });
         setEmployees([]);
       } finally {
         setIsDataLoading(false);
@@ -117,11 +129,20 @@ const LeaveTransferRequest = () => {
       setIsDataLoading(true);
       const toastId = toast.loading("Fetching department employees...");
       try {
-        const response = await axios.get(`${API_BASE_URL}/leave-transfer/employees/${debouncedEmpId}`);
-        setEmployees(response.data.map((emp: Employee) => ({ ...emp, selected: false })));
+        const response = await authFetch(
+          `${API_BASE_URL}/leave-transfer/employees/${debouncedEmpId}`
+        );
+        const data = await response.json();
+        setEmployees(
+          data.map((emp: Employee) => ({ ...emp, selected: false }))
+        );
         toast.success("Department employees loaded!", { id: toastId });
       } catch (error: any) {
-        toast.error(error.response?.data?.message || "Failed to load department employees", { id: toastId });
+        toast.error(
+          error.response?.data?.message ||
+            "Failed to load department employees",
+          { id: toastId }
+        );
         setEmployees([]);
       } finally {
         setIsDataLoading(false);
@@ -136,11 +157,17 @@ const LeaveTransferRequest = () => {
       setIsDataLoading(true);
       const toastId = toast.loading("Fetching submitted requests...");
       try {
-        const response = await axios.get(`${API_BASE_URL}/leave-transfer/requests/${debouncedEmpId}`);
-        setSubmittedRequests(response.data);
+        const response = await authFetch(
+          `${API_BASE_URL}/leave-transfer/requests/${debouncedEmpId}`
+        );
+        const data = await response.json();
+        setSubmittedRequests(data);
         toast.success("Submitted requests loaded!", { id: toastId });
       } catch (error: any) {
-        toast.error(error.response?.data?.message || "Failed to load submitted requests", { id: toastId });
+        toast.error(
+          error.response?.data?.message || "Failed to load submitted requests",
+          { id: toastId }
+        );
         setSubmittedRequests([]);
       } finally {
         setIsDataLoading(false);
@@ -151,13 +178,15 @@ const LeaveTransferRequest = () => {
 
   const handleSelectAll = () => {
     setSelectAll(!selectAll);
-    setEmployees(employees.map(emp => ({ ...emp, selected: !selectAll })));
+    setEmployees(employees.map((emp) => ({ ...emp, selected: !selectAll })));
   };
 
   const handleSelectEmployee = (id: string) => {
-    setEmployees(employees.map(emp =>
-      emp.empId === id ? { ...emp, selected: !emp.selected } : emp
-    ));
+    setEmployees(
+      employees.map((emp) =>
+        emp.empId === id ? { ...emp, selected: !emp.selected } : emp
+      )
+    );
   };
 
   const handleSubmit = async () => {
@@ -166,7 +195,7 @@ const LeaveTransferRequest = () => {
       return;
     }
 
-    const selectedEmployees = employees.filter(emp => emp.selected);
+    const selectedEmployees = employees.filter((emp) => emp.selected);
     if (selectedEmployees.length === 0) {
       toast.error("Please select at least one employee");
       return;
@@ -175,31 +204,46 @@ const LeaveTransferRequest = () => {
     const requestDTO = {
       requesterId: empId,
       budgetYear: 2025,
-      details: selectedEmployees.map(emp => ({
+      details: selectedEmployees.map((emp) => ({
         empId: emp.empId,
-        status: 'PENDING',
+        status: "PENDING",
       })),
     };
 
     setIsSubmitting(true);
     const toastId = toast.loading("Submitting request...");
     try {
-      await axios.post(`${API_BASE_URL}/leave-transfer/request`, requestDTO);
-      const response = await axios.get(`${API_BASE_URL}/leave-transfer/requests/${empId}`);
-      setSubmittedRequests(response.data);
-      setEmployees(employees.map(emp => ({ ...emp, selected: false })));
+      await authFetch(`${API_BASE_URL}/leave-transfer/request`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestDTO),
+      });
+      const response = await authFetch(
+        `${API_BASE_URL}/leave-transfer/requests/${empId}`
+      );
+      const data = await response.json();
+      setSubmittedRequests(data);
+      setEmployees(employees.map((emp) => ({ ...emp, selected: false })));
       setSelectAll(false);
-      toast.success("Leave transfer request submitted successfully!", { id: toastId });
+      toast.success("Leave transfer request submitted successfully!", {
+        id: toastId,
+      });
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to submit request", { id: toastId });
+      let errorMsg = "Failed to submit request";
+      if (error && typeof error.json === "function") {
+        const errorData = await error.json();
+        errorMsg = errorData?.message || errorMsg;
+      }
+      toast.error(errorMsg, { id: toastId });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const filteredEmployees = employees.filter(emp =>
-    emp.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    emp.empId.toString().includes(searchTerm)
+  const filteredEmployees = employees.filter(
+    (emp) =>
+      emp.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      emp.empId.toString().includes(searchTerm)
   );
 
   return (
@@ -207,17 +251,20 @@ const LeaveTransferRequest = () => {
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-br from-[#3c8dbc]/5 via-[#3c8dbc]/5 to-purple-500/5 opacity-30"></div>
       </div>
-      
-      <Toaster position="top-center" toastOptions={{
-        style: {
-          borderRadius: "12px",
-          background: "rgba(255, 255, 255, 0.95)",
-          backdropFilter: "blur(10px)",
-          boxShadow: "0 8px 32px rgba(31, 38, 135, 0.15)",
-          padding: "16px",
-          color: "#333",
-        },
-      }} />
+
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          style: {
+            borderRadius: "12px",
+            background: "rgba(255, 255, 255, 0.95)",
+            backdropFilter: "blur(10px)",
+            boxShadow: "0 8px 32px rgba(31, 38, 135, 0.15)",
+            padding: "16px",
+            color: "#333",
+          },
+        }}
+      />
 
       <div className="max-w-7xl mx-auto relative z-10">
         <motion.div
@@ -313,7 +360,10 @@ const LeaveTransferRequest = () => {
                   onChange={(e) => setSearchTerm(e.target.value)}
                   disabled={!empId || isDataLoading}
                 />
-                <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                <FiSearch
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+                  size={16}
+                />
               </div>
             </div>
 
@@ -330,27 +380,35 @@ const LeaveTransferRequest = () => {
                         className="h-4 w-4 text-[#3c8dbc] focus:ring-[#3c8dbc] border-slate-300 rounded"
                       />
                     </th>
-                    {["Employee ID", "Full Name", "Position", "Department"].map((h) => (
-                      <th
-                        key={h}
-                        className="text-left py-3.5 px-4 text-slate-600 uppercase text-xs font-semibold tracking-wider"
-                      >
-                        {h}
-                      </th>
-                    ))}
+                    {["Employee ID", "Full Name", "Position", "Department"].map(
+                      (h) => (
+                        <th
+                          key={h}
+                          className="text-left py-3.5 px-4 text-slate-600 uppercase text-xs font-semibold tracking-wider"
+                        >
+                          {h}
+                        </th>
+                      )
+                    )}
                   </tr>
                 </thead>
                 <tbody>
                   {isDataLoading && filteredEmployees.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="py-10 text-center text-[#3c8dbc]">
+                      <td
+                        colSpan={5}
+                        className="py-10 text-center text-[#3c8dbc]"
+                      >
                         <FiRefreshCw className="animate-spin inline-block mr-2 w-5 h-5" />
                         Loading Employees...
                       </td>
                     </tr>
                   ) : !isDataLoading && filteredEmployees.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="py-10 text-center text-gray-500">
+                      <td
+                        colSpan={5}
+                        className="py-10 text-center text-gray-500"
+                      >
                         {searchTerm
                           ? "No matching employees found"
                           : empId
@@ -411,7 +469,9 @@ const LeaveTransferRequest = () => {
                     : {}
                 }
                 whileTap={
-                  !isSubmitting && empId && employees.length > 0 ? { scale: 0.97 } : {}
+                  !isSubmitting && empId && employees.length > 0
+                    ? { scale: 0.97 }
+                    : {}
                 }
               >
                 {isSubmitting ? (
@@ -460,15 +520,23 @@ const LeaveTransferRequest = () => {
                 <tbody>
                   {isDataLoading && submittedRequests.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="py-10 text-center text-[#3c8dbc]">
+                      <td
+                        colSpan={5}
+                        className="py-10 text-center text-[#3c8dbc]"
+                      >
                         <FiRefreshCw className="animate-spin inline-block mr-2 w-5 h-5" />
                         Loading Requests...
                       </td>
                     </tr>
                   ) : !isDataLoading && submittedRequests.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="py-10 text-center text-gray-500">
-                        {empId ? "No submitted requests found" : "Enter your Employee ID to see requests"}
+                      <td
+                        colSpan={5}
+                        className="py-10 text-center text-gray-500"
+                      >
+                        {empId
+                          ? "No submitted requests found"
+                          : "Enter your Employee ID to see requests"}
                       </td>
                     </tr>
                   ) : (
@@ -497,11 +565,15 @@ const LeaveTransferRequest = () => {
                           </span>
                         </td>
                         <td className="py-3 px-4 text-sm text-gray-600">
-                          {request.createdDate ? new Date(request.createdDate).toLocaleDateString() : "N/A"}
+                          {request.createdDate
+                            ? new Date(request.createdDate).toLocaleDateString()
+                            : "N/A"}
                         </td>
                         <td className="py-3 px-4 text-sm text-gray-600">
                           {request.details && request.details.length > 0
-                            ? request.details.map((detail) => detail.empId).join(", ")
+                            ? request.details
+                                .map((detail) => detail.empId)
+                                .join(", ")
                             : "N/A"}
                         </td>
                       </tr>

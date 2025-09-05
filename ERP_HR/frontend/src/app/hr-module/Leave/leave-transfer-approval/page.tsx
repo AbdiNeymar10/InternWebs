@@ -1,7 +1,7 @@
-'use client';
+"use client";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { useState, useEffect } from "react";
+import { authFetch } from "@/utils/authFetch";
 import {
   FiSearch,
   FiCheckCircle,
@@ -83,10 +83,17 @@ const InfoBlockStyled: React.FC<{
 );
 
 const LeaveTransferApproval = () => {
-  const [requesterId, setRequesterId] = useState('');
-  const [requester, setRequester] = useState<Requester>({ id: '', name: '', position: '', department: '' });
-  const [pendingRequests, setPendingRequests] = useState<LeaveTransferRequestDTO[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [requesterId, setRequesterId] = useState("");
+  const [requester, setRequester] = useState<Requester>({
+    id: "",
+    name: "",
+    position: "",
+    department: "",
+  });
+  const [pendingRequests, setPendingRequests] = useState<
+    LeaveTransferRequestDTO[]
+  >([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDataLoading, setIsDataLoading] = useState(false);
 
@@ -95,24 +102,29 @@ const LeaveTransferApproval = () => {
   useEffect(() => {
     const fetchRequesterDetails = async () => {
       if (!debouncedRequesterId.trim()) {
-        setRequester({ id: '', name: '', position: '', department: '' });
+        setRequester({ id: "", name: "", position: "", department: "" });
         setPendingRequests([]);
         return;
       }
       setIsDataLoading(true);
       const toastId = toast.loading("Fetching approver details...");
       try {
-        const response = await axios.get(`${API_BASE_URL}/leave-transfer/employee/${debouncedRequesterId.trim()}`);
+        const response = await authFetch(
+          `${API_BASE_URL}/leave-transfer/employee/${debouncedRequesterId.trim()}`
+        );
+        const data = await response.json();
         setRequester({
-          id: response.data.empId,
-          name: response.data.fullName,
-          position: response.data.position,
-          department: response.data.department || 'N/A',
+          id: data.empId,
+          name: data.fullName,
+          position: data.position,
+          department: data.department || "N/A",
         });
         toast.success("Approver details loaded!", { id: toastId });
       } catch (error: any) {
-        toast.error(error.response?.data?.message || "Approver not found", { id: toastId });
-        setRequester({ id: '', name: '', position: '', department: '' });
+        toast.error(error.response?.data?.message || "Approver not found", {
+          id: toastId,
+        });
+        setRequester({ id: "", name: "", position: "", department: "" });
         setPendingRequests([]);
       } finally {
         setIsDataLoading(false);
@@ -127,33 +139,38 @@ const LeaveTransferApproval = () => {
       setIsDataLoading(true);
       const toastId = toast.loading("Fetching pending requests...");
       try {
-        const response = await axios.get(
+        const response = await authFetch(
           `${API_BASE_URL}/leave-transfer/pending-requests?approverId=${requester.id}`
         );
+        const responseData = await response.json();
         const requestsWithNames = await Promise.all(
-          response.data.map(async (request: LeaveTransferRequestDTO) => {
+          responseData.map(async (request: LeaveTransferRequestDTO) => {
             const detailsWithNames = await Promise.all(
               request.details.map(async (detail: LeaveTransferDetailDTO) => {
                 try {
-                  const empResponse = await axios.get(
+                  const empResponse = await authFetch(
                     `${API_BASE_URL}/leave-transfer/employee/${detail.empId}`
+                  );
+                  const empData = await empResponse.json();
+                  return {
+                    ...detail,
+                    fullName: empData.fullName || "Unknown",
+                  };
+                } catch (error) {
+                  console.error(
+                    `Failed to fetch name for employee ${detail.empId}:`,
+                    error
                   );
                   return {
                     ...detail,
-                    fullName: empResponse.data.fullName || 'Unknown',
-                  };
-                } catch (error) {
-                  console.error(`Failed to fetch name for employee ${detail.empId}:`, error);
-                  return {
-                    ...detail,
-                    fullName: 'Unknown',
+                    fullName: "Unknown",
                   };
                 }
               })
             );
             return {
               ...request,
-              deptName: request.deptName || 'Unknown',
+              deptName: request.deptName || "Unknown",
               details: detailsWithNames,
             };
           })
@@ -161,7 +178,10 @@ const LeaveTransferApproval = () => {
         setPendingRequests(requestsWithNames);
         toast.success("Pending requests loaded!", { id: toastId });
       } catch (error: any) {
-        toast.error(error.response?.data?.message || "Failed to load pending requests", { id: toastId });
+        toast.error(
+          error.response?.data?.message || "Failed to load pending requests",
+          { id: toastId }
+        );
         setPendingRequests([]);
       } finally {
         setIsDataLoading(false);
@@ -170,60 +190,70 @@ const LeaveTransferApproval = () => {
     fetchPendingRequests();
   }, [requester.id]);
 
-  const filteredRequests = pendingRequests.filter(request =>
-    request.details.some(detail =>
-      detail.empId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (detail.fullName && detail.fullName.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      request.requesterId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      request.deptName.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredRequests = pendingRequests.filter((request) =>
+    request.details.some(
+      (detail) =>
+        detail.empId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (detail.fullName &&
+          detail.fullName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        request.requesterId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        request.deptName.toLowerCase().includes(searchTerm.toLowerCase())
     )
   );
 
   const handleApprove = async (detailId: number) => {
-    if (!detailId) {
-      toast.error("Invalid detail ID");
-      return;
-    }
-
-    setIsSubmitting(true);
     const toastId = toast.loading("Processing approval...");
+    setIsSubmitting(true);
     try {
-      await axios.post(`${API_BASE_URL}/leave-transfer/approve/${detailId}`);
-      const response = await axios.get(
+      await authFetch(`${API_BASE_URL}/leave-transfer/approve/${detailId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      const response = await authFetch(
         `${API_BASE_URL}/leave-transfer/pending-requests?approverId=${requester.id}`
       );
+      const responseData = await response.json();
       const requestsWithNames = await Promise.all(
-        response.data.map(async (request: LeaveTransferRequestDTO) => {
+        responseData.map(async (request: LeaveTransferRequestDTO) => {
           const detailsWithNames = await Promise.all(
             request.details.map(async (detail: LeaveTransferDetailDTO) => {
               try {
-                const empResponse = await axios.get(
+                const empResponse = await authFetch(
                   `${API_BASE_URL}/leave-transfer/employee/${detail.empId}`
+                );
+                const empData = await empResponse.json();
+                return {
+                  ...detail,
+                  fullName: empData.fullName || "Unknown",
+                };
+              } catch (error) {
+                console.error(
+                  `Failed to fetch name for employee ${detail.empId}:`,
+                  error
                 );
                 return {
                   ...detail,
-                  fullName: empResponse.data.fullName || 'Unknown',
-                };
-              } catch (error) {
-                console.error(`Failed to fetch name for employee ${detail.empId}:`, error);
-                return {
-                  ...detail,
-                  fullName: 'Unknown',
+                  fullName: "Unknown",
                 };
               }
             })
           );
           return {
             ...request,
-            deptName: request.deptName || 'Unknown',
+            deptName: request.deptName || "Unknown",
             details: detailsWithNames,
           };
         })
       );
       setPendingRequests(requestsWithNames);
-      toast.success("Request detail approved successfully!", { id: toastId });
+      toast.success("Approval processed successfully!", { id: toastId });
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to approve request", { id: toastId });
+      let errorMsg = "Failed to process approval";
+      if (error && typeof error.json === "function") {
+        const errorData = await error.json();
+        errorMsg = errorData?.message || errorMsg;
+      }
+      toast.error(errorMsg, { id: toastId });
     } finally {
       setIsSubmitting(false);
     }
@@ -234,17 +264,20 @@ const LeaveTransferApproval = () => {
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-br from-[#3c8dbc]/5 via-[#3c8dbc]/5 to-purple-500/5 opacity-30"></div>
       </div>
-      
-      <Toaster position="top-center" toastOptions={{
-        style: {
-          borderRadius: "12px",
-          background: "rgba(255, 255, 255, 0.95)",
-          backdropFilter: "blur(10px)",
-          boxShadow: "0 8px 32px rgba(31, 38, 135, 0.15)",
-          padding: "16px",
-          color: "#333",
-        },
-      }} />
+
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          style: {
+            borderRadius: "12px",
+            background: "rgba(255, 255, 255, 0.95)",
+            backdropFilter: "blur(10px)",
+            boxShadow: "0 8px 32px rgba(31, 38, 135, 0.15)",
+            padding: "16px",
+            color: "#333",
+          },
+        }}
+      />
 
       <div className="max-w-7xl mx-auto relative z-10">
         <motion.div
@@ -340,7 +373,10 @@ const LeaveTransferApproval = () => {
                   onChange={(e) => setSearchTerm(e.target.value)}
                   disabled={isDataLoading}
                 />
-                <FiSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                <FiSearch
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+                  size={16}
+                />
               </div>
             </div>
 
@@ -348,7 +384,13 @@ const LeaveTransferApproval = () => {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-100/80">
-                    {["Employee ID", "Employee Name", "Department", "Status", "Action"].map((h) => (
+                    {[
+                      "Employee ID",
+                      "Employee Name",
+                      "Department",
+                      "Status",
+                      "Action",
+                    ].map((h) => (
                       <th
                         key={h}
                         className="text-left py-3.5 px-4 text-slate-600 uppercase text-xs font-semibold tracking-wider"
@@ -361,14 +403,20 @@ const LeaveTransferApproval = () => {
                 <tbody>
                   {isDataLoading && filteredRequests.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="py-10 text-center text-[#3c8dbc]">
+                      <td
+                        colSpan={5}
+                        className="py-10 text-center text-[#3c8dbc]"
+                      >
                         <FiRefreshCw className="animate-spin inline-block mr-2 w-5 h-5" />
                         Loading Requests...
                       </td>
                     </tr>
                   ) : !isDataLoading && filteredRequests.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="py-10 text-center text-gray-500">
+                      <td
+                        colSpan={5}
+                        className="py-10 text-center text-gray-500"
+                      >
                         {searchTerm
                           ? "No matching requests found"
                           : requester.id
@@ -380,7 +428,11 @@ const LeaveTransferApproval = () => {
                     filteredRequests.flatMap((request) =>
                       request.details.map((detail) => (
                         <tr
-                          key={detail.detailId ? detail.detailId : `${request.transferId}-${detail.empId}`}
+                          key={
+                            detail.detailId
+                              ? detail.detailId
+                              : `${request.transferId}-${detail.empId}`
+                          }
                           className="border-b border-slate-100 hover:bg-slate-50/70 transition-colors duration-150"
                         >
                           <td className="py-3 px-4 text-sm text-gray-700">
@@ -408,7 +460,10 @@ const LeaveTransferApproval = () => {
                           <td className="py-3 px-4 text-sm">
                             {detail.status === "PENDING" && (
                               <motion.button
-                                onClick={() => detail.detailId && handleApprove(detail.detailId)}
+                                onClick={() =>
+                                  detail.detailId &&
+                                  handleApprove(detail.detailId)
+                                }
                                 disabled={isSubmitting || !detail.detailId}
                                 className={`px-5 py-2.5 text-sm text-white rounded-lg font-semibold shadow-md hover:shadow-lg flex items-center transition-all duration-200 ${
                                   isSubmitting || !detail.detailId
@@ -420,12 +475,15 @@ const LeaveTransferApproval = () => {
                                     ? {
                                         scale: 1.03,
                                         y: -1,
-                                        boxShadow: "0 4px 15px rgba(34,197,94,0.3)",
+                                        boxShadow:
+                                          "0 4px 15px rgba(34,197,94,0.3)",
                                       }
                                     : {}
                                 }
                                 whileTap={
-                                  !isSubmitting && detail.detailId ? { scale: 0.97 } : {}
+                                  !isSubmitting && detail.detailId
+                                    ? { scale: 0.97 }
+                                    : {}
                                 }
                               >
                                 {isSubmitting ? (
