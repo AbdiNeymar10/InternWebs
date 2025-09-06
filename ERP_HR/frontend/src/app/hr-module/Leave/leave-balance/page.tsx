@@ -78,9 +78,21 @@ export default function LeaveBalance() {
             `http://localhost:8080/api/leave/balance?${query}`
           );
           if (!response.ok) throw response;
-          const data = await response.json();
-          setLeaveBalance(data);
-          toast.success("Leave balance loaded successfully");
+          const contentType = response.headers.get("content-type");
+          let data = null;
+          if (contentType && contentType.includes("application/json")) {
+            const text = await response.text();
+            if (text) {
+              data = JSON.parse(text);
+            }
+          }
+          if (data) {
+            setLeaveBalance(data);
+            toast.success("Leave balance loaded successfully");
+          } else {
+            setError("No records found");
+            toast.error("No records found");
+          }
         } catch (err) {
           let errorMsg = "No records found";
           if (typeof err === "object" && err !== null && "response" in err) {
