@@ -10,7 +10,6 @@ import {
   FiUpload,
 } from "react-icons/fi";
 import { toast, Toaster } from "react-hot-toast";
-import { authFetch } from "@/utils/authFetch";
 
 const API_BASE_URL = "http://localhost:8080/api";
 
@@ -31,20 +30,55 @@ interface UploadedFileResponse {
   fileType: string;
 }
 
-// Use authFetch for all API requests
+async function fetchWrapper(url: string, options?: RequestInit) {
+  try {
+    const response = await fetch(url, {
+      ...options,
+      headers:
+        options?.body instanceof FormData
+          ? { Accept: "application/json", ...options?.headers }
+          : {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+              ...options?.headers,
+            },
+    });
+
+    if (!response.ok) {
+      let errorData = { message: `HTTP error! status: ${response.status}` };
+      try {
+        const jsonError = await response.json();
+        errorData.message =
+          jsonError.message ||
+          jsonError.error ||
+          (typeof jsonError === "string" ? jsonError : errorData.message);
+      } catch (e) {
+        errorData.message = response.statusText || errorData.message;
+      }
+      console.error(`API call failed to ${url}:`, errorData.message, {
+        url,
+        options,
+        responseStatus: response.status,
+        errorDataBackend: errorData,
+      });
+      throw new Error(errorData.message);
+    }
+    if (
+      response.status === 204 ||
+      !response.headers.get("content-type")?.includes("application/json")
+    ) {
+      return null;
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(`API call failed to ${url} (outer catch):`, error);
+    throw error;
+  }
+}
 
 async function fetchSeparationTypesAPI(): Promise<SeparationTypeOption[]> {
   try {
-    const res = await authFetch(`${API_BASE_URL}/separation-types`);
-    if (!res.ok) {
-      let errorMessage = `HTTP error! status: ${res.status}`;
-      try {
-        const jsonError = await res.json();
-        errorMessage = jsonError.message || jsonError.error || errorMessage;
-      } catch {}
-      throw new Error(errorMessage);
-    }
-    const response = await res.json();
+    const response = await fetchWrapper(`${API_BASE_URL}/separation-types`);
     if (Array.isArray(response)) {
       return response.map((item: any) => ({
         id: item.separationTypeId,
@@ -69,53 +103,22 @@ async function uploadSupportiveFileAPI(
   if (separationId) {
     formData.append("separationId", separationId);
   }
-  const res = await authFetch(
+  return fetchWrapper(
     `${API_BASE_URL}/files/upload-separation-supportive-doc`,
     {
       method: "POST",
       body: formData,
     }
-  );
-  if (!res.ok) {
-    let errorMessage = `HTTP error! status: ${res.status}`;
-    try {
-      const jsonError = await res.json();
-      errorMessage = jsonError.message || jsonError.error || errorMessage;
-    } catch {}
-    throw new Error(errorMessage);
-  }
-  if (
-    res.status === 204 ||
-    !res.headers.get("content-type")?.includes("application/json")
-  ) {
-    return null;
-  }
-  return (await res.json()) as UploadedFileResponse | null;
+  ) as Promise<UploadedFileResponse | null>;
 }
 
 async function submitSeparationRequestAPI(
   requestData: any
 ): Promise<CreatedSeparationRequest | null> {
-  const res = await authFetch(`${API_BASE_URL}/employee-separations`, {
+  return fetchWrapper(`${API_BASE_URL}/employee-separations`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(requestData),
-  });
-  if (!res.ok) {
-    let errorMessage = `HTTP error! status: ${res.status}`;
-    try {
-      const jsonError = await res.json();
-      errorMessage = jsonError.message || jsonError.error || errorMessage;
-    } catch {}
-    throw new Error(errorMessage);
-  }
-  if (
-    res.status === 204 ||
-    !res.headers.get("content-type")?.includes("application/json")
-  ) {
-    return null;
-  }
-  return (await res.json()) as CreatedSeparationRequest | null;
+  }) as Promise<CreatedSeparationRequest | null>;
 }
 
 export default function SeparationRequest() {
