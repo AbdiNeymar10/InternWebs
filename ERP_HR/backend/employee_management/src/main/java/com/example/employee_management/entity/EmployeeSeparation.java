@@ -137,13 +137,12 @@ public class EmployeeSeparation {
 
     // REMOVE getPreparedDate() and setPreparedDate()
     // public String getPreparedDate() {
-    //     return preparedDate;
+    // return preparedDate;
     // }
     //
     // public void setPreparedDate(String preparedDate) {
-    //     this.preparedDate = preparedDate;
+    // this.preparedDate = preparedDate;
     // }
-
 
     public String getRemark() {
         return remark;

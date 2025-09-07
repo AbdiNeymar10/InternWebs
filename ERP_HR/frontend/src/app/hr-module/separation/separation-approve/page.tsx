@@ -11,6 +11,7 @@ import {
   FiRefreshCw,
 } from "react-icons/fi";
 import { toast, Toaster } from "react-hot-toast";
+import { authFetch } from "@/utils/authFetch";
 
 const API_BASE_URL = "http://localhost:8080/api";
 
@@ -49,7 +50,7 @@ interface SeparationRequestDetails {
 }
 
 async function fetchWrapper(url: string, options?: RequestInit) {
-  const response = await fetch(url, {
+  const response = await authFetch(url, {
     ...options,
     headers: {
       "Content-Type": "application/json",

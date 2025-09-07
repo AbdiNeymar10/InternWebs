@@ -10,6 +10,7 @@ import {
   FiUpload,
 } from "react-icons/fi";
 import { toast, Toaster } from "react-hot-toast";
+import { authFetch } from "@/utils/authFetch";
 
 const API_BASE_URL = "http://localhost:8080/api";
 
@@ -32,7 +33,7 @@ interface UploadedFileResponse {
 
 async function fetchWrapper(url: string, options?: RequestInit) {
   try {
-    const response = await fetch(url, {
+    const response = await authFetch(url, {
       ...options,
       headers:
         options?.body instanceof FormData
