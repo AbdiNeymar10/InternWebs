@@ -71,6 +71,7 @@ export default function Sidebar({ className, hidden = false }: SidebarProps) {
     AuthorityDelegation: false,
     transferRequest: false,
     Requirement: false,
+    Recruitment: false,
     UserManagement: false,
   });
 
@@ -624,6 +625,122 @@ export default function Sidebar({ className, hidden = false }: SidebarProps) {
               </div>
             )}
           </div>
+          {/* Recruitment Management Dropdown - Only for ADMIN and HR */}
+          {/* {shouldShowItem(["ADMIN", "HR"]) && ( */}
+          <div>
+            <button
+              onClick={() => toggleMenu("Recruitment")}
+              className="flex items-center justify-between w-full p-2 hover:bg-gray-700 rounded"
+            >
+              <div className="flex items-center gap-2">
+                <FiUsers className="w-4 h-4" />
+                <span>Recruitment</span>
+              </div>
+              {openMenus.Recruitment ? <FiChevronUp /> : <FiChevronDown />}
+            </button>
+            {openMenus.Recruitment && (
+              <div className="ml-6 mt-1 space-y-2">
+                <Link
+                  href="/hr-module/Recruitment/Recruitment-Request"
+                  className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
+                >
+                  <FiArchive className="w-4 h-4" />
+                  Recruitment Request
+                </Link>
+                <Link
+                  href="/hr-module/Recruitment/Recruitment-Approve"
+                  className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
+                >
+                  <FiArchive className="w-4 h-4" />
+                  Recruitment Approve
+                </Link>
+                <Link
+                  href="/hr-module/Recruitment/Apply-Vacancy"
+                  className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
+                >
+                  <ArrowUpTrayIcon className="h-4 w-4" />
+                  Apply Vacancy
+                </Link>
+                <Link
+                  href="/hr-module/Recruitment/Vacancy-Post"
+                  className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
+                >
+                  <BriefcaseIcon className="h-4 w-4" />
+                  Vacancy Post
+                </Link>
+                {/* <Link
+                  href="/hr-module/recruitment"
+                  className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
+                >
+                  <FiUsers className="w-4 h-4" />
+                  Recruitment Dashboard
+                </Link>
+                <Link
+                  href="/hr-module/recruitment/define-shortlisting-criteria"
+                  className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
+                >
+                  <FiArchive className="w-4 h-4" />
+                  Shortlisting Criteria
+                </Link>
+                <Link
+                  href="/hr-module/recruitment/filter-shortlisted-candidates"
+                  className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
+                >
+                  <FiArchive className="w-4 h-4" />
+                  Shortlisted Candidates
+                </Link>
+                <Link
+                  href="/hr-module/recruitment/post-vacancy"
+                  className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
+                >
+                  <FiArchive className="w-4 h-4" />
+                  Post Vacancy
+                </Link>
+                <Link
+                  href="/hr-module/recruitment/manage-job-application"
+                  className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
+                >
+                  <FiArchive className="w-4 h-4" />
+                  Manage Job Applications
+                </Link>
+                <Link
+                  href="/hr-module/recruitment/manage-recruitment-request"
+                  className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
+                >
+                  <FiArchive className="w-4 h-4" />
+                  Manage Recruitment Request
+                </Link>
+                <Link
+                  href="/hr-module/recruitment/maintain-exam-result"
+                  className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
+                >
+                  <FiArchive className="w-4 h-4" />
+                  Maintain Exam Result
+                </Link>
+                <Link
+                  href="/hr-module/recruitment/Apply-Vacancy"
+                  className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
+                >
+                  <FiArchive className="w-4 h-4" />
+                  Apply Vaccancy
+                </Link>
+                <Link
+                  href="/hr-module/recruitment/register-candidate-information"
+                  className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
+                >
+                  <FiArchive className="w-4 h-4" />
+                  Candidate Information
+                </Link>
+                <Link
+                  href="/hr-module/recruitment/view-vacancy"
+                  className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
+                >
+                  <FiArchive className="w-4 h-4" />
+                  View Vacancy
+                </Link> */}
+              </div>
+            )}
+          </div>
 
           {/* Authority Delegation Dropdown */}
           <div>
@@ -678,7 +795,7 @@ export default function Sidebar({ className, hidden = false }: SidebarProps) {
             )}
           </div>
           {/* requirement section */}
-          <div>
+          {/* <div>
             <button
               onClick={() => toggleMenu("Requirement")}
               className="flex items-center justify-between w-full p-2 hover:bg-gray-700 rounded"
@@ -691,23 +808,10 @@ export default function Sidebar({ className, hidden = false }: SidebarProps) {
             </button>
             {openMenus.Requirement && (
               <div className="ml-6 mt-1 space-y-2">
-                <Link
-                  href="/hr-module/Requirement/Vacancy-Post"
-                  className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
-                >
-                  <BriefcaseIcon className="h-4 w-4" />
-                  Vacancy Post
-                </Link>
-                <Link
-                  href="/hr-module/Requirement/Apply-Vacancy"
-                  className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
-                >
-                  <ArrowUpTrayIcon className="h-4 w-4" />
-                  Apply Vacancy
-                </Link>
+             
               </div>
             )}
-          </div>
+          </div> */}
           {/* User Management - Only for SUPER_ADMIN */}
           {userRole === "SUPER_ADMIN" && (
             <div>
