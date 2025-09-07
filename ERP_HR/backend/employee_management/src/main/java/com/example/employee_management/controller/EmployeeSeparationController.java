@@ -23,9 +23,7 @@ public class EmployeeSeparationController {
 
     @PostMapping
     public EmployeeSeparation createSeparationRequest(@RequestBody EmployeeSeparation request) {
-        // request.getRequestDate() will serve as both request and prepared date
-        logger.info("Received POST request to create separation: EmployeeId={}, PreparedBy={}, RequestDate (as PreparedDate)={}, SupportiveFileName={}",
-                request.getEmployeeId(), request.getPreparedBy(), request.getRequestDate(), request.getSupportiveFileName());
+        logger.info("Received POST request to create separation: EmployeeId={}", request.getEmployeeId());
         return employeeSeparationService.createSeparationRequest(request);
     }
 
@@ -41,6 +39,17 @@ public class EmployeeSeparationController {
         return employeeSeparationService.getEmployeeSeparations(employeeId);
     }
 
+    /**
+     * New endpoint to get all rejected separation requests for a specific employee.
+     * @param employeeId The employee's ID.
+     * @return A list of separation requests with status 3 (Dept Rejected) or 4 (HR Rejected).
+     */
+    @GetMapping("/employee/{employeeId}/rejected")
+    public List<EmployeeSeparation> getRejectedEmployeeSeparations(@PathVariable String employeeId) {
+        logger.info("Received GET request for rejected separations for employee ID: {}", employeeId);
+        return employeeSeparationService.getRejectedSeparationsForEmployee(employeeId);
+    }
+
     @GetMapping("/pending")
     public List<EmployeeSeparation> getPendingSeparations() {
         return employeeSeparationService.getPendingSeparations();
@@ -50,8 +59,7 @@ public class EmployeeSeparationController {
     public ResponseEntity<EmployeeSeparation> getSeparationById(@PathVariable String id) {
         EmployeeSeparation separation = employeeSeparationService.getSeparationById(id);
         if (separation != null) {
-            logger.info("Found separation request by ID {}: EmployeeId={}, RequestDate (as PreparedDate)={}, SupportiveFileName={}",
-                    id, separation.getEmployeeId(), separation.getRequestDate(), separation.getSupportiveFileName());
+            logger.info("Found separation request by ID {}", id);
             return ResponseEntity.ok(separation);
         } else {
             logger.warn("Separation request not found by ID: {}", id);
@@ -61,8 +69,7 @@ public class EmployeeSeparationController {
 
     @PutMapping("/{id}")
     public EmployeeSeparation updateSeparation(@PathVariable String id, @RequestBody EmployeeSeparation separation) {
-        logger.info("Received PUT request to update separation ID {}: Status={}, Remark={}",
-                id, separation.getStatus(), separation.getRemark());
+        logger.info("Received PUT request to update separation ID {}", id);
         separation.setId(id); // Ensure ID from path is used
         return employeeSeparationService.updateSeparation(separation);
     }

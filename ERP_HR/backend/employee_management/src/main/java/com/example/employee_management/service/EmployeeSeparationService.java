@@ -14,7 +14,6 @@ import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class EmployeeSeparationService {
@@ -37,10 +36,8 @@ public class EmployeeSeparationService {
         if (request.getStatus() == null) {
             request.setStatus(0); // Default status to pending
         }
-        // requestDate will be saved to REQUEST_DATE column.
-        // supportiveFileName will be saved if set on the 'request' object.
-        logger.info("Creating separation request for employeeId: {}, requestDate (acting as preparedDate): {}, supportiveFileName: {}",
-                request.getEmployeeId(), request.getRequestDate(), request.getSupportiveFileName());
+        logger.info("Creating new separation request with ID: {}, for employeeId: {}",
+                request.getId(), request.getEmployeeId());
         return employeeSeparationRepository.save(request);
     }
 
@@ -62,30 +59,54 @@ public class EmployeeSeparationService {
             throw new IllegalArgumentException("ID cannot be null for an update operation.");
         }
 
-        Optional<EmployeeSeparation> existingSeparationOptional = employeeSeparationRepository.findById(separationUpdateData.getId());
-        if (!existingSeparationOptional.isPresent()) {
-            throw new RuntimeException("EmployeeSeparation record not found with ID: " + separationUpdateData.getId());
+        EmployeeSeparation existingSeparation = employeeSeparationRepository.findById(separationUpdateData.getId())
+                .orElseThrow(() -> new RuntimeException("EmployeeSeparation record not found with ID: " + separationUpdateData.getId()));
+
+        // Scenario 1: Employee is resubmitting a rejected request.
+        // The frontend will set the status to 0 to signify this.
+        if (separationUpdateData.getStatus() != null && separationUpdateData.getStatus() == 0) {
+            logger.info("Resubmitting rejected request ID: {}. Resetting status to 0 (Pending).", existingSeparation.getId());
+            existingSeparation.setStatus(0);
+            existingSeparation.setSeparationTypeId(separationUpdateData.getSeparationTypeId());
+            existingSeparation.setRequestDate(separationUpdateData.getRequestDate()); // Update request date
+            existingSeparation.setResignationDate(separationUpdateData.getResignationDate());
+            existingSeparation.setDescription(separationUpdateData.getDescription());
+            existingSeparation.setComment(separationUpdateData.getComment()); // Employee's new reason/comment
+            existingSeparation.setPreparedBy(separationUpdateData.getPreparedBy());
+            existingSeparation.setRemark(separationUpdateData.getRemark()); // Overwrite old rejection remark with new reason
+
+            if (StringUtils.hasText(separationUpdateData.getSupportiveFileName())) {
+                existingSeparation.setSupportiveFileName(separationUpdateData.getSupportiveFileName());
+            }
+        } else {
+            // Scenario 2: An approver (Dept/HR) is updating the status.
+            if (separationUpdateData.getStatus() != null) {
+                existingSeparation.setStatus(separationUpdateData.getStatus());
+                logger.info("Updating status to: {} for request ID: {}", separationUpdateData.getStatus(), existingSeparation.getId());
+            }
+            if (StringUtils.hasText(separationUpdateData.getRemark())) {
+                // This remark is from the approver (Dept/HR)
+                existingSeparation.setRemark(separationUpdateData.getRemark());
+                logger.info("Updating approver remark for request ID: {}", existingSeparation.getId());
+            }
         }
 
-        EmployeeSeparation existingSeparation = existingSeparationOptional.get();
-
-        if (separationUpdateData.getStatus() != null) {
-            existingSeparation.setStatus(separationUpdateData.getStatus());
-            logger.info("Updating status to: {} for request ID: {}", separationUpdateData.getStatus(), existingSeparation.getId());
-        }
-        if (StringUtils.hasText(separationUpdateData.getRemark())) {
-            existingSeparation.setRemark(separationUpdateData.getRemark());
-            logger.info("Updating remark for request ID: {}", existingSeparation.getId());
-        }
-        // Other fields like supportiveFileName, preparedBy, and requestDate (which includes preparedDate)
-        // are preserved from the original record unless explicitly part of the update payload.
-        // The current frontend logic for approval updates only status and remark on the main separation.
-
-        logger.info("Saving updated separation request for ID: {}, Employee ID: {}", existingSeparation.getId(), existingSeparation.getEmployeeId());
+        logger.info("Saving updated separation request for ID: {}", existingSeparation.getId());
         return employeeSeparationRepository.save(existingSeparation);
     }
 
     public EmployeeSeparation getSeparationById(String id) {
         return employeeSeparationRepository.findById(id).orElse(null);
+    }
+
+    /**
+     * Fetches all separation requests for a given employee that have been rejected.
+     * Rejected statuses are 3 (Dept. Rejected) and 4 (HR Rejected).
+     * @param employeeId The ID of the employee.
+     * @return A list of rejected EmployeeSeparation entities.
+     */
+    public List<EmployeeSeparation> getRejectedSeparationsForEmployee(String employeeId) {
+        logger.info("Fetching rejected separation requests for employee ID: {}", employeeId);
+        return employeeSeparationRepository.findByEmployeeIdAndStatusIn(employeeId, List.of(3, 4));
     }
 }

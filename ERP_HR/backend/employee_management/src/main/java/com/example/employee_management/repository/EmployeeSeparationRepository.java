@@ -11,5 +11,8 @@ import java.util.List;
 public interface EmployeeSeparationRepository extends JpaRepository<EmployeeSeparation, String> {
     List<EmployeeSeparation> findByEmployeeId(String employeeId);
     List<EmployeeSeparation> findByStatus(Integer status);
-    List<EmployeeSeparation> findByStatus(Integer status, Sort sort); // New method for sorting
+    List<EmployeeSeparation> findByStatus(Integer status, Sort sort);
+
+    // Add this new method
+    List<EmployeeSeparation> findByEmployeeIdAndStatusIn(String employeeId, List<Integer> statuses);
 }
