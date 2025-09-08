@@ -17,6 +17,7 @@ import {
   FiChevronUp,
 } from "react-icons/fi";
 import { toast, Toaster } from "react-hot-toast";
+import { authFetch } from "@/utils/authFetch";
 import DepartmentTreeSelectModal from "../../Employee-Profile/components/DepartmentTreeSelectModal";
 
 // --- INTERFACES (No changes here) ---
@@ -233,7 +234,9 @@ export default function RecruitmentRequest() {
       name: string
     ) => {
       try {
-        const response = await fetch(`http://localhost:8080/api/${endpoint}`);
+        const response = await authFetch(
+          `http://localhost:8080/api/${endpoint}`
+        );
         if (!response.ok) {
           const errorBody = await response.text();
           console.error(
@@ -290,7 +293,7 @@ export default function RecruitmentRequest() {
   useEffect(() => {
     const fetchSearchSuggestions = async () => {
       try {
-        const response = await fetch(
+        const response = await authFetch(
           "http://localhost:8080/api/recruitment/pending-requests"
         );
         if (!response.ok) {
@@ -315,7 +318,7 @@ export default function RecruitmentRequest() {
           id: "loadEditRequest",
         });
         try {
-          const response = await fetch(
+          const response = await authFetch(
             `http://localhost:8080/api/recruitment/request/${requestId}`
           );
           if (!response.ok) {
@@ -369,7 +372,7 @@ export default function RecruitmentRequest() {
     if (formData.jobType && formData.icf) {
       const fetchIncrementSteps = async () => {
         try {
-          const response = await fetch(
+          const response = await authFetch(
             `http://localhost:8080/api/salary/steps?jobTitleId=${formData.jobType}&icfId=${formData.icf}`
           );
           if (!response.ok) {
@@ -401,7 +404,7 @@ export default function RecruitmentRequest() {
     setIsLoadingPendingRequests(true);
     setPendingRequestsError(null);
     try {
-      const response = await fetch(
+      const response = await authFetch(
         "http://localhost:8080/api/recruitment/pending-requests-for-edit"
       );
       if (!response.ok) {
@@ -451,17 +454,14 @@ export default function RecruitmentRequest() {
     }
   };
 
-  const handleDepartmentSelect = useCallback(
-    (dept: DepartmentDto) => {
-      setFormData((prev) => ({
-        ...prev,
-        department: dept.deptId,
-        departmentName: dept.deptName,
-      }));
-      setIsDepartmentModalOpen(false);
-    },
-    []
-  );
+  const handleDepartmentSelect = useCallback((dept: DepartmentDto) => {
+    setFormData((prev) => ({
+      ...prev,
+      department: dept.deptId,
+      departmentName: dept.deptName,
+    }));
+    setIsDepartmentModalOpen(false);
+  }, []);
 
   const addEducationRow = () => {
     setFormData((prev) => ({
@@ -552,7 +552,7 @@ export default function RecruitmentRequest() {
         : "http://localhost:8080/api/recruitment/request";
       const method = formData.recruitRequestId ? "PUT" : "POST";
 
-      const response = await fetch(url, {
+      const response = await authFetch(url, {
         method: method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(dataToSend),
@@ -641,7 +641,7 @@ export default function RecruitmentRequest() {
     }
     toast.loading("Deleting request...", { id: "deleteRequest" });
     try {
-      const response = await fetch(
+      const response = await authFetch(
         `http://localhost:8080/api/recruitment/request/${requestId}`,
         { method: "DELETE" }
       );

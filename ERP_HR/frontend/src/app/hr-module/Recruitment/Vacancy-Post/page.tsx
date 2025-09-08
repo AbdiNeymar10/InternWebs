@@ -1,8 +1,8 @@
-'use client';
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { FiPlus, FiEdit2, FiTrash2, FiX, FiCheck } from 'react-icons/fi';
-import axios from 'axios';
+"use client";
+import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { FiPlus, FiEdit2, FiTrash2, FiX, FiCheck } from "react-icons/fi";
+import { authFetch } from "@/utils/authFetch";
 
 // --- TYPE DEFINITIONS ---
 
@@ -40,7 +40,7 @@ const PromotionPostDetail = ({
   onAddNew,
   onDelete,
   specialSkills,
-  setSpecialSkills
+  setSpecialSkills,
 }: {
   records: PromotionPost[];
   onAddNew: () => void;
@@ -73,38 +73,74 @@ const PromotionPostDetail = ({
           <table className="w-full border-collapse">
             <thead>
               <tr className="bg-[#3c8dbc]/10">
-                <th className="text-left py-3 px-4 text-xs font-medium text-[#3c8dbc] uppercase tracking-wider">No</th>
-                <th className="text-left py-3 px-4 text-xs font-medium text-[#3c8dbc] uppercase tracking-wider">Job Title</th>
-                <th className="text-left py-3 px-4 text-xs font-medium text-[#3c8dbc] uppercase tracking-wider">Vacancy Code</th>
-                <th className="text-left py-3 px-4 text-xs font-medium text-[#3c8dbc] uppercase tracking-wider">Department</th>
-                <th className="text-left py-3 px-4 text-xs font-medium text-[#3c8dbc] uppercase tracking-wider">ICF</th>
-                <th className="text-left py-3 px-4 text-xs font-medium text-[#3c8dbc] uppercase tracking-wider">Number Of Employee</th>
-                <th className="text-left py-3 px-4 text-xs font-medium text-[#3c8dbc] uppercase tracking-wider">Terms Of Employment</th>
-                <th className="text-left py-3 px-4 text-xs font-medium text-[#3c8dbc] uppercase tracking-wider">Actions</th>
+                <th className="text-left py-3 px-4 text-xs font-medium text-[#3c8dbc] uppercase tracking-wider">
+                  No
+                </th>
+                <th className="text-left py-3 px-4 text-xs font-medium text-[#3c8dbc] uppercase tracking-wider">
+                  Job Title
+                </th>
+                <th className="text-left py-3 px-4 text-xs font-medium text-[#3c8dbc] uppercase tracking-wider">
+                  Vacancy Code
+                </th>
+                <th className="text-left py-3 px-4 text-xs font-medium text-[#3c8dbc] uppercase tracking-wider">
+                  Department
+                </th>
+                <th className="text-left py-3 px-4 text-xs font-medium text-[#3c8dbc] uppercase tracking-wider">
+                  ICF
+                </th>
+                <th className="text-left py-3 px-4 text-xs font-medium text-[#3c8dbc] uppercase tracking-wider">
+                  Number Of Employee
+                </th>
+                <th className="text-left py-3 px-4 text-xs font-medium text-[#3c8dbc] uppercase tracking-wider">
+                  Terms Of Employment
+                </th>
+                <th className="text-left py-3 px-4 text-xs font-medium text-[#3c8dbc] uppercase tracking-wider">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody>
               {records.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-4 px-4 text-sm text-gray-500 text-center">
+                  <td
+                    colSpan={8}
+                    className="py-4 px-4 text-sm text-gray-500 text-center"
+                  >
                     No promotion posts found. Click "Add New" to create one.
                   </td>
                 </tr>
               ) : (
                 records.map((record, index) => (
-                  <tr key={record.id} className="border-t border-[#3c8dbc]/20 hover:bg-[#3c8dbc]/5">
-                    <td className="py-3 px-4 text-xs text-gray-700">{index + 1}</td>
-                    <td className="py-3 px-4 text-xs text-gray-700">{record.jobTitle}</td>
-                    <td className="py-3 px-4 text-xs text-gray-700">{record.vacancyCode}</td>
-                    <td className="py-3 px-4 text-xs text-gray-700">{record.department}</td>
-                    <td className="py-3 px-4 text-xs text-gray-700">{record.icf}</td>
-                    <td className="py-3 px-4 text-xs text-gray-700">{record.numberOfEmployees}</td>
-                    <td className="py-3 px-4 text-xs text-gray-700">{record.termsOfEmployment}</td>
+                  <tr
+                    key={record.id}
+                    className="border-t border-[#3c8dbc]/20 hover:bg-[#3c8dbc]/5"
+                  >
+                    <td className="py-3 px-4 text-xs text-gray-700">
+                      {index + 1}
+                    </td>
+                    <td className="py-3 px-4 text-xs text-gray-700">
+                      {record.jobTitle}
+                    </td>
+                    <td className="py-3 px-4 text-xs text-gray-700">
+                      {record.vacancyCode}
+                    </td>
+                    <td className="py-3 px-4 text-xs text-gray-700">
+                      {record.department}
+                    </td>
+                    <td className="py-3 px-4 text-xs text-gray-700">
+                      {record.icf}
+                    </td>
+                    <td className="py-3 px-4 text-xs text-gray-700">
+                      {record.numberOfEmployees}
+                    </td>
+                    <td className="py-3 px-4 text-xs text-gray-700">
+                      {record.termsOfEmployment}
+                    </td>
                     <td className="py-3 px-4 text-xs text-gray-700 flex gap-2">
                       <button className="text-blue-500 hover:text-blue-700 p-1 rounded-full hover:bg-blue-50 transition-colors">
                         <FiEdit2 size={14} />
                       </button>
-                      <button 
+                      <button
                         onClick={() => onDelete(record.id)}
                         className="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-50 transition-colors"
                       >
@@ -119,13 +155,15 @@ const PromotionPostDetail = ({
         </div>
 
         {/* Additional/Special Skill Section */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
           className="mt-8"
         >
-          <h2 className="text-lg font-semibold text-[#3c8dbc] mb-2">Additional/Special Skill</h2>
+          <h2 className="text-lg font-semibold text-[#3c8dbc] mb-2">
+            Additional/Special Skill
+          </h2>
           <textarea
             name="specialSkills"
             value={specialSkills}
@@ -143,20 +181,31 @@ interface PromotionPostFormProps {
   preparedBy: string;
   commentGiven: string;
   processedDate: string;
-  onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
+  onInputChange: (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => void;
 }
 
-const PromotionPostForm: React.FC<PromotionPostFormProps> = ({ 
-  preparedBy, 
-  commentGiven, 
+const PromotionPostForm: React.FC<PromotionPostFormProps> = ({
+  preparedBy,
+  commentGiven,
   processedDate,
-  onInputChange 
+  onInputChange,
 }) => {
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { when: "beforeChildren", staggerChildren: 0.1 } },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { when: "beforeChildren", staggerChildren: 0.1 },
+    },
   };
-  const itemVariants = { hidden: { y: 20, opacity: 0 }, visible: { y: 0, opacity: 1 } };
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: { y: 0, opacity: 1 },
+  };
 
   return (
     <motion.div
@@ -202,7 +251,7 @@ const PromotionPostForm: React.FC<PromotionPostFormProps> = ({
                 onChange={onInputChange}
                 rows={4}
                 className="w-3/4 px-3 py-2 min-h-[42px] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3c8dbc] transition-all duration-200"
-                style={{ height: '42px' }}
+                style={{ height: "42px" }}
               />
             </motion.div>
           </div>
@@ -229,8 +278,8 @@ const PromotionPostForm: React.FC<PromotionPostFormProps> = ({
 
       {/* Edit Link */}
       <div className="px-6 py-4 border-t border-[#3c8dbc]/20 text-center bg-blue-50/50">
-        <motion.a 
-          href="#" 
+        <motion.a
+          href="#"
           className="text-[#3c8dbc] hover:text-[#2c6da4] underline transition-colors inline-flex items-center"
           whileHover={{ scale: 1.02 }}
         >
@@ -242,49 +291,54 @@ const PromotionPostForm: React.FC<PromotionPostFormProps> = ({
   );
 };
 
-
 // --- MAIN PAGE COMPONENT ---
 
 const InternalVacancyPage = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [formData, setFormData] = useState<Omit<PromotionPost, 'id'>>({
-    jobTitle: '',
-    vacancyCode: '',
-    department: '',
-    icf: '',
+  const [formData, setFormData] = useState<Omit<PromotionPost, "id">>({
+    jobTitle: "",
+    vacancyCode: "",
+    department: "",
+    icf: "",
     numberOfEmployees: 0,
-    termsOfEmployment: ''
+    termsOfEmployment: "",
   });
   const [records, setRecords] = useState<PromotionPost[]>([]);
   const [vacancyData, setVacancyData] = useState({
-    vacancyType: '',
-    postDate: '',
-    applicationDeadline: '',
-    description: ''
+    vacancyType: "",
+    postDate: "",
+    applicationDeadline: "",
+    description: "",
   });
   const [promotionData, setPromotionData] = useState({
-    preparedBy: '',
-    commentGiven: '',
-    processedDate: '09-10-2017'
+    preparedBy: "",
+    commentGiven: "",
+    processedDate: "09-10-2017",
   });
-  const [specialSkills, setSpecialSkills] = useState('');
-  const [jobCodeBatchOptions, setJobCodeBatchOptions] = useState<JobCodeBatchOption[]>([]);
+  const [specialSkills, setSpecialSkills] = useState("");
+  const [jobCodeBatchOptions, setJobCodeBatchOptions] = useState<
+    JobCodeBatchOption[]
+  >([]);
 
   // Fetch job codes and batch codes on component mount
   useEffect(() => {
     const fetchJobCodeBatchOptions = async () => {
       try {
-        const response = await axios.get('http://localhost:8080/api/recruitment/jobcodes-batchcodes?advertisementType=Inside');
-        
-        // UPDATED MAPPING LOGIC: Extract both displayValue and id
-        const options = response.data.map((item: { jobCodeAndBatchCode: string, jobTitleId: number }) => ({
-          id: item.jobTitleId,
-          displayValue: item.jobCodeAndBatchCode
-        }));
-        setJobCodeBatchOptions(options);
+        const response = await authFetch(
+          "http://localhost:8080/api/recruitment/jobcodes-batchcodes?advertisementType=Inside"
+        );
+        const data = await response.json();
 
+        // UPDATED MAPPING LOGIC: Extract both displayValue and id
+        const options = data.map(
+          (item: { jobCodeAndBatchCode: string; jobTitleId: number }) => ({
+            id: item.jobTitleId,
+            displayValue: item.jobCodeAndBatchCode,
+          })
+        );
+        setJobCodeBatchOptions(options);
       } catch (error) {
-        console.error('Error fetching job codes and batch codes:', error);
+        console.error("Error fetching job codes and batch codes:", error);
       }
     };
 
@@ -296,82 +350,95 @@ const InternalVacancyPage = () => {
   };
 
   // New handler to fetch details when a job title is selected
-  const handleJobTitleSelection = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleJobTitleSelection = async (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
     const selectedDisplayValue = e.target.value;
-    const selectedOption = jobCodeBatchOptions.find(option => option.displayValue === selectedDisplayValue);
+    const selectedOption = jobCodeBatchOptions.find(
+      (option) => option.displayValue === selectedDisplayValue
+    );
 
     // Update formData with the selected jobTitle display value immediately
-    setFormData(prev => ({ ...prev, jobTitle: selectedDisplayValue }));
+    setFormData((prev) => ({ ...prev, jobTitle: selectedDisplayValue }));
 
     if (selectedOption) {
       const jobTitleId = selectedOption.id;
       try {
-        const response = await axios.get<FullJobDetailsResponseDto[]>(`http://localhost:8080/api/recruitment/job-details?jobTitleId=${jobTitleId}`);
-        
-        if (response.data && response.data.length > 0) {
-          const details = response.data[0];
-          setFormData(prev => ({
+        const response = await authFetch(
+          `http://localhost:8080/api/recruitment/job-details?jobTitleId=${jobTitleId}`
+        );
+        const data = (await response.json()) as FullJobDetailsResponseDto[];
+
+        if (data && data.length > 0) {
+          const details = data[0];
+          setFormData((prev) => ({
             ...prev,
             jobTitle: selectedDisplayValue, // Ensure jobTitle is set
             department: details.departmentName,
             icf: details.icf,
             vacancyCode: details.vacancyCode,
-            numberOfEmployees: details.numberOfEmployees
+            numberOfEmployees: details.numberOfEmployees,
           }));
         } else {
-          console.warn(`No job details found for jobTitleId: ${jobTitleId}. Clearing related fields.`);
-          setFormData(prev => ({
+          console.warn(
+            `No job details found for jobTitleId: ${jobTitleId}. Clearing related fields.`
+          );
+          setFormData((prev) => ({
             ...prev,
             jobTitle: selectedDisplayValue,
-            department: '',
-            icf: '',
-            vacancyCode: '',
-            numberOfEmployees: 0
+            department: "",
+            icf: "",
+            vacancyCode: "",
+            numberOfEmployees: 0,
           }));
         }
       } catch (error) {
-        console.error('Error fetching full job details:', error);
-        setFormData(prev => ({
+        console.error("Error fetching full job details:", error);
+        setFormData((prev) => ({
           ...prev,
           jobTitle: selectedDisplayValue,
-          department: '',
-          icf: '',
-          vacancyCode: '',
-          numberOfEmployees: 0
+          department: "",
+          icf: "",
+          vacancyCode: "",
+          numberOfEmployees: 0,
         }));
       }
     } else {
       // If "Select an option" or an invalid option is chosen, clear related fields
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        jobTitle: '',
-        department: '',
-        icf: '',
-        vacancyCode: '',
-        numberOfEmployees: 0
+        jobTitle: "",
+        department: "",
+        icf: "",
+        vacancyCode: "",
+        numberOfEmployees: 0,
       }));
     }
   };
 
   // Updated input handler to delegate jobTitle changes
-  const handleInputChange =   (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
     const { name, value } = e.target;
 
-    if (name === 'jobTitle') {
+    if (name === "jobTitle") {
       handleJobTitleSelection(e as React.ChangeEvent<HTMLSelectElement>);
       return;
     }
 
     if (name in vacancyData) {
-      setVacancyData(prev => ({ ...prev, [name]: value }));
+      setVacancyData((prev) => ({ ...prev, [name]: value }));
     } else if (name in promotionData) {
-      setPromotionData(prev => ({ ...prev, [name]: value }));
+      setPromotionData((prev) => ({ ...prev, [name]: value }));
     } else if (name in formData) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        [name]: name === 'numberOfEmployees' ? parseInt(value) || 0 : value
+        [name]: name === "numberOfEmployees" ? parseInt(value) || 0 : value,
       }));
-    } else if (name === 'specialSkills') {
+    } else if (name === "specialSkills") {
       setSpecialSkills(value);
     }
   };
@@ -380,39 +447,46 @@ const InternalVacancyPage = () => {
     e.preventDefault();
     const newRecord = {
       ...formData,
-      id: Date.now().toString()
+      id: Date.now().toString(),
     };
     setRecords([...records, newRecord]);
     setFormData({
-      jobTitle: '',
-      vacancyCode: '',
-      department: '',
-      icf: '',
+      jobTitle: "",
+      vacancyCode: "",
+      department: "",
+      icf: "",
       numberOfEmployees: 0,
-      termsOfEmployment: ''
+      termsOfEmployment: "",
     });
     setIsFormOpen(false);
   };
 
   const handleDelete = (id: string) => {
-    setRecords(records.filter(record => record.id !== id));
+    setRecords(records.filter((record) => record.id !== id));
   };
 
   const handleSaveAll = () => {
-    console.log('Saving all data:', {
+    console.log("Saving all data:", {
       vacancyData,
       promotionData,
       promotionPosts: records,
-      specialSkills
+      specialSkills,
     });
-    alert('All data saved successfully!');
+    alert("All data saved successfully!");
   };
 
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { when: "beforeChildren", staggerChildren: 0.1 } },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { when: "beforeChildren", staggerChildren: 0.1 },
+    },
   };
-  const itemVariants = { hidden: { y: 20, opacity: 0 }, visible: { y: 0, opacity: 1 } };
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: { y: 0, opacity: 1 },
+  };
 
   return (
     <div className="min-h-screen p-6 font-sans relative overflow-y-auto">
@@ -431,9 +505,11 @@ const InternalVacancyPage = () => {
           >
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-[#3c8dbc]">Add New Promotion Post</h3>
-                <button 
-                  onClick={() => setIsFormOpen(false)} 
+                <h3 className="text-lg font-semibold text-[#3c8dbc]">
+                  Add New Promotion Post
+                </h3>
+                <button
+                  onClick={() => setIsFormOpen(false)}
                   className="text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100"
                 >
                   <FiX size={20} />
@@ -443,7 +519,9 @@ const InternalVacancyPage = () => {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Placement Request</label>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      Placement Request
+                    </label>
                     <select
                       name="jobTitle"
                       value={formData.jobTitle}
@@ -451,17 +529,24 @@ const InternalVacancyPage = () => {
                       className="w-full px-3 py-2 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3c8dbc]"
                       required
                     >
-                      <option value="" disabled>--Select Job Code and Batch Code--</option>
-                      {jobCodeBatchOptions.map(option => (
+                      <option value="" disabled>
+                        --Select Job Code and Batch Code--
+                      </option>
+                      {jobCodeBatchOptions.map((option) => (
                         // --- FIX APPLIED HERE ---
-                        <option key={option.displayValue} value={option.displayValue}>
+                        <option
+                          key={option.displayValue}
+                          value={option.displayValue}
+                        >
                           {option.displayValue}
                         </option>
                       ))}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Vacancy Code</label>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      Vacancy Code
+                    </label>
                     <input
                       type="text"
                       name="vacancyCode"
@@ -472,7 +557,9 @@ const InternalVacancyPage = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Department</label>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      Department
+                    </label>
                     <input
                       type="text"
                       name="department"
@@ -483,7 +570,9 @@ const InternalVacancyPage = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">ICF</label>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      ICF
+                    </label>
                     <input
                       type="text"
                       name="icf"
@@ -494,7 +583,9 @@ const InternalVacancyPage = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Terms of Employment</label>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      Terms of Employment
+                    </label>
                     <select
                       name="termsOfEmployment"
                       value={formData.termsOfEmployment}
@@ -507,7 +598,9 @@ const InternalVacancyPage = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">Number of Employees</label>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      Number of Employees
+                    </label>
                     <input
                       type="number"
                       name="numberOfEmployees"
@@ -542,9 +635,9 @@ const InternalVacancyPage = () => {
       )}
 
       <div className="max-w-7xl mx-auto relative z-10">
-        <motion.div 
-          initial={{ opacity: 0, y: -20 }} 
-          animate={{ opacity: 1, y: 0 }} 
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
           className="flex justify-between items-center mb-8"
         >
           <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#3c8dbc] to-[#2c6da4]">
@@ -572,14 +665,18 @@ const InternalVacancyPage = () => {
               <div className="space-y-6 ml-14">
                 {/* Vacancy Type */}
                 <motion.div variants={itemVariants}>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Vacancy Type</label>
-                  <select 
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Vacancy Type
+                  </label>
+                  <select
                     name="vacancyType"
                     value={vacancyData.vacancyType}
                     onChange={handleInputChange}
                     className="w-3/4 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3c8dbc] transition-all duration-200"
                   >
-                    <option value="" disabled>--Select One--</option>
+                    <option value="" disabled>
+                      --Select One--
+                    </option>
                     <option value="full-time">Full-time</option>
                     <option value="part-time">Part-time</option>
                     <option value="contract">Contract</option>
@@ -592,8 +689,8 @@ const InternalVacancyPage = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Post Date
                   </label>
-                  <input 
-                    type="date" 
+                  <input
+                    type="date"
                     name="postDate"
                     value={vacancyData.postDate}
                     onChange={handleInputChange}
@@ -609,26 +706,26 @@ const InternalVacancyPage = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Application Deadline
                   </label>
-                  <input 
-                    type="date" 
+                  <input
+                    type="date"
                     name="applicationDeadline"
                     value={vacancyData.applicationDeadline}
                     onChange={handleInputChange}
                     className="w-3/4 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3c8dbc] transition-all duration-200"
                   />
-                </motion.div>  
-              
+                </motion.div>
+
                 {/* Description */}
                 <motion.div variants={itemVariants}>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Description
                   </label>
-                  <textarea 
+                  <textarea
                     name="description"
                     value={vacancyData.description}
                     onChange={handleInputChange}
                     className="w-3/4 px-3 py-2 min-h-[42px] border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#3c8dbc] transition-all duration-200"
-                    style={{ height: '42px' }}
+                    style={{ height: "42px" }}
                   />
                 </motion.div>
               </div>
@@ -636,15 +733,15 @@ const InternalVacancyPage = () => {
           </div>
         </motion.div>
 
-        <PromotionPostDetail 
+        <PromotionPostDetail
           records={records}
           onAddNew={handleAddNew}
           onDelete={handleDelete}
           specialSkills={specialSkills}
           setSpecialSkills={setSpecialSkills}
         />
-        
-        <PromotionPostForm 
+
+        <PromotionPostForm
           preparedBy={promotionData.preparedBy}
           commentGiven={promotionData.commentGiven}
           processedDate={promotionData.processedDate}

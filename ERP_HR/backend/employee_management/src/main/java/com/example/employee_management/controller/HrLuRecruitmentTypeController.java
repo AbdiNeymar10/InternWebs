@@ -3,6 +3,7 @@ package com.example.employee_management.controller;
 import com.example.employee_management.entity.HrLuRecruitmentType;
 import com.example.employee_management.service.HrLuRecruitmentTypeService;
 import jakarta.validation.Valid;
+import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,8 +11,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Data
 @RestController
 @RequestMapping("/api/recruitment-types")
+@CrossOrigin(origins = "http://localhost:3000")
 public class HrLuRecruitmentTypeController {
 
     private final HrLuRecruitmentTypeService recruitmentTypeService;

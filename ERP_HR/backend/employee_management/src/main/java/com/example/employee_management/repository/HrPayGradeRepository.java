@@ -16,12 +16,8 @@ public interface HrPayGradeRepository extends JpaRepository<HrPayGrad, Long> {
 
     @Query("SELECT p FROM HrPayGrad p WHERE p.rankId = :rankId AND p.stepNo = :stepNo")
     Optional<HrPayGrad> findByRankIdAndStepNo(@Param("rankId") HrRank rankId,
-            @Param("stepNo") String stepNo);
-
+                                              @Param("stepNo") String stepNo);
     // src/main/java/com/example/employee_management/repository/HrPayGradeRepository.java
     @Query("SELECT new com.example.employee_management.dto.PayGradeStepDto(p.salary, p.stepNo) FROM HrPayGrad p WHERE p.rankId.rankId = :rankId")
     List<PayGradeStepDto> findSalaryAndStepNoByRankId(@Param("rankId") Long rankId);
-
-    @Query("SELECT DISTINCT p.stepNo FROM HrPayGrad p WHERE p.stepNo IS NOT NULL")
-    List<String> findDistinctStepNo();
 }

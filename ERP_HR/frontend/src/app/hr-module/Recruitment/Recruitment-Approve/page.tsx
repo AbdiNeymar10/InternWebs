@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { authFetch } from "@/utils/authFetch";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
@@ -35,7 +36,8 @@ interface RecruitmentRequestData {
         id: number;
         jobTitle: string;
       };
-      jobGrade: { // This should now be populated
+      jobGrade: {
+        // This should now be populated
         id: number;
         jobGrade: string;
       };
@@ -88,26 +90,25 @@ interface ApprovalFormData {
 }
 
 const initialFormData: ApprovalFormData = {
-    searchQuery: "",
-    recruitRequestId: null,
-    departmentName: "",
-    jobTitle: "",
-    jobGrade: "",
-    icf: "",
-    numOfEmps: "",
-    recruitmentType: "",
-    employmentType: "",
-    requesterId: "",
-    budgetYear: "",
-    incrementStep: "",
-    recruitBatchCode: "",
-    advertisementType: "",
-    requesterRemark: "",
-    gmRemark: "",
-    decision: "",
-    approvedBy: "",
+  searchQuery: "",
+  recruitRequestId: null,
+  departmentName: "",
+  jobTitle: "",
+  jobGrade: "",
+  icf: "",
+  numOfEmps: "",
+  recruitmentType: "",
+  employmentType: "",
+  requesterId: "",
+  budgetYear: "",
+  incrementStep: "",
+  recruitBatchCode: "",
+  advertisementType: "",
+  requesterRemark: "",
+  gmRemark: "",
+  decision: "",
+  approvedBy: "",
 };
-
 
 export default function ApprovalList() {
   const router = useRouter();
@@ -115,24 +116,37 @@ export default function ApprovalList() {
   const [formData, setFormData] = useState<ApprovalFormData>(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSearchSuggestions, setShowSearchSuggestions] = useState(false);
-  const [searchSuggestions, setSearchSuggestions] = useState<RecruitmentRequestSuggestion[]>([]);
+  const [searchSuggestions, setSearchSuggestions] = useState<
+    RecruitmentRequestSuggestion[]
+  >([]);
   const knownRequestIdsRef = useRef<Set<number> | null>(null);
 
   const fetchPendingRequests = useCallback(async (isManualRefresh = false) => {
     if (isManualRefresh) toast.loading("Refreshing list...");
     try {
-      const response = await fetch("http://localhost:8080/api/recruitment/pending-requests");
+      const response = await authFetch(
+        "http://localhost:8080/api/recruitment/pending-requests"
+      );
       if (!response.ok) {
-        throw new Error(`Failed to fetch pending requests: ${response.statusText}`);
+        throw new Error(
+          `Failed to fetch pending requests: ${response.statusText}`
+        );
       }
       const data: RecruitmentRequestSuggestion[] = await response.json();
       setSearchSuggestions(data);
 
       const newRequestIds = new Set(data.map((req) => req.recruitRequestId));
       if (knownRequestIdsRef.current) {
-        const newlyAdded = data.filter((req) => !knownRequestIdsRef.current!.has(req.recruitRequestId));
+        const newlyAdded = data.filter(
+          (req) => !knownRequestIdsRef.current!.has(req.recruitRequestId)
+        );
         if (newlyAdded.length > 0) {
-          toast(`${newlyAdded.length} new request${newlyAdded.length > 1 ? "s" : ""} pending approval.`, { icon: "🔔" });
+          toast(
+            `${newlyAdded.length} new request${
+              newlyAdded.length > 1 ? "s" : ""
+            } pending approval.`,
+            { icon: "🔔" }
+          );
         }
       }
       knownRequestIdsRef.current = newRequestIds;
@@ -156,51 +170,71 @@ export default function ApprovalList() {
     return () => clearInterval(intervalId);
   }, [fetchPendingRequests]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSearchSelect = useCallback(async (request: RecruitmentRequestSuggestion) => {
-    setFormData((prev) => ({ ...prev, searchQuery: `${request.recruitBatchCode} (ID: ${request.recruitRequestId})` }));
-    setShowSearchSuggestions(false);
-    toast.loading("Loading request details...", { id: "loadRequest" });
+  const handleSearchSelect = useCallback(
+    async (request: RecruitmentRequestSuggestion) => {
+      setFormData((prev) => ({
+        ...prev,
+        searchQuery: `${request.recruitBatchCode} (ID: ${request.recruitRequestId})`,
+      }));
+      setShowSearchSuggestions(false);
+      toast.loading("Loading request details...", { id: "loadRequest" });
 
-    try {
-      const response = await fetch(`http://localhost:8080/api/recruitment/request/${request.recruitRequestId}`);
-      if (!response.ok) {
-        const errorBody = await response.text();
-        throw new Error(`Failed to fetch request details. Status: ${response.status}. ${errorBody}`);
+      try {
+        const response = await authFetch(
+          `http://localhost:8080/api/recruitment/request/${request.recruitRequestId}`
+        );
+        if (!response.ok) {
+          const errorBody = await response.text();
+          throw new Error(
+            `Failed to fetch request details. Status: ${response.status}. ${errorBody}`
+          );
+        }
+        const data: RecruitmentRequestData = await response.json();
+
+        setFormData({
+          ...initialFormData, // Reset form first
+          recruitRequestId: data.recruitRequestId,
+          departmentName: data.department?.depName || "",
+          jobTitle: data.jobCodeDetail?.hrJobType?.jobTitle?.jobTitle || "",
+          jobGrade: data.jobCodeDetail?.hrJobType?.jobGrade?.jobGrade || "N/A", // <-- This will now be populated
+          icf: data.icf?.icf || "",
+          numOfEmps: data.numOfEmps?.toString() || "",
+          recruitmentType:
+            data.recruitmentType?.description ||
+            data.recruitmentType?.recruitmentType ||
+            "",
+          employmentType: data.employmentType?.type || "N/A",
+          requesterId: data.requesterId || "",
+          budgetYear: data.budgetYear || "",
+          incrementStep: data.incrementStep || "N/A",
+          requesterRemark: data.remark || "",
+          recruitBatchCode: data.recruitBatchCode || "",
+          advertisementType: data.advertisementType || "", // Pre-fill if it was already set
+          gmRemark: data.gmRemark || "",
+          decision: "",
+          approvedBy: "",
+        });
+        toast.success("Request loaded successfully!", { id: "loadRequest" });
+      } catch (error: any) {
+        console.error("Error fetching request details:", error);
+        toast.error(
+          `Failed to load request: ${error.message || "Unknown error"}`,
+          { id: "loadRequest" }
+        );
+        setFormData(initialFormData); // Clear form on error
       }
-      const data: RecruitmentRequestData = await response.json();
-
-      setFormData({
-        ...initialFormData, // Reset form first
-        recruitRequestId: data.recruitRequestId,
-        departmentName: data.department?.depName || "",
-        jobTitle: data.jobCodeDetail?.hrJobType?.jobTitle?.jobTitle || "",
-        jobGrade: data.jobCodeDetail?.hrJobType?.jobGrade?.jobGrade || "N/A", // <-- This will now be populated
-        icf: data.icf?.icf || "",
-        numOfEmps: data.numOfEmps?.toString() || "",
-        recruitmentType: data.recruitmentType?.description || data.recruitmentType?.recruitmentType || "",
-        employmentType: data.employmentType?.type || "N/A",
-        requesterId: data.requesterId || "",
-        budgetYear: data.budgetYear || "",
-        incrementStep: data.incrementStep || "N/A",
-        requesterRemark: data.remark || "",
-        recruitBatchCode: data.recruitBatchCode || "",
-        advertisementType: data.advertisementType || "", // Pre-fill if it was already set
-        gmRemark: data.gmRemark || "",
-        decision: "",
-        approvedBy: "",
-      });
-      toast.success("Request loaded successfully!", { id: "loadRequest" });
-    } catch (error: any) {
-      console.error("Error fetching request details:", error);
-      toast.error(`Failed to load request: ${error.message || "Unknown error"}`, { id: "loadRequest" });
-      setFormData(initialFormData); // Clear form on error
-    }
-  }, []);
+    },
+    []
+  );
 
   const handleSubmitApproval = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -208,22 +242,30 @@ export default function ApprovalList() {
     toast.loading("Processing approval...", { id: "submitApproval" });
 
     if (!formData.recruitRequestId) {
-      toast.error("Please select a request to approve/reject.", { id: "submitApproval" });
+      toast.error("Please select a request to approve/reject.", {
+        id: "submitApproval",
+      });
       setIsSubmitting(false);
       return;
     }
     if (!formData.decision) {
-      toast.error("Please select a decision (Approve/Reject).", { id: "submitApproval" });
+      toast.error("Please select a decision (Approve/Reject).", {
+        id: "submitApproval",
+      });
       setIsSubmitting(false);
       return;
     }
     if (formData.decision === "APPROVE" && !formData.advertisementType) {
-      toast.error("Please select an Advertisement Type for approval.", { id: "submitApproval" });
+      toast.error("Please select an Advertisement Type for approval.", {
+        id: "submitApproval",
+      });
       setIsSubmitting(false);
       return;
     }
     if (!formData.approvedBy.trim()) {
-      toast.error("Approved By field cannot be empty.", { id: "submitApproval" });
+      toast.error("Approved By field cannot be empty.", {
+        id: "submitApproval",
+      });
       setIsSubmitting(false);
       return;
     }
@@ -237,23 +279,31 @@ export default function ApprovalList() {
         advertisementType: formData.advertisementType, // <-- Add to payload
       };
 
-      const response = await fetch("http://localhost:8080/api/recruitment/approve", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      const response = await authFetch(
+        "http://localhost:8080/api/recruitment/approve",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to process approval");
       }
 
-      toast.success("Approval processed successfully!", { id: "submitApproval" });
+      toast.success("Approval processed successfully!", {
+        id: "submitApproval",
+      });
       setFormData(initialFormData);
       fetchPendingRequests(true);
     } catch (error: any) {
       console.error("Error processing approval:", error);
-      toast.error(`Failed to process approval: ${error.message || "Unknown error"}`, { id: "submitApproval" });
+      toast.error(
+        `Failed to process approval: ${error.message || "Unknown error"}`,
+        { id: "submitApproval" }
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -273,7 +323,10 @@ export default function ApprovalList() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
             <div>
-              <label htmlFor="search-field" className="block text-sm font-medium text-slate-700 mb-1">
+              <label
+                htmlFor="search-field"
+                className="block text-sm font-medium text-slate-700 mb-1"
+              >
                 Search Pending Requests
               </label>
               <div className="relative">
@@ -284,7 +337,9 @@ export default function ApprovalList() {
                   value={formData.searchQuery}
                   onChange={handleChange}
                   onFocus={() => setShowSearchSuggestions(true)}
-                  onBlur={() => setTimeout(() => setShowSearchSuggestions(false), 150)}
+                  onBlur={() =>
+                    setTimeout(() => setShowSearchSuggestions(false), 150)
+                  }
                   className="w-full p-2.5 pl-9 border border-slate-300 rounded-lg focus:ring-2 focus:ring-offset-2 focus:ring-[#3c8dbc] focus:border-transparent transition-all"
                   placeholder="Search by Batch Code or ID"
                 />
@@ -294,8 +349,12 @@ export default function ApprovalList() {
                     {searchSuggestions
                       .filter(
                         (req) =>
-                          req.recruitBatchCode.toLowerCase().includes(formData.searchQuery.toLowerCase()) ||
-                          req.recruitRequestId.toString().includes(formData.searchQuery)
+                          req.recruitBatchCode
+                            .toLowerCase()
+                            .includes(formData.searchQuery.toLowerCase()) ||
+                          req.recruitRequestId
+                            .toString()
+                            .includes(formData.searchQuery)
                       )
                       .map((request) => (
                         <div
@@ -303,7 +362,8 @@ export default function ApprovalList() {
                           className="p-2 cursor-pointer hover:bg-slate-100 text-sm text-slate-700"
                           onClick={() => handleSearchSelect(request)}
                         >
-                          {request.recruitBatchCode} (ID: {request.recruitRequestId}) - {request.requestStatus}
+                          {request.recruitBatchCode} (ID:{" "}
+                          {request.recruitRequestId}) - {request.requestStatus}
                         </div>
                       ))}
                   </div>
@@ -336,72 +396,164 @@ export default function ApprovalList() {
 
           <form onSubmit={handleSubmitApproval} className="space-y-6">
             <div className="border border-slate-200 rounded-lg p-4 bg-slate-50">
-              <h3 className="text-md font-semibold text-slate-700 mb-3">Requested Information</h3>
+              <h3 className="text-md font-semibold text-slate-700 mb-3">
+                Requested Information
+              </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Working Place</label>
-                  <input type="text" readOnly value={formData.departmentName} className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-100 cursor-not-allowed" />
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Working Place
+                  </label>
+                  <input
+                    type="text"
+                    readOnly
+                    value={formData.departmentName}
+                    className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-100 cursor-not-allowed"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Required Job Type</label>
-                  <input type="text" readOnly value={formData.jobTitle} className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-100 cursor-not-allowed" />
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Required Job Type
+                  </label>
+                  <input
+                    type="text"
+                    readOnly
+                    value={formData.jobTitle}
+                    className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-100 cursor-not-allowed"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Job Grade</label>
-                  <input type="text" readOnly value={formData.jobGrade} className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-100 cursor-not-allowed" />
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Job Grade
+                  </label>
+                  <input
+                    type="text"
+                    readOnly
+                    value={formData.jobGrade}
+                    className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-100 cursor-not-allowed"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">ICF</label>
-                  <input type="text" readOnly value={formData.icf} className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-100 cursor-not-allowed" />
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    ICF
+                  </label>
+                  <input
+                    type="text"
+                    readOnly
+                    value={formData.icf}
+                    className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-100 cursor-not-allowed"
+                  />
                 </div>
               </div>
             </div>
 
             <div className="border border-slate-200 rounded-lg p-4 bg-slate-50">
-              <h3 className="text-md font-semibold text-slate-700 mb-3">Additional Request Details</h3>
+              <h3 className="text-md font-semibold text-slate-700 mb-3">
+                Additional Request Details
+              </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Required Number</label>
-                  <input type="text" readOnly value={formData.numOfEmps} className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-100 cursor-not-allowed" />
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Required Number
+                  </label>
+                  <input
+                    type="text"
+                    readOnly
+                    value={formData.numOfEmps}
+                    className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-100 cursor-not-allowed"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Recruitment Type</label>
-                  <input type="text" readOnly value={formData.recruitmentType} className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-100 cursor-not-allowed" />
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Recruitment Type
+                  </label>
+                  <input
+                    type="text"
+                    readOnly
+                    value={formData.recruitmentType}
+                    className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-100 cursor-not-allowed"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Employment Type</label>
-                  <input type="text" readOnly value={formData.employmentType || "N/A"} className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-100 cursor-not-allowed" />
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Employment Type
+                  </label>
+                  <input
+                    type="text"
+                    readOnly
+                    value={formData.employmentType || "N/A"}
+                    className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-100 cursor-not-allowed"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Requester ID</label>
-                  <input type="text" readOnly value={formData.requesterId} className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-100 cursor-not-allowed" />
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Requester ID
+                  </label>
+                  <input
+                    type="text"
+                    readOnly
+                    value={formData.requesterId}
+                    className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-100 cursor-not-allowed"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Budget Year</label>
-                  <input type="text" readOnly value={formData.budgetYear} className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-100 cursor-not-allowed" />
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Budget Year
+                  </label>
+                  <input
+                    type="text"
+                    readOnly
+                    value={formData.budgetYear}
+                    className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-100 cursor-not-allowed"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Increment Step</label>
-                  <input type="text" readOnly value={formData.incrementStep || "N/A"} className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-100 cursor-not-allowed" />
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Increment Step
+                  </label>
+                  <input
+                    type="text"
+                    readOnly
+                    value={formData.incrementStep || "N/A"}
+                    className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-100 cursor-not-allowed"
+                  />
                 </div>
                 <div className="lg:col-span-3">
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Requester's Comment</label>
-                  <textarea readOnly value={formData.requesterRemark} className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-100 cursor-not-allowed min-h-[80px]" />
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Requester's Comment
+                  </label>
+                  <textarea
+                    readOnly
+                    value={formData.requesterRemark}
+                    className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-100 cursor-not-allowed min-h-[80px]"
+                  />
                 </div>
               </div>
             </div>
 
             <div className="border border-slate-200 rounded-lg p-4 bg-slate-50">
-              <h3 className="text-md font-semibold text-[#3c8dbc] mb-3">Approval Action</h3>
+              <h3 className="text-md font-semibold text-[#3c8dbc] mb-3">
+                Approval Action
+              </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Batch Code</label>
-                  <input type="text" readOnly value={formData.recruitBatchCode} className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-100 cursor-not-allowed" />
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Batch Code
+                  </label>
+                  <input
+                    type="text"
+                    readOnly
+                    value={formData.recruitBatchCode}
+                    className="w-full p-2.5 border border-slate-300 rounded-lg bg-slate-100 cursor-not-allowed"
+                  />
                 </div>
-                
+
                 {/* MODIFIED: Advertisement Type Dropdown */}
                 <div>
-                  <label htmlFor="advertisementType" className="block text-sm font-medium text-slate-700 mb-1">
+                  <label
+                    htmlFor="advertisementType"
+                    className="block text-sm font-medium text-slate-700 mb-1"
+                  >
                     Advertisement Type
                   </label>
                   <select
@@ -410,8 +562,11 @@ export default function ApprovalList() {
                     value={formData.advertisementType}
                     onChange={handleChange}
                     className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-offset-2 focus:ring-[#3c8dbc] focus:border-transparent transition-all disabled:bg-slate-100 disabled:cursor-not-allowed"
-                    disabled={!formData.recruitRequestId || formData.decision === 'REJECT'}
-                    required={formData.decision === 'APPROVE'}
+                    disabled={
+                      !formData.recruitRequestId ||
+                      formData.decision === "REJECT"
+                    }
+                    required={formData.decision === "APPROVE"}
                   >
                     <option value="">-- Select Type --</option>
                     <option value="Inside">Inside</option>
@@ -420,7 +575,10 @@ export default function ApprovalList() {
                 </div>
 
                 <div className="lg:col-span-1">
-                  <label htmlFor="gmRemark" className="block text-sm font-medium text-slate-700 mb-1">
+                  <label
+                    htmlFor="gmRemark"
+                    className="block text-sm font-medium text-slate-700 mb-1"
+                  >
                     Comment for Decision
                   </label>
                   <textarea
@@ -433,7 +591,12 @@ export default function ApprovalList() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="decision" className="block text-sm font-medium text-slate-700 mb-1">Decision</label>
+                  <label
+                    htmlFor="decision"
+                    className="block text-sm font-medium text-slate-700 mb-1"
+                  >
+                    Decision
+                  </label>
                   <select
                     id="decision"
                     name="decision"
@@ -448,7 +611,12 @@ export default function ApprovalList() {
                   </select>
                 </div>
                 <div>
-                  <label htmlFor="approvedBy" className="block text-sm font-medium text-slate-700 mb-1">Approved By</label>
+                  <label
+                    htmlFor="approvedBy"
+                    className="block text-sm font-medium text-slate-700 mb-1"
+                  >
+                    Approved By
+                  </label>
                   <input
                     type="text"
                     id="approvedBy"
@@ -472,9 +640,13 @@ export default function ApprovalList() {
                 whileTap={{ scale: 0.98 }}
               >
                 {isSubmitting ? (
-                  <><FiRefreshCw className="animate-spin mr-2" /> Processing...</>
+                  <>
+                    <FiRefreshCw className="animate-spin mr-2" /> Processing...
+                  </>
                 ) : (
-                  <><FiCheckCircle className="mr-2" /> Process Approval</>
+                  <>
+                    <FiCheckCircle className="mr-2" /> Process Approval
+                  </>
                 )}
               </motion.button>
             </div>

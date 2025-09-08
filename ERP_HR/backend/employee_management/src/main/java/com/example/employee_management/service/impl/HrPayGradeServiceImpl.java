@@ -1,6 +1,6 @@
-// HrPayGradeServiceImpl.java
 package com.example.employee_management.service.impl;
 
+import com.example.employee_management.dto.HrPayGradeDto; // Import the DTO
 import com.example.employee_management.entity.HrPayGrad;
 import com.example.employee_management.entity.HrRank;
 import com.example.employee_management.repository.HrPayGradeRepository;
@@ -16,6 +16,7 @@ public class HrPayGradeServiceImpl implements HrPayGradeService {
     public HrPayGradeServiceImpl(HrPayGradeRepository hrPayGradeRepository) {
         this.hrPayGradeRepository = hrPayGradeRepository;
     }
+
     @Override
     public List<HrPayGrad> findAll() {
         return hrPayGradeRepository.findAll();
@@ -40,21 +41,32 @@ public class HrPayGradeServiceImpl implements HrPayGradeService {
     @Override
     public HrPayGrad update(Long payGradeId, HrPayGrad hrPayGrad) {
         HrPayGrad existingPayGrade = findById(payGradeId);
+        // Ensure you're updating the correct fields.
+        // If salary is encrypted, you might need to encrypt it before saving.
         existingPayGrade.setSalary(hrPayGrad.getSalary());
         existingPayGrade.setStepNo(hrPayGrad.getStepNo());
         existingPayGrade.setRankId(hrPayGrad.getRankId());
         return hrPayGradeRepository.save(existingPayGrade);
     }
 
-    // In HrPayGradeServiceImpl.java
     @Override
     public List<HrPayGrad> findByRankId(HrRank rankId) {
-        return hrPayGradeRepository.findByRankId(rankId); // Corrected call
+        return hrPayGradeRepository.findByRankId(rankId);
     }
 
-
+    // MODIFIED: Change return type to Optional<HrPayGradeDto>
     @Override
-    public Optional<HrPayGrad> findByRankIdAndStepNo(HrRank rankId, String stepNo) {
-        return hrPayGradeRepository.findByRankIdAndStepNo(rankId, stepNo);
+    public Optional<HrPayGradeDto> findByRankIdAndStepNo(HrRank rankId, String stepNo) {
+        return hrPayGradeRepository.findByRankIdAndStepNo(rankId, stepNo)
+                .map(payGradeEntity -> {
+                    // Map the entity to the DTO
+                    HrPayGradeDto dto = new HrPayGradeDto();
+                    dto.setPayGradeId(payGradeEntity.getPayGradeId());
+                    dto.setSalary(payGradeEntity.getSalary()); // Set the encrypted salary
+                    dto.setStepNo(payGradeEntity.getStepNo());
+                    dto.setRankId(payGradeEntity.getRankId() != null ? payGradeEntity.getRankId().getRankId() : null);
+                    // The getDecryptedSalary() method will be called when accessing the salary from the DTO
+                    return dto;
+                });
     }
 }

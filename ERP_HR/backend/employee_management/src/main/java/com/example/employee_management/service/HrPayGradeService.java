@@ -1,6 +1,6 @@
-// HrPayGradeService.java
 package com.example.employee_management.service;
 
+import com.example.employee_management.dto.HrPayGradeDto; // Import the DTO
 import com.example.employee_management.entity.HrPayGrad;
 import com.example.employee_management.entity.HrRank;
 
@@ -15,6 +15,6 @@ public interface HrPayGradeService {
     HrPayGrad update(Long payGradeId, HrPayGrad hrPayGrad);
     List<HrPayGrad> findByRankId(HrRank rankId);
 
-    Optional<HrPayGrad> findByRankIdAndStepNo(HrRank rankId, String stepNo);
-
+    // MODIFIED: Change return type to Optional<HrPayGradeDto>
+    Optional<HrPayGradeDto> findByRankIdAndStepNo(HrRank rankId, String stepNo);
 }

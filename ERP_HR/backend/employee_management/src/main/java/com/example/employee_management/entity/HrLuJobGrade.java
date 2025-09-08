@@ -3,8 +3,7 @@ package com.example.employee_management.entity;
 import jakarta.persistence.*;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 @Entity
 @Table(name = "HR_LU_JOB_GRADE")
 public class HrLuJobGrade {
@@ -22,7 +21,8 @@ public class HrLuJobGrade {
     private String description;
 
     // Constructors
-    public HrLuJobGrade() {}
+    public HrLuJobGrade() {
+    }
 
     public HrLuJobGrade(Long id, String grade, String description) {
         this.id = id;
@@ -53,5 +53,16 @@ public class HrLuJobGrade {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    // Backwards-compatible alias methods: some callers expect
+    // getJobGrade()/setJobGrade()
+    // which map to the underlying 'grade' field. Keep these as simple wrappers.
+    public String getJobGrade() {
+        return this.grade;
+    }
+
+    public void setJobGrade(String jobGrade) {
+        this.grade = jobGrade;
     }
 }
