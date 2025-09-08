@@ -231,9 +231,38 @@ export default function EmployeeProfilePage() {
           throw new Error(`Failed to fetch employees: ${response.statusText}`);
         const data = await response.json();
         if (data && data.length > 0) {
-          const mappedEmployees = data.map(mapHrEmployeeToEmployee);
+          const mappedEmployees: Employee[] = data.map(mapHrEmployeeToEmployee);
           setEmployees(mappedEmployees);
-          setCurrentEmployee(mappedEmployees[0]);
+
+          // Try to get empId from localStorage (common keys tried). The stored value may be
+          // a JSON string like { empId: "1", ... } or just the empId itself.
+          let empIdFromStorage: string | null = null;
+          try {
+            const raw =
+              localStorage.getItem("userInfo") ||
+              localStorage.getItem("user") ||
+              localStorage.getItem("loggedUser");
+            if (raw) {
+              const parsed = JSON.parse(raw);
+              empIdFromStorage = parsed?.empId?.toString() || null;
+            }
+          } catch (e) {
+            // ignore parse errors
+          }
+          // fallback to a direct empId key if present
+          if (!empIdFromStorage) {
+            empIdFromStorage = localStorage.getItem("empId");
+          }
+
+          const found = empIdFromStorage
+            ? mappedEmployees.find(
+                (emp: Employee) =>
+                  emp.empId === empIdFromStorage ||
+                  emp.id.toString() === empIdFromStorage
+              )
+            : undefined;
+
+          setCurrentEmployee(found || mappedEmployees[0]);
         }
       } catch (error) {
         console.error("Error fetching employees:", error);
