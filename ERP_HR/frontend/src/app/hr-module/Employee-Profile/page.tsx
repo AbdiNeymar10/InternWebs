@@ -2,6 +2,7 @@
 import EmployeeProfile from "../Employee-Profile/components/profile";
 import { authFetch } from "@/utils/authFetch";
 import { useState, useEffect } from "react";
+import Swal from "sweetalert2";
 import { motion } from "framer-motion";
 import LanguageSkillsTable from "../Employee-Profile/components/LanguageSkillsTable";
 import EmployeeForm from "../Employee-Profile/components/EmployeeForm";
@@ -223,6 +224,20 @@ export default function EmployeeProfilePage() {
     },
   ];
 
+  // Role helpers
+  const getUserRole = () => {
+    try {
+      const stored = localStorage.getItem("user");
+      if (stored) return JSON.parse(stored).role;
+    } catch (e) {
+      // ignore
+    }
+    return null;
+  };
+
+  const generalAllowed = ["HR", "ADMIN", "EMPLOYEE", "DEPARTMENT"];
+  const newAllowed = ["HR", "ADMIN", "DEPARTMENT"];
+
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
@@ -283,17 +298,47 @@ export default function EmployeeProfilePage() {
   }, [employees, currentEmployee]);
 
   const handleNewEmployee = () => {
-    setIsEditMode(false);
-    setCurrentEmployee(null);
-    setActiveTab("new");
+    const role = getUserRole();
+    if (role && newAllowed.includes(role)) {
+      setIsEditMode(false);
+      setCurrentEmployee(null);
+      setActiveTab("new");
+    } else {
+      Swal.fire({
+        icon: "warning",
+        title: "Access Denied",
+        text: "You do not have permission to access this module.",
+        confirmButtonColor: "#3c8dbc",
+      });
+    }
   };
 
   const handleEditEmployee = () => {
-    setIsEditMode(true);
-    setActiveTab("new");
+    const role = getUserRole();
+    if (role && generalAllowed.includes(role)) {
+      setIsEditMode(true);
+      setActiveTab("new");
+    } else {
+      Swal.fire({
+        icon: "warning",
+        title: "Access Denied",
+        text: "You do not have permission to access this module.",
+        confirmButtonColor: "#3c8dbc",
+      });
+    }
   };
 
   const handleRefresh = async () => {
+    const role = getUserRole();
+    if (!(role && generalAllowed.includes(role))) {
+      Swal.fire({
+        icon: "warning",
+        title: "Access Denied",
+        text: "You do not have permission to access this module.",
+        confirmButtonColor: "#3c8dbc",
+      });
+      return;
+    }
     try {
       const response = await authFetch("http://localhost:8080/api/employees");
       if (!response.ok)
@@ -424,9 +469,23 @@ export default function EmployeeProfilePage() {
             {tabs.map((tab) => (
               <button
                 key={tab.id}
-                onClick={() =>
-                  tab.id === "new" ? handleNewEmployee() : setActiveTab(tab.id)
-                }
+                onClick={() => {
+                  if (tab.id === "new") {
+                    handleNewEmployee();
+                    return;
+                  }
+                  const role = getUserRole();
+                  if (role && generalAllowed.includes(role)) {
+                    setActiveTab(tab.id);
+                  } else {
+                    Swal.fire({
+                      icon: "warning",
+                      title: "Access Denied",
+                      text: "You do not have permission to access this module.",
+                      confirmButtonColor: "#3c8dbc",
+                    });
+                  }
+                }}
                 className={`px-4 py-2 flex items-center gap-2 text-sm font-medium whitespace-nowrap border-b-2 transition-all ${
                   activeTab === tab.id
                     ? "border-blue-500 text-blue-600 bg-blue-50"
