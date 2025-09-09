@@ -11,6 +11,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/leave-schedule-details")
+@CrossOrigin(origins = "http://localhost:3000")
 public class HrLeaveScheduleDetController {
 
     private final HrLeaveScheduleDetService service;
