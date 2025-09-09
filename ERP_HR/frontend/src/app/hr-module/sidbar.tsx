@@ -537,7 +537,12 @@ export default function Sidebar({ className, hidden = false }: SidebarProps) {
                   href="#"
                   className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
                   onClick={(e) => {
-                    if (userRole === "HR") {
+                     if (
+                      userRole &&
+                      ["ADMIN", "HR"].includes(
+                        userRole
+                      )
+                    ){
                       window.location.href =
                         "/hr-module/Leave/leave-schedule-approve";
                     } else {
