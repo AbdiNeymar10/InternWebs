@@ -54,35 +54,75 @@ public class HRDocumentProvision {
     @Column(name = "WORK_ID")
     private String workId;
 
+    @Column(name = "ATTACHMENT_NAME")
+    private String attachmentName;
+
+    @Column(name = "ATTACHMENT_PATH")
+    private String attachmentPath;
+
+    // Default constructor
+    public HRDocumentProvision() {}
+
     // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
+
     public HrLuDocumentType getDocumentType() { return documentType; }
     public void setDocumentType(HrLuDocumentType documentType) { this.documentType = documentType; }
+
     public String getRequester() { return requester; }
     public void setRequester(String requester) { this.requester = requester; }
+
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+
     public String getRequestedDate() { return requestedDate; }
     public void setRequestedDate(String requestedDate) { this.requestedDate = requestedDate; }
+
     public String getRemark() { return remark; }
     public void setRemark(String remark) { this.remark = remark; }
+
     public String getReferenceNo() { return referenceNo; }
     public void setReferenceNo(String referenceNo) { this.referenceNo = referenceNo; }
+
     public String getDroppedBy() { return droppedBy; }
     public void setDroppedBy(String droppedBy) { this.droppedBy = droppedBy; }
+
     public String getDroppedDate() { return droppedDate; }
     public void setDroppedDate(String droppedDate) { this.droppedDate = droppedDate; }
+
     public String getDroperRemark() { return droperRemark; }
     public void setDroperRemark(String droperRemark) { this.droperRemark = droperRemark; }
+
     public String getApprovedRefNo() { return approvedRefNo; }
     public void setApprovedRefNo(String approvedRefNo) { this.approvedRefNo = approvedRefNo; }
+
     public String getWarrantyForEmployee() { return warrantyForEmployee; }
     public void setWarrantyForEmployee(String warrantyForEmployee) { this.warrantyForEmployee = warrantyForEmployee; }
+
     public String getWarrantyForOrg() { return warrantyForOrg; }
     public void setWarrantyForOrg(String warrantyForOrg) { this.warrantyForOrg = warrantyForOrg; }
+
     public String getApproveDate() { return approveDate; }
     public void setApproveDate(String approveDate) { this.approveDate = approveDate; }
+
     public String getWorkId() { return workId; }
     public void setWorkId(String workId) { this.workId = workId; }
+
+    public String getAttachmentName() { return attachmentName; }
+    public void setAttachmentName(String attachmentName) { this.attachmentName = attachmentName; }
+
+    public String getAttachmentPath() { return attachmentPath; }
+    public void setAttachmentPath(String attachmentPath) { this.attachmentPath = attachmentPath; }
+
+    @Override
+    public String toString() {
+        return "HRDocumentProvision{" +
+                "id=" + id +
+                ", requester='" + requester + '\'' +
+                ", status='" + status + '\'' +
+                ", workId='" + workId + '\'' +
+                ", attachmentName='" + attachmentName + '\'' +
+                '}';
+    }
 }

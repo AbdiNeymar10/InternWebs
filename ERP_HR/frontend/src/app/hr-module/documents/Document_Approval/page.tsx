@@ -7,10 +7,13 @@ import {
   FiFileText,
   FiSearch,
   FiCheck,
+  FiX,
   FiRefreshCw,
   FiAlertTriangle,
   FiUser,
   FiClock,
+  FiDownload,
+  FiEye,
 } from "react-icons/fi";
 import { toast, Toaster } from "react-hot-toast";
 
@@ -21,9 +24,19 @@ interface DocumentRequest {
   requestedDate: string;
   remark: string;
   status: string;
+  approvedRefNo?: string;
+  droperRemark?: string;
+  attachmentName?: string;
+  attachmentPath?: string;
 }
 
-// API Configuration
+interface FileInfo {
+  originalName: string;
+  storedName: string;
+  downloadUrl: string;
+  viewUrl: string;
+}
+
 const API_BASE_URL = "http://localhost:8080/api/hrdocument";
 
 const retry = async <T,>(
@@ -44,38 +57,35 @@ const retry = async <T,>(
 
 function validateRequests(data: any): DocumentRequest[] {
   if (!Array.isArray(data)) {
-    console.error(
-      "Validation Error: Expected array of requests, received:",
-      data
-    );
+    console.error("Validation Error: Expected array of requests, received:", data);
     throw new Error("Expected array of requests");
   }
 
   return data.map((item) => ({
     id: item.id || 0,
     requester: item.requester || "Unknown",
-    documentType:
-      item.documentType && typeof item.documentType.name === "string"
-        ? { name: item.documentType.name }
-        : item.documentType && typeof item.documentType.type === "string"
-        ? { name: item.documentType.type }
-        : null,
+    documentType: item.documentType || null,
     requestedDate: item.requestedDate || new Date().toISOString(),
     remark: item.remark || "",
     status: item.status || "N/A",
+    approvedRefNo: item.approvedRefNo || "",
+    droperRemark: item.droperRemark || "",
+    attachmentName: item.attachmentName || "",
+    attachmentPath: item.attachmentPath || "",
   }));
 }
 
 const DocumentApproval = () => {
   const [pendingRequests, setPendingRequests] = useState<DocumentRequest[]>([]);
-  const [historicalRequests, setHistoricalRequests] = useState<
-    DocumentRequest[]
-  >([]);
+  const [historicalRequests, setHistoricalRequests] = useState<DocumentRequest[]>([]);
   const [searchTermPending, setSearchTermPending] = useState("");
   const [searchTermHistory, setSearchTermHistory] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingRequests, setIsLoadingRequests] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [approveRefNo, setApproveRefNo] = useState("");
+  const [rejectRemark, setRejectRemark] = useState("");
+  const [selectedRequestId, setSelectedRequestId] = useState<number | null>(null);
 
   const fetchRequests = useCallback(async () => {
     setIsLoadingRequests(true);
@@ -83,6 +93,9 @@ const DocumentApproval = () => {
     try {
       const fetchAll = async () => {
         const response = await authFetch(`${API_BASE_URL}/approval`);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch requests: ${response.status}`);
+        }
         const data = await response.json();
         return validateRequests(data);
       };
@@ -90,9 +103,7 @@ const DocumentApproval = () => {
       setPendingRequests(reqs.filter((req) => req.status === "PENDING"));
       setHistoricalRequests(reqs.filter((req) => req.status !== "PENDING"));
     } catch (error: any) {
-      const errorMessage =
-        error.message ||
-        "Network error: Unable to connect to server for requests.";
+      const errorMessage = error.message || "Network error: Unable to connect to server for requests.";
       console.error("Error fetching requests:", error);
       setError(errorMessage);
       toast.error(errorMessage, { id: "requestsErrorToast" });
@@ -108,6 +119,11 @@ const DocumentApproval = () => {
   }, [fetchRequests]);
 
   const handleApprove = async (id: number) => {
+    if (!approveRefNo.trim()) {
+      toast.error("Please enter a document reference number");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const currentDateTime = new Date().toISOString();
@@ -119,21 +135,20 @@ const DocumentApproval = () => {
           },
           body: JSON.stringify({
             approveDate: currentDateTime,
-            approvedRefNo: `APPROVED_REF-${id}-${Date.now()}`,
+            approvedRefNo: approveRefNo.trim(),
           }),
         });
         if (!response.ok) {
           const errorText = await response.text();
-          throw new Error(
-            `Failed to approve: ${response.status} ${response.statusText} - ${errorText}`
-          );
+          throw new Error(`Failed to approve: ${response.status} ${response.statusText} - ${errorText}`);
         }
       });
       toast.success(`Request ${id} approved successfully!`);
+      setApproveRefNo("");
+      setSelectedRequestId(null);
       fetchRequests();
     } catch (error: any) {
-      const errorMessage =
-        error.message || "Network error: Unable to connect to server.";
+      const errorMessage = error.message || "Network error: Unable to connect to server.";
       console.error(`Error approving request ${id}:`, error);
       toast.error(errorMessage);
     } finally {
@@ -141,38 +156,106 @@ const DocumentApproval = () => {
     }
   };
 
-  const filteredPendingRequests = pendingRequests.filter(
-    (request) =>
-      request.requester
-        .toLowerCase()
-        .includes(searchTermPending.toLowerCase()) ||
-      (request.documentType?.name
-        .toLowerCase()
-        .includes(searchTermPending.toLowerCase()) ??
-        false) ||
-      (request.remark
-        ?.toLowerCase()
-        .includes(searchTermPending.toLowerCase()) ??
-        false)
+  const handleReject = async (id: number) => {
+    if (!rejectRemark.trim()) {
+      toast.error("Please enter a rejection reason");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const currentDateTime = new Date().toISOString();
+      await retry(async () => {
+        const response = await authFetch(`${API_BASE_URL}/reject/${id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            droperRemark: rejectRemark.trim(),
+            droppedDate: currentDateTime,
+            droppedBy: "Approver",
+          }),
+        });
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Failed to reject: ${response.status} ${response.statusText} - ${errorText}`);
+        }
+      });
+      toast.success(`Request ${id} rejected successfully!`);
+      setRejectRemark("");
+      setSelectedRequestId(null);
+      fetchRequests();
+    } catch (error: any) {
+      const errorMessage = error.message || "Network error: Unable to connect to server.";
+      console.error(`Error rejecting request ${id}:`, error);
+      toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const viewDocument = async (requestId: number) => {
+    try {
+      const response = await authFetch(`${API_BASE_URL}/${requestId}/file-info`);
+      if (response.ok) {
+        const fileInfo: FileInfo = await response.json();
+        window.open(fileInfo.viewUrl, '_blank');
+      } else {
+        toast.error("No document attached to this request");
+      }
+    } catch (error) {
+      console.error("Error viewing document:", error);
+      toast.error("Failed to view document");
+    }
+  };
+
+  const downloadDocument = async (requestId: number) => {
+    try {
+      const response = await authFetch(`${API_BASE_URL}/${requestId}/file-info`);
+      if (response.ok) {
+        const fileInfo: FileInfo = await response.json();
+        const link = document.createElement('a');
+        link.href = fileInfo.downloadUrl;
+        link.download = fileInfo.originalName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else {
+        toast.error("No document attached to this request");
+      }
+    } catch (error) {
+      console.error("Error downloading document:", error);
+      toast.error("Failed to download document");
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "APPROVED":
+        return "bg-green-100 text-green-700";
+      case "PENDING":
+        return "bg-yellow-100 text-yellow-700";
+      case "REJECTED":
+        return "bg-red-100 text-red-700";
+      default:
+        return "bg-gray-100 text-gray-700";
+    }
+  };
+
+  const filteredPendingRequests = pendingRequests.filter((request) =>
+    request.requester.toLowerCase().includes(searchTermPending.toLowerCase()) ||
+    (request.documentType?.name?.toLowerCase().includes(searchTermPending.toLowerCase()) ?? false) ||
+    (request.remark?.toLowerCase().includes(searchTermPending.toLowerCase()) ?? false)
   );
 
-  const filteredHistoricalRequests = historicalRequests.filter(
-    (request) =>
-      request.requester
-        .toLowerCase()
-        .includes(searchTermHistory.toLowerCase()) ||
-      (request.documentType?.name
-        .toLowerCase()
-        .includes(searchTermHistory.toLowerCase()) ??
-        false) ||
-      (request.remark
-        ?.toLowerCase()
-        .includes(searchTermHistory.toLowerCase()) ??
-        false) ||
-      (request.status
-        ?.toLowerCase()
-        .includes(searchTermHistory.toLowerCase()) ??
-        false)
+  const filteredHistoricalRequests = historicalRequests.filter((request) =>
+    request.requester.toLowerCase().includes(searchTermHistory.toLowerCase()) ||
+    (request.documentType?.name?.toLowerCase().includes(searchTermHistory.toLowerCase()) ?? false) ||
+    (request.remark?.toLowerCase().includes(searchTermHistory.toLowerCase()) ?? false) ||
+    (request.status?.toLowerCase().includes(searchTermHistory.toLowerCase()) ?? false) ||
+    (request.approvedRefNo?.toLowerCase().includes(searchTermHistory.toLowerCase()) ?? false) ||
+    (request.droperRemark?.toLowerCase().includes(searchTermHistory.toLowerCase()) ?? false)
   );
 
   return (
@@ -206,9 +289,7 @@ const DocumentApproval = () => {
           <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#2c6da4] to-[#3c8dbc]">
             Document Approval
           </h1>
-          <p className="text-gray-600 mt-2">
-            Approve pending document requests and view history
-          </p>
+          <p className="text-gray-600 mt-2">Approve pending document requests and view history</p>
         </motion.div>
 
         {/* Pending Requests Section */}
@@ -240,11 +321,72 @@ const DocumentApproval = () => {
               </div>
             )}
 
+            {/* Document Reference Input (shown when approving) */}
+            {selectedRequestId && (
+              <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <h3 className="font-medium text-blue-800 mb-2">Processing Request #{selectedRequestId}</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Document Reference Number *</label>
+                    <input
+                      type="text"
+                      value={approveRefNo}
+                      onChange={(e) => setApproveRefNo(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-[#3c8dbc] focus:border-transparent transition-colors"
+                      placeholder="Enter document reference number"
+                      disabled={isSubmitting}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Rejection Reason</label>
+                    <input
+                      type="text"
+                      value={rejectRemark}
+                      onChange={(e) => setRejectRemark(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-[#3c8dbc] focus:border-transparent transition-colors"
+                      placeholder="Enter reason for rejection"
+                      disabled={isSubmitting}
+                    />
+                  </div>
+                </div>
+                <div className="flex space-x-3 mt-4">
+                  <button
+                    onClick={() => handleApprove(selectedRequestId)}
+                    disabled={isSubmitting || !approveRefNo.trim()}
+                    className={`px-4 py-2 rounded-md text-white font-medium flex items-center ${
+                      isSubmitting || !approveRefNo.trim() ? "bg-gray-400 cursor-not-allowed" : "bg-green-600 hover:bg-green-700"
+                    }`}
+                  >
+                    <FiCheck className="mr-2" />
+                    Approve
+                  </button>
+                  <button
+                    onClick={() => handleReject(selectedRequestId)}
+                    disabled={isSubmitting || !rejectRemark.trim()}
+                    className={`px-4 py-2 rounded-md text-white font-medium flex items-center ${
+                      isSubmitting || !rejectRemark.trim() ? "bg-gray-400 cursor-not-allowed" : "bg-red-600 hover:bg-red-700"
+                    }`}
+                  >
+                    <FiX className="mr-2" />
+                    Reject
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSelectedRequestId(null);
+                      setApproveRefNo("");
+                      setRejectRemark("");
+                    }}
+                    className="px-4 py-2 rounded-md text-gray-700 font-medium border border-gray-300 hover:bg-gray-50"
+                    disabled={isSubmitting}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+
             <div className="mb-4">
-              <label
-                htmlFor="search-pending"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
+              <label htmlFor="search-pending" className="block text-sm font-medium text-gray-700 mb-1">
                 Search Pending Requests
               </label>
               <div className="relative">
@@ -265,161 +407,102 @@ const DocumentApproval = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-[#3c8dbc]">
                   <tr>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider"
-                    >
-                      No.
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider"
-                    >
-                      Employee ID
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider"
-                    >
-                      Document Type
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider"
-                    >
-                      Request Date
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider"
-                    >
-                      Description
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider"
-                    >
-                      Status
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider"
-                    >
-                      Action
-                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">No.</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Employee ID</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Document Type</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Request Date</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Description</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Status</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Document</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Action</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {isLoadingRequests && pendingRequests.length === 0 ? (
                     <tr>
-                      <td
-                        colSpan={7}
-                        className="px-6 py-10 text-center text-sm text-gray-500"
-                      >
+                      <td colSpan={8} className="px-6 py-10 text-center text-sm text-gray-500">
                         <div className="flex justify-center items-center">
                           <FiRefreshCw className="animate-spin text-2xl text-[#3c8dbc] mr-3" />
                           Loading pending requests...
                         </div>
                       </td>
                     </tr>
-                  ) : !isLoadingRequests &&
-                    !error &&
-                    filteredPendingRequests.length === 0 ? (
+                  ) : !isLoadingRequests && !error && filteredPendingRequests.length === 0 ? (
                     <tr>
-                      <td
-                        colSpan={7}
-                        className="px-6 py-10 text-center text-sm text-gray-500"
-                      >
-                        {searchTermPending
-                          ? "No matching pending requests found."
-                          : "No pending requests available at the moment."}
+                      <td colSpan={8} className="px-6 py-10 text-center text-sm text-gray-500">
+                        {searchTermPending ? "No matching pending requests found." : "No pending requests available at the moment."}
                       </td>
                     </tr>
                   ) : (
                     filteredPendingRequests.map((request) => (
-                      <tr
-                        key={`pending-${request.id}`}
-                        className="hover:bg-gray-50/80 transition-colors"
-                      >
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {request.id}
-                        </td>
+                      <tr key={`pending-${request.id}`} className="hover:bg-gray-50/80 transition-colors">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{request.id}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                           <div className="flex items-center">
                             <FiUser className="mr-2 text-[#3c8dbc]" />
                             {request.requester}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                          {request.documentType?.name ?? "N/A"}
-                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{request.documentType?.name ?? "N/A"}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                           {new Date(request.requestedDate).toLocaleDateString()}
                         </td>
-                        <td
-                          className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate"
-                          title={request.remark}
-                        >
-                          {request.remark || "N/A"}
+                        <td className="px-6 py-4 text-sm text-gray-600 max-w-xs">
+                          <div className="truncate" title={request.remark}>{request.remark || "N/A"}</div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                          <span
-                            className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
-                              request.status === "APPROVED"
-                                ? "bg-green-100 text-green-700"
-                                : request.status === "PENDING"
-                                ? "bg-yellow-100 text-yellow-700"
-                                : "bg-gray-100 text-gray-700"
-                            }`}
-                          >
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${getStatusColor(request.status)}`}>
                             {request.status}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          {request.status === "PENDING" ? (
-                            <button
-                              onClick={() => handleApprove(request.id)}
-                              disabled={isSubmitting}
-                              className={`flex items-center justify-center px-3 py-1.5 rounded-md text-white font-medium transition-colors ${
-                                isSubmitting
-                                  ? "bg-gray-400 cursor-not-allowed"
-                                  : "bg-[#3c8dbc] hover:bg-[#367fa9] focus:outline-none focus:ring-2 focus:ring-[#3c8dbc] focus:ring-opacity-50"
-                              }`}
-                              title={`Approve request ${request.id}`}
-                            >
-                              {isSubmitting ? (
-                                <>
-                                  <FiRefreshCw className="animate-spin inline-block mr-1.5" />
-                                  Processing...
-                                </>
-                              ) : (
-                                <>
-                                  <FiCheck className="mr-1.5" />
-                                  Approve
-                                </>
-                              )}
-                            </button>
+                          {request.attachmentPath ? (
+                            <div className="flex space-x-2">
+                              <button
+                                onClick={() => viewDocument(request.id)}
+                                className="text-blue-600 hover:text-blue-800 p-1 rounded hover:bg-blue-50 transition-colors"
+                                title="View document"
+                              >
+                                <FiEye size={16} />
+                              </button>
+                              <button
+                                onClick={() => downloadDocument(request.id)}
+                                className="text-green-600 hover:text-green-800 p-1 rounded hover:bg-green-50 transition-colors"
+                                title="Download document"
+                              >
+                                <FiDownload size={16} />
+                              </button>
+                            </div>
                           ) : (
-                            <span className="text-gray-400 italic">
-                              No actions
-                            </span>
+                            <span className="text-gray-400 text-xs">No document</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          {request.status === "PENDING" && selectedRequestId !== request.id ? (
+                            <button
+                              onClick={() => setSelectedRequestId(request.id)}
+                              disabled={isSubmitting}
+                              className="px-3 py-1.5 rounded-md bg-[#3c8dbc] text-white font-medium hover:bg-[#367fa9] focus:outline-none focus:ring-2 focus:ring-[#3c8dbc] focus:ring-opacity-50 transition-colors"
+                              title={`Process request ${request.id}`}
+                            >
+                              Process
+                            </button>
+                          ) : request.status === "PENDING" && selectedRequestId === request.id ? (
+                            <span className="text-blue-600 font-medium">Processing...</span>
+                          ) : (
+                            <span className="text-gray-400 italic">No actions</span>
                           )}
                         </td>
                       </tr>
                     ))
                   )}
-                  {!isLoadingRequests &&
-                    error &&
-                    pendingRequests.length === 0 && (
-                      <tr>
-                        <td
-                          colSpan={7}
-                          className="px-6 py-10 text-center text-sm text-red-600"
-                        >
-                          Failed to load pending requests. Please try again.
-                        </td>
-                      </tr>
-                    )}
+                  {!isLoadingRequests && error && pendingRequests.length === 0 && (
+                    <tr>
+                      <td colSpan={8} className="px-6 py-10 text-center text-sm text-red-600">
+                        Failed to load pending requests. Please try again.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -456,10 +539,7 @@ const DocumentApproval = () => {
             )}
 
             <div className="mb-4">
-              <label
-                htmlFor="search-history"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
+              <label htmlFor="search-history" className="block text-sm font-medium text-gray-700 mb-1">
                 Search History
               </label>
               <div className="relative">
@@ -470,9 +550,7 @@ const DocumentApproval = () => {
                   placeholder="Search by Employee ID, Document Type, Status, or Remark"
                   value={searchTermHistory}
                   onChange={(e) => setSearchTermHistory(e.target.value)}
-                  disabled={
-                    isLoadingRequests && historicalRequests.length === 0
-                  }
+                  disabled={isLoadingRequests && historicalRequests.length === 0}
                 />
                 <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               </div>
@@ -482,123 +560,97 @@ const DocumentApproval = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-100">
                   <tr>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      No.
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      Employee ID
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      Document Type
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      Request Date
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      Description
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                    >
-                      Status
-                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No.</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee ID</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Document Type</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Request Date</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Document</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reference/Remarks</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {isLoadingRequests && historicalRequests.length === 0 ? (
                     <tr>
-                      <td
-                        colSpan={6}
-                        className="px-6 py-10 text-center text-sm text-gray-500"
-                      >
+                      <td colSpan={8} className="px-6 py-10 text-center text-sm text-gray-500">
                         <div className="flex justify-center items-center">
                           <FiRefreshCw className="animate-spin text-2xl text-gray-400 mr-3" />
                           Loading historical requests...
                         </div>
                       </td>
                     </tr>
-                  ) : !isLoadingRequests &&
-                    !error &&
-                    filteredHistoricalRequests.length === 0 ? (
+                  ) : !isLoadingRequests && !error && filteredHistoricalRequests.length === 0 ? (
                     <tr>
-                      <td
-                        colSpan={6}
-                        className="px-6 py-10 text-center text-sm text-gray-500"
-                      >
-                        {searchTermHistory
-                          ? "No matching historical requests found."
-                          : "No historical requests available."}
+                      <td colSpan={8} className="px-6 py-10 text-center text-sm text-gray-500">
+                        {searchTermHistory ? "No matching historical requests found." : "No historical requests available."}
                       </td>
                     </tr>
                   ) : (
                     filteredHistoricalRequests.map((request) => (
-                      <tr
-                        key={`history-${request.id}`}
-                        className="hover:bg-gray-50/80 transition-colors"
-                      >
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {request.id}
-                        </td>
+                      <tr key={`history-${request.id}`} className="hover:bg-gray-50/80 transition-colors">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{request.id}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                           <div className="flex items-center">
                             <FiUser className="mr-2 text-gray-400" />
                             {request.requester}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                          {request.documentType?.name ?? "N/A"}
-                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{request.documentType?.name ?? "N/A"}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                           {new Date(request.requestedDate).toLocaleDateString()}
                         </td>
-                        <td
-                          className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate"
-                          title={request.remark}
-                        >
-                          {request.remark || "N/A"}
+                        <td className="px-6 py-4 text-sm text-gray-600 max-w-xs">
+                          <div className="truncate" title={request.remark}>{request.remark || "N/A"}</div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                          <span
-                            className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
-                              request.status === "APPROVED"
-                                ? "bg-green-100 text-green-700"
-                                : "bg-gray-100 text-gray-700"
-                            }`}
-                          >
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${getStatusColor(request.status)}`}>
                             {request.status}
                           </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          {request.attachmentPath ? (
+                            <div className="flex space-x-2">
+                              <button
+                                onClick={() => viewDocument(request.id)}
+                                className="text-blue-600 hover:text-blue-800 p-1 rounded hover:bg-blue-50 transition-colors"
+                                title="View document"
+                              >
+                                <FiEye size={16} />
+                              </button>
+                              <button
+                                onClick={() => downloadDocument(request.id)}
+                                className="text-green-600 hover:text-green-800 p-1 rounded hover:bg-green-50 transition-colors"
+                                title="Download document"
+                              >
+                                <FiDownload size={16} />
+                              </button>
+                            </div>
+                          ) : (
+                            <span className="text-gray-400 text-xs">No document</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-600 max-w-xs">
+                          <div className="truncate" title={request.status === "APPROVED" ? request.approvedRefNo : request.droperRemark}>
+                            {request.status === "APPROVED" ? (
+                              <span className="text-green-600">Ref: {request.approvedRefNo || "N/A"}</span>
+                            ) : request.status === "REJECTED" ? (
+                              <span className="text-red-600">Reason: {request.droperRemark || "N/A"}</span>
+                            ) : (
+                              "N/A"
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))
                   )}
-                  {!isLoadingRequests &&
-                    error &&
-                    historicalRequests.length === 0 && (
-                      <tr>
-                        <td
-                          colSpan={6}
-                          className="px-6 py-10 text-center text-sm text-red-600"
-                        >
-                          Failed to load historical requests. Please try again.
-                        </td>
-                      </tr>
-                    )}
+                  {!isLoadingRequests && error && historicalRequests.length === 0 && (
+                    <tr>
+                      <td colSpan={8} className="px-6 py-10 text-center text-sm text-red-600">
+                        Failed to load historical requests. Please try again.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
