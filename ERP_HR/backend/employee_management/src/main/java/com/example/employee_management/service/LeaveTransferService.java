@@ -38,9 +38,10 @@ public class LeaveTransferService {
         }
         EmployeeDTO dto = new EmployeeDTO();
         dto.setEmpId(employee.getEmpId());
-        dto.setFullName(employee.getFullNameEngWord() != null ? employee.getFullNameEngWord() :
-                (employee.getFirstName() + " " + (employee.getMiddleName() != null ? employee.getMiddleName() + " " : "") + employee.getLastName()));
-        // Set department to deptName instead of deptId
+        dto.setFullName(employee.getFullNameEngWord() != null ? employee.getFullNameEngWord()
+                : (employee.getFirstName() + " "
+                        + (employee.getMiddleName() != null ? employee.getMiddleName() + " " : "")
+                        + employee.getLastName()));
         dto.setDepartment(employee.getDepartment() != null ? employee.getDepartment().getDepName() : "Unknown");
         return dto;
     }
@@ -56,9 +57,9 @@ public class LeaveTransferService {
                 .map(emp -> {
                     EmployeeDTO dto = new EmployeeDTO();
                     dto.setEmpId(emp.getEmpId());
-                    dto.setFullName(emp.getFullNameEngWord() != null ? emp.getFullNameEngWord() :
-                            (emp.getFirstName() + " " + (emp.getMiddleName() != null ? emp.getMiddleName() + " " : "") + emp.getLastName()));
-                    // Set department to deptName instead of deptId
+                    dto.setFullName(emp.getFullNameEngWord() != null ? emp.getFullNameEngWord()
+                            : (emp.getFirstName() + " " + (emp.getMiddleName() != null ? emp.getMiddleName() + " " : "")
+                                    + emp.getLastName()));
                     dto.setDepartment(emp.getDepartment() != null ? emp.getDepartment().getDepName() : "Unknown");
                     return dto;
                 })
@@ -109,21 +110,36 @@ public class LeaveTransferService {
         leaveTransferDetailRepository.save(detail);
     }
 
+    @Transactional
+    public void rejectLeaveTransferDetail(Long detailId, String approverNotes) {
+        Optional<HrLeaveTransferDetail> detailOpt = leaveTransferDetailRepository.findById(detailId);
+        if (!detailOpt.isPresent()) {
+            throw new RuntimeException("Leave transfer detail not found with ID: " + detailId);
+        }
+        HrLeaveTransferDetail detail = detailOpt.get();
+        detail.setStatus("REJECTED");
+        detail.setApproverNotes(approverNotes);
+        leaveTransferDetailRepository.save(detail);
+    }
+
     private LeaveTransferRequestDTO mapToLeaveTransferRequestDTO(HrLeaveTransfer transfer) {
         LeaveTransferRequestDTO dto = new LeaveTransferRequestDTO();
         dto.setTransferId(transfer.getTransferId());
         dto.setRequesterId(transfer.getRequesterId());
         dto.setBudgetYear(transfer.getBudgetYear());
         dto.setCreatedDate(transfer.getCreatedDate().toString());
-        dto.setStatus(transfer.getDetails().stream().allMatch(detail -> "APPROVED".equals(detail.getStatus())) ? "APPROVED" : "PENDING");
-        // Fetch department name for requester
+        dto.setStatus(
+                transfer.getDetails().stream().allMatch(detail -> "APPROVED".equals(detail.getStatus())) ? "APPROVED"
+                        : "PENDING");
         HrEmployee requester = employeeRepository.findEmployeeWithAllRelations(transfer.getRequesterId());
-        dto.setDeptName(requester != null && requester.getDepartment() != null ? requester.getDepartment().getDepName() : "Unknown");
+        dto.setDeptName(requester != null && requester.getDepartment() != null ? requester.getDepartment().getDepName()
+                : "Unknown");
         dto.setDetails(transfer.getDetails().stream().map(detail -> {
             LeaveTransferDetailDTO detailDTO = new LeaveTransferDetailDTO();
             detailDTO.setDetailId(detail.getDetailId());
             detailDTO.setEmpId(detail.getEmpId());
             detailDTO.setStatus(detail.getStatus());
+            detailDTO.setApproverNotes(detail.getApproverNotes());
             return detailDTO;
         }).collect(Collectors.toList()));
         return dto;

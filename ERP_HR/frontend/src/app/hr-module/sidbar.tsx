@@ -367,7 +367,10 @@ export default function Sidebar({ className, hidden = false }: SidebarProps) {
                   href="#"
                   className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
                   onClick={(e) => {
-                    if (userRole === "DEPARTMENT") {
+                    if (
+                      userRole &&
+                      ["ADMIN", "DEPARTMENT"].includes(userRole)
+                    ) {
                       window.location.href = "/hr-module/approve-dept-from";
                     } else {
                       e.preventDefault();
@@ -387,7 +390,10 @@ export default function Sidebar({ className, hidden = false }: SidebarProps) {
                   href="#"
                   className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
                   onClick={(e) => {
-                    if (userRole === "DEPARTMENT") {
+                    if (
+                      userRole &&
+                      ["ADMIN", "DEPARTMENT"].includes(userRole)
+                    ) {
                       window.location.href = "/hr-module/approve-dept-to";
                     } else {
                       e.preventDefault();
@@ -537,12 +543,7 @@ export default function Sidebar({ className, hidden = false }: SidebarProps) {
                   href="#"
                   className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
                   onClick={(e) => {
-                     if (
-                      userRole &&
-                      ["ADMIN", "HR"].includes(
-                        userRole
-                      )
-                    ){
+                    if (userRole && ["ADMIN", "HR"].includes(userRole)) {
                       window.location.href =
                         "/hr-module/Leave/leave-schedule-approve";
                     } else {
@@ -598,7 +599,10 @@ export default function Sidebar({ className, hidden = false }: SidebarProps) {
                   href="#"
                   className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
                   onClick={(e) => {
-                    if (userRole === "DEPARTMENT") {
+                    if (
+                      userRole &&
+                      ["ADMIN", "DEPARTMENT"].includes(userRole)
+                    ) {
                       window.location.href = "/hr-module/Leave/leave-approve";
                     } else {
                       e.preventDefault();
@@ -619,7 +623,7 @@ export default function Sidebar({ className, hidden = false }: SidebarProps) {
                   href="#"
                   className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
                   onClick={(e) => {
-                    if (userRole === "HR") {
+                    if (userRole && ["ADMIN", "HR"].includes(userRole)) {
                       window.location.href =
                         "/hr-module/Leave/leave-approve-hr";
                     } else {
@@ -668,7 +672,7 @@ export default function Sidebar({ className, hidden = false }: SidebarProps) {
                   href="#"
                   className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
                   onClick={(e) => {
-                    if (userRole === "HR") {
+                    if (userRole && ["ADMIN", "HR"].includes(userRole)) {
                       window.location.href =
                         "/hr-module/Leave/leave-transfer-approval";
                     } else {

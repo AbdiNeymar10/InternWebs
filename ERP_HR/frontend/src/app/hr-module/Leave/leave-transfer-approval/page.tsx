@@ -1,3 +1,4 @@
+// page.tsx - Replace entire file
 "use client";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
@@ -5,10 +6,12 @@ import { authFetch } from "@/utils/authFetch";
 import {
   FiSearch,
   FiCheckCircle,
+  FiXCircle,
   FiRefreshCw,
   FiUserCheck,
   FiFileText,
   FiClipboard,
+  FiEye,
 } from "react-icons/fi";
 import { toast, Toaster } from "react-hot-toast";
 
@@ -43,6 +46,7 @@ interface LeaveTransferDetailDTO {
   empId: string;
   fullName?: string;
   status: string;
+  approverNotes?: string;
 }
 
 interface LeaveTransferRequestDTO {
@@ -90,14 +94,15 @@ const LeaveTransferApproval = () => {
     position: "",
     department: "",
   });
-  const [pendingRequests, setPendingRequests] = useState<
-    LeaveTransferRequestDTO[]
-  >([]);
+  const [pendingRequests, setPendingRequests] = useState<LeaveTransferRequestDTO[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDataLoading, setIsDataLoading] = useState(false);
+  const [rejectingId, setRejectingId] = useState<number | null>(null);
+  const [rejectNotes, setRejectNotes] = useState("");
+  const [selectedDetail, setSelectedDetail] = useState<LeaveTransferDetailDTO | null>(null);
 
-  const debouncedRequesterId = useDebounce(requesterId, 500);
+  const debouncedRequesterId = useDebounce(requesterId, 1000); // Increased to 1 second
 
   useEffect(() => {
     const fetchRequesterDetails = async () => {
@@ -257,6 +262,77 @@ const LeaveTransferApproval = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleReject = async (detailId: number) => {
+    if (!rejectNotes.trim()) {
+      toast.error("Please provide rejection notes");
+      return;
+    }
+
+    const toastId = toast.loading("Processing rejection...");
+    setIsSubmitting(true);
+    try {
+      await authFetch(`${API_BASE_URL}/leave-transfer/reject/${detailId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ approverNotes: rejectNotes }),
+      });
+      
+      const response = await authFetch(
+        `${API_BASE_URL}/leave-transfer/pending-requests?approverId=${requester.id}`
+      );
+      const responseData = await response.json();
+      const requestsWithNames = await Promise.all(
+        responseData.map(async (request: LeaveTransferRequestDTO) => {
+          const detailsWithNames = await Promise.all(
+            request.details.map(async (detail: LeaveTransferDetailDTO) => {
+              try {
+                const empResponse = await authFetch(
+                  `${API_BASE_URL}/leave-transfer/employee/${detail.empId}`
+                );
+                const empData = await empResponse.json();
+                return {
+                  ...detail,
+                  fullName: empData.fullName || "Unknown",
+                };
+              } catch (error) {
+                console.error(
+                  `Failed to fetch name for employee ${detail.empId}:`,
+                  error
+                );
+                return {
+                  ...detail,
+                  fullName: "Unknown",
+                };
+              }
+            })
+          );
+          return {
+            ...request,
+            deptName: request.deptName || "Unknown",
+            details: detailsWithNames,
+          };
+        })
+      );
+      setPendingRequests(requestsWithNames);
+      setRejectingId(null);
+      setRejectNotes("");
+      toast.success("Rejection processed successfully!", { id: toastId });
+    } catch (error: any) {
+      let errorMsg = "Failed to process rejection";
+      if (error && typeof error.json === "function") {
+        const errorData = await error.json();
+        errorMsg = errorData?.message || errorMsg;
+      }
+      toast.error(errorMsg, { id: toastId });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const viewDetails = (detail: LeaveTransferDetailDTO) => {
+    setSelectedDetail(detail);
   };
 
   return (
@@ -457,42 +533,46 @@ const LeaveTransferApproval = () => {
                               {detail.status || "Pending"}
                             </span>
                           </td>
-                          <td className="py-3 px-4 text-sm">
-                            {detail.status === "PENDING" && (
-                              <motion.button
-                                onClick={() =>
-                                  detail.detailId &&
-                                  handleApprove(detail.detailId)
-                                }
-                                disabled={isSubmitting || !detail.detailId}
-                                className={`px-5 py-2.5 text-sm text-white rounded-lg font-semibold shadow-md hover:shadow-lg flex items-center transition-all duration-200 ${
-                                  isSubmitting || !detail.detailId
-                                    ? "bg-slate-400 cursor-not-allowed opacity-70"
-                                    : "bg-green-500 hover:bg-green-600 focus:ring-green-400"
-                                }`}
-                                whileHover={
-                                  !isSubmitting && detail.detailId
-                                    ? {
-                                        scale: 1.03,
-                                        y: -1,
-                                        boxShadow:
-                                          "0 4px 15px rgba(34,197,94,0.3)",
-                                      }
-                                    : {}
-                                }
-                                whileTap={
-                                  !isSubmitting && detail.detailId
-                                    ? { scale: 0.97 }
-                                    : {}
-                                }
+                          <td className="py-3 px-4 text-sm flex space-x-2">
+                            {detail.status === "PENDING" ? (
+                              <>
+                                <motion.button
+                                  onClick={() =>
+                                    detail.detailId &&
+                                    handleApprove(detail.detailId)
+                                  }
+                                  disabled={isSubmitting || !detail.detailId}
+                                  className={`px-4 py-2 text-sm text-white rounded-lg font-semibold shadow-md ${
+                                    isSubmitting || !detail.detailId
+                                      ? "bg-slate-400 cursor-not-allowed"
+                                      : "bg-green-500 hover:bg-green-600"
+                                  }`}
+                                >
+                                  <FiCheckCircle className="inline mr-1" size={14} />
+                                  Approve
+                                </motion.button>
+                                
+                                <motion.button
+                                  onClick={() => setRejectingId(detail.detailId || null)}
+                                  disabled={isSubmitting || !detail.detailId}
+                                  className={`px-4 py-2 text-sm text-white rounded-lg font-semibold shadow-md ${
+                                    isSubmitting || !detail.detailId
+                                      ? "bg-slate-400 cursor-not-allowed"
+                                      : "bg-red-500 hover:bg-red-600"
+                                  }`}
+                                >
+                                  <FiXCircle className="inline mr-1" size={14} />
+                                  Reject
+                                </motion.button>
+                              </>
+                            ) : (
+                              <button
+                                onClick={() => viewDetails(detail)}
+                                className="px-4 py-2 text-sm bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600"
                               >
-                                {isSubmitting ? (
-                                  <FiRefreshCw className="animate-spin mr-2 h-4 w-4" />
-                                ) : (
-                                  <FiCheckCircle className="mr-2 h-4 w-4" />
-                                )}
-                                {isSubmitting ? "Approving..." : "Approve"}
-                              </motion.button>
+                                <FiEye className="inline mr-1" size={14} />
+                                View
+                              </button>
                             )}
                           </td>
                         </tr>
@@ -505,6 +585,127 @@ const LeaveTransferApproval = () => {
           </div>
         </motion.div>
       </div>
+
+      {/* Detail View Modal */}
+      <AnimatePresence>
+        {selectedDetail && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            onClick={() => setSelectedDetail(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-xl p-6 max-w-md w-full"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-lg font-semibold text-[#3c8dbc] mb-4">
+                Request Details
+              </h3>
+              <div className="space-y-3">
+                <div>
+                  <label className="text-sm font-medium text-slate-500">Employee ID</label>
+                  <p className="text-sm text-slate-700">{selectedDetail.empId}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-slate-500">Employee Name</label>
+                  <p className="text-sm text-slate-700">{selectedDetail.fullName}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-slate-500">Status</label>
+                  <span
+                    className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
+                      selectedDetail.status === "APPROVED"
+                        ? "bg-green-100 text-green-800"
+                        : selectedDetail.status === "REJECTED"
+                        ? "bg-red-100 text-red-800"
+                        : "bg-yellow-100 text-yellow-800"
+                    }`}
+                  >
+                    {selectedDetail.status || "Pending"}
+                  </span>
+                </div>
+                {selectedDetail.approverNotes && (
+                  <div>
+                    <label className="text-sm font-medium text-slate-500">Approver Notes</label>
+                    <p className="text-sm text-slate-700 bg-slate-100 p-2 rounded">
+                      {selectedDetail.approverNotes}
+                    </p>
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={() => setSelectedDetail(null)}
+                className="mt-4 px-4 py-2 bg-[#3c8dbc] text-white rounded-md hover:bg-[#3c8dbc]/80"
+              >
+                Close
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Rejection Modal */}
+      <AnimatePresence>
+        {rejectingId && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-xl p-6 max-w-md w-full"
+            >
+              <h3 className="text-lg font-semibold text-red-600 mb-4">
+                Reject Request
+              </h3>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-slate-500 mb-2">
+                  Reason for Rejection *
+                </label>
+                <textarea
+                  value={rejectNotes}
+                  onChange={(e) => setRejectNotes(e.target.value)}
+                  placeholder="Please provide the reason for rejection..."
+                  className="w-full p-3 text-sm bg-slate-50 text-slate-700 border border-slate-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  rows={4}
+                  required
+                />
+              </div>
+              <div className="flex space-x-3 justify-end">
+                <button
+                  onClick={() => {
+                    setRejectingId(null);
+                    setRejectNotes("");
+                  }}
+                  className="px-4 py-2 text-sm text-slate-600 border border-slate-300 rounded-md hover:bg-slate-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleReject(rejectingId)}
+                  disabled={isSubmitting || !rejectNotes.trim()}
+                  className={`px-4 py-2 text-sm text-white rounded-md font-semibold ${
+                    isSubmitting || !rejectNotes.trim()
+                      ? "bg-red-400 cursor-not-allowed"
+                      : "bg-red-600 hover:bg-red-700"
+                  }`}
+                >
+                  {isSubmitting ? "Rejecting..." : "Confirm Reject"}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

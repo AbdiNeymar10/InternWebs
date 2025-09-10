@@ -10,6 +10,7 @@ import {
   FiUserCheck,
   FiFileText,
   FiClipboard,
+  FiEye,
 } from "react-icons/fi";
 import { toast, Toaster } from "react-hot-toast";
 
@@ -38,11 +39,13 @@ interface Employee {
   position: string;
   department: string;
   selected?: boolean;
+  status?: string; // Add status to track if already requested
 }
 
 interface LeaveTransferDetailDTO {
   empId: string;
   status: string;
+  approverNotes?: string;
 }
 
 interface LeaveTransferRequestDTO {
@@ -85,13 +88,13 @@ const LeaveTransferRequest = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [selectAll, setSelectAll] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [submittedRequests, setSubmittedRequests] = useState<
-    LeaveTransferRequestDTO[]
-  >([]);
+  const [submittedRequests, setSubmittedRequests] = useState<LeaveTransferRequestDTO[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDataLoading, setIsDataLoading] = useState(false);
+  const [selectedDetail, setSelectedDetail] = useState<LeaveTransferDetailDTO | null>(null);
 
-  const debouncedEmpId = useDebounce(empId, 500);
+  // Fix input delay - increased from 500ms to 1000ms
+  const debouncedEmpId = useDebounce(empId, 1000);
 
   useEffect(() => {
     const fetchEmployeeDetails = async () => {
@@ -133,8 +136,28 @@ const LeaveTransferRequest = () => {
           `${API_BASE_URL}/leave-transfer/employees/${debouncedEmpId}`
         );
         const data = await response.json();
+        
+        // Get submitted requests to check which employees are already requested
+        const requestsResponse = await authFetch(
+          `${API_BASE_URL}/leave-transfer/requests/${debouncedEmpId}`
+        );
+        const requestsData = await requestsResponse.json();
+        
+        // Create a map of employee IDs to their latest status
+        const employeeStatusMap = new Map<string, string>();
+        requestsData.forEach((request: LeaveTransferRequestDTO) => {
+          request.details.forEach((detail: LeaveTransferDetailDTO) => {
+            employeeStatusMap.set(detail.empId, detail.status);
+          });
+        });
+
+        // Set employees with their status
         setEmployees(
-          data.map((emp: Employee) => ({ ...emp, selected: false }))
+          data.map((emp: Employee) => ({ 
+            ...emp, 
+            selected: false,
+            status: employeeStatusMap.get(emp.empId) || "NOT_REQUESTED"
+          }))
         );
         toast.success("Department employees loaded!", { id: toastId });
       } catch (error: any) {
@@ -177,14 +200,20 @@ const LeaveTransferRequest = () => {
   }, [debouncedEmpId]);
 
   const handleSelectAll = () => {
-    setSelectAll(!selectAll);
-    setEmployees(employees.map((emp) => ({ ...emp, selected: !selectAll })));
+    const newSelectAll = !selectAll;
+    setSelectAll(newSelectAll);
+    setEmployees(employees.map((emp) => ({ 
+      ...emp, 
+      selected: emp.status === "NOT_REQUESTED" ? newSelectAll : false 
+    })));
   };
 
   const handleSelectEmployee = (id: string) => {
     setEmployees(
       employees.map((emp) =>
-        emp.empId === id ? { ...emp, selected: !emp.selected } : emp
+        emp.empId === id && emp.status === "NOT_REQUESTED" 
+          ? { ...emp, selected: !emp.selected } 
+          : emp
       )
     );
   };
@@ -195,9 +224,9 @@ const LeaveTransferRequest = () => {
       return;
     }
 
-    const selectedEmployees = employees.filter((emp) => emp.selected);
+    const selectedEmployees = employees.filter((emp) => emp.selected && emp.status === "NOT_REQUESTED");
     if (selectedEmployees.length === 0) {
-      toast.error("Please select at least one employee");
+      toast.error("Please select at least one employee who hasn't been requested yet");
       return;
     }
 
@@ -218,12 +247,33 @@ const LeaveTransferRequest = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestDTO),
       });
-      const response = await authFetch(
-        `${API_BASE_URL}/leave-transfer/requests/${empId}`
+      
+      // Refresh both employees and requests
+      const [employeesResponse, requestsResponse] = await Promise.all([
+        authFetch(`${API_BASE_URL}/leave-transfer/employees/${empId}`),
+        authFetch(`${API_BASE_URL}/leave-transfer/requests/${empId}`)
+      ]);
+      
+      const employeesData = await employeesResponse.json();
+      const requestsData = await requestsResponse.json();
+      
+      // Update employee statuses
+      const employeeStatusMap = new Map<string, string>();
+      requestsData.forEach((request: LeaveTransferRequestDTO) => {
+        request.details.forEach((detail: LeaveTransferDetailDTO) => {
+          employeeStatusMap.set(detail.empId, detail.status);
+        });
+      });
+
+      setEmployees(
+        employeesData.map((emp: Employee) => ({ 
+          ...emp, 
+          selected: false,
+          status: employeeStatusMap.get(emp.empId) || "NOT_REQUESTED"
+        }))
       );
-      const data = await response.json();
-      setSubmittedRequests(data);
-      setEmployees(employees.map((emp) => ({ ...emp, selected: false })));
+      
+      setSubmittedRequests(requestsData);
       setSelectAll(false);
       toast.success("Leave transfer request submitted successfully!", {
         id: toastId,
@@ -238,6 +288,10 @@ const LeaveTransferRequest = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const viewDetails = (detail: LeaveTransferDetailDTO) => {
+    setSelectedDetail(detail);
   };
 
   const filteredEmployees = employees.filter(
@@ -380,7 +434,7 @@ const LeaveTransferRequest = () => {
                         className="h-4 w-4 text-[#3c8dbc] focus:ring-[#3c8dbc] border-slate-300 rounded"
                       />
                     </th>
-                    {["Employee ID", "Full Name", "Position", "Department"].map(
+                    {["Employee ID", "Full Name", "Position", "Department", "Status"].map(
                       (h) => (
                         <th
                           key={h}
@@ -396,7 +450,7 @@ const LeaveTransferRequest = () => {
                   {isDataLoading && filteredEmployees.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={5}
+                        colSpan={6}
                         className="py-10 text-center text-[#3c8dbc]"
                       >
                         <FiRefreshCw className="animate-spin inline-block mr-2 w-5 h-5" />
@@ -406,7 +460,7 @@ const LeaveTransferRequest = () => {
                   ) : !isDataLoading && filteredEmployees.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={5}
+                        colSpan={6}
                         className="py-10 text-center text-gray-500"
                       >
                         {searchTerm
@@ -427,7 +481,7 @@ const LeaveTransferRequest = () => {
                             type="checkbox"
                             checked={!!emp.selected}
                             onChange={() => handleSelectEmployee(emp.empId)}
-                            disabled={!empId || isDataLoading}
+                            disabled={!empId || isDataLoading || emp.status !== "NOT_REQUESTED"}
                             className="h-4 w-4 text-[#3c8dbc] focus:ring-[#3c8dbc] border-slate-300 rounded"
                           />
                         </td>
@@ -442,6 +496,21 @@ const LeaveTransferRequest = () => {
                         </td>
                         <td className="py-3 px-4 text-sm text-gray-600">
                           {emp.department}
+                        </td>
+                        <td className="py-3 px-4 text-sm">
+                          <span
+                            className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
+                              emp.status === "APPROVED"
+                                ? "bg-green-100 text-green-800"
+                                : emp.status === "REJECTED"
+                                ? "bg-red-100 text-red-800"
+                                : emp.status === "PENDING"
+                                ? "bg-yellow-100 text-yellow-800"
+                                : "bg-gray-100 text-gray-800"
+                            }`}
+                          >
+                            {emp.status === "NOT_REQUESTED" ? "Not Requested" : emp.status}
+                          </span>
                         </td>
                       </tr>
                     ))
@@ -507,6 +576,7 @@ const LeaveTransferRequest = () => {
                       "Status",
                       "Created Date",
                       "Employees Involved",
+                      "Actions"
                     ].map((h) => (
                       <th
                         key={h}
@@ -521,7 +591,7 @@ const LeaveTransferRequest = () => {
                   {isDataLoading && submittedRequests.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={5}
+                        colSpan={6}
                         className="py-10 text-center text-[#3c8dbc]"
                       >
                         <FiRefreshCw className="animate-spin inline-block mr-2 w-5 h-5" />
@@ -531,7 +601,7 @@ const LeaveTransferRequest = () => {
                   ) : !isDataLoading && submittedRequests.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={5}
+                        colSpan={6}
                         className="py-10 text-center text-gray-500"
                       >
                         {empId
@@ -576,6 +646,20 @@ const LeaveTransferRequest = () => {
                                 .join(", ")
                             : "N/A"}
                         </td>
+                        <td className="py-3 px-4 text-sm">
+                          <button
+                            onClick={() => {
+                              // Show first detail for simplicity, you might want to show all details
+                              if (request.details && request.details.length > 0) {
+                                viewDetails(request.details[0]);
+                              }
+                            }}
+                            className="px-3 py-1 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                          >
+                            <FiEye className="inline mr-1" size={12} />
+                            View
+                          </button>
+                        </td>
                       </tr>
                     ))
                   )}
@@ -585,6 +669,65 @@ const LeaveTransferRequest = () => {
           </div>
         </motion.div>
       </div>
+
+      {/* Detail View Modal */}
+      <AnimatePresence>
+        {selectedDetail && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            onClick={() => setSelectedDetail(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-xl p-6 max-w-md w-full"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-lg font-semibold text-[#3c8dbc] mb-4">
+                Request Details
+              </h3>
+              <div className="space-y-3">
+                <div>
+                  <label className="text-sm font-medium text-slate-500">Employee ID</label>
+                  <p className="text-sm text-slate-700">{selectedDetail.empId}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-slate-500">Status</label>
+                  <span
+                    className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
+                      selectedDetail.status === "APPROVED"
+                        ? "bg-green-100 text-green-800"
+                        : selectedDetail.status === "REJECTED"
+                        ? "bg-red-100 text-red-800"
+                        : "bg-yellow-100 text-yellow-800"
+                    }`}
+                  >
+                    {selectedDetail.status || "Pending"}
+                  </span>
+                </div>
+                {selectedDetail.approverNotes && (
+                  <div>
+                    <label className="text-sm font-medium text-slate-500">Approver Notes</label>
+                    <p className="text-sm text-slate-700 bg-slate-100 p-2 rounded">
+                      {selectedDetail.approverNotes}
+                    </p>
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={() => setSelectedDetail(null)}
+                className="mt-4 px-4 py-2 bg-[#3c8dbc] text-white rounded-md hover:bg-[#3c8dbc]/80"
+              >
+                Close
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

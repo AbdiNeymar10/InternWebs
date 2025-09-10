@@ -1,3 +1,4 @@
+// HrLeaveTransferDetail.java - Replace entire file
 package com.example.employee_management.entity;
 
 import jakarta.persistence.*;
@@ -7,10 +8,10 @@ import jakarta.persistence.*;
 public class HrLeaveTransferDetail {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "hr_lve_trnsfr_dtl_id_seq_gen") // Shortened generator name
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "hr_lve_trnsfr_dtl_id_seq_gen")
     @SequenceGenerator(
-        name = "hr_lve_trnsfr_dtl_id_seq_gen", // Shortened generator name
-        sequenceName = "HR_LVE_TRNSFR_DTL_ID_SEQ", // Shortened sequence name (27 characters)
+        name = "hr_lve_trnsfr_dtl_id_seq_gen",
+        sequenceName = "HR_LVE_TRNSFR_DTL_ID_SEQ",
         allocationSize = 1
     )
     @Column(name = "DETAIL_ID")
@@ -22,6 +23,9 @@ public class HrLeaveTransferDetail {
     @Column(name = "STATUS")
     private String status;
 
+    @Column(name = "APPROVER_NOTES", length = 500)
+    private String approverNotes;
+
     @ManyToOne
     @JoinColumn(name = "REQUEST_MASTER_ID", nullable = false)
     private HrLeaveTransfer leaveTransfer;
@@ -29,7 +33,7 @@ public class HrLeaveTransferDetail {
     @Column(name = "REQUEST_ID")
     private String requestId;
 
-    // Getters and Setters (unchanged)
+    // Getters and Setters
     public Long getDetailId() {
         return detailId;
     }
@@ -52,6 +56,14 @@ public class HrLeaveTransferDetail {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getApproverNotes() {
+        return approverNotes;
+    }
+
+    public void setApproverNotes(String approverNotes) {
+        this.approverNotes = approverNotes;
     }
 
     public HrLeaveTransfer getLeaveTransfer() {

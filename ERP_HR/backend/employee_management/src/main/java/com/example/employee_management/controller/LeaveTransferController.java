@@ -1,3 +1,4 @@
+// LeaveTransferController.java - Replace entire file
 package com.example.employee_management.controller;
 
 import com.example.employee_management.dto.EmployeeDTO;
@@ -9,10 +10,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/leave-transfer")
-@CrossOrigin(origins = "http://localhost:3000") // Allow your frontend origin
+@CrossOrigin(origins = "http://localhost:3000")
 public class LeaveTransferController {
 
     @Autowired
@@ -43,7 +45,7 @@ public class LeaveTransferController {
     }
 
     @GetMapping("/pending-requests")
-    public ResponseEntity<List<LeaveTransferRequestDTO>> getPendingRequests() {
+    public ResponseEntity<List<LeaveTransferRequestDTO>> getPendingRequests(@RequestParam String approverId) {
         List<LeaveTransferRequestDTO> requests = leaveTransferService.getPendingRequests();
         return ResponseEntity.ok(requests);
     }
@@ -51,6 +53,13 @@ public class LeaveTransferController {
     @PostMapping("/approve/{detailId}")
     public ResponseEntity<Void> approveLeaveTransferDetail(@PathVariable Long detailId) {
         leaveTransferService.approveLeaveTransferDetail(detailId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/reject/{detailId}")
+    public ResponseEntity<Void> rejectLeaveTransferDetail(@PathVariable Long detailId, @RequestBody Map<String, String> request) {
+        String approverNotes = request.get("approverNotes");
+        leaveTransferService.rejectLeaveTransferDetail(detailId, approverNotes);
         return ResponseEntity.ok().build();
     }
 }
