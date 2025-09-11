@@ -56,11 +56,16 @@ import {
 interface SidebarProps {
   className?: string;
   hidden?: boolean;
+  isMobile?: boolean;
 }
 
 type UserRole = "SUPER_ADMIN" | "ADMIN" | "HR" | "DEPARTMENT" | "EMPLOYEE";
 
-export default function Sidebar({ className, hidden = false }: SidebarProps) {
+export default function Sidebar({
+  className,
+  hidden = false,
+  isMobile = false,
+}: SidebarProps) {
   const [openMenus, setOpenMenus] = useState({
     dashboard: false,
     organization: false,
