@@ -100,6 +100,15 @@ public class HrEmployeeServiceImpl implements HrEmployeeService {
             employee.setPayGrade(payGrade);
         }
 
+        // Ensure salary is persisted:
+        // - If the incoming employee object contains a salary, keep it.
+        // - If not, but a pay grade was provided and has a salary, use that as the
+        // employee salary.
+        if ((employee.getSalary() == null || employee.getSalary().trim().isEmpty()) && employee.getPayGrade() != null
+                && employee.getPayGrade().getSalary() != null) {
+            employee.setSalary(employee.getPayGrade().getSalary());
+        }
+
         if (employee.getPosition() != null && employee.getPosition().getId() != null) {
             HrLuPositionName position = positionRepository.findById(employee.getPosition().getId())
                     .orElseThrow(() -> new ResourceNotFoundException(

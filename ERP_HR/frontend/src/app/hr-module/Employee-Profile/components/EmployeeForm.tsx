@@ -566,7 +566,11 @@ export default function EmployeeForm({
         department: formData.department
           ? { deptId: Number(formData.department) }
           : null,
-        salary: parseNumericInput(formData.salary),
+        // Preserve salary as string when provided. Only send null when empty.
+        salary:
+          formData.salary !== null && formData.salary !== undefined && String(formData.salary).trim() !== ""
+            ? String(formData.salary)
+            : null,
         pensionNumber: parseNumericInput(formData.pensionNumber),
         retirementNo: parseNumericInput(formData.retirementNo),
         tinNumer: parseNumericInput(formData.tinNumer),
