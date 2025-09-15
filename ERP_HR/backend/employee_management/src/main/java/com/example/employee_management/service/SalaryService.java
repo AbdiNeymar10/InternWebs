@@ -28,8 +28,7 @@ public class SalaryService {
     public SalaryService(
             HrJobTypeRepository jobTypeRepository,
             HrRankRepository rankRepository,
-            HrPayGradeRepository payGradeRepository
-    ) {
+            HrPayGradeRepository payGradeRepository) {
         this.jobTypeRepository = jobTypeRepository;
         this.rankRepository = rankRepository;
         this.payGradeRepository = payGradeRepository;
@@ -49,8 +48,7 @@ public class SalaryService {
 
         List<HrRank> ranks = rankRepository.findByJobGradeIdAndIcfId(
                 jobType.getJobGrade().getId(),
-                icfId
-        );
+                icfId);
 
         if (ranks.isEmpty()) {
             throw new ResourceNotFoundException("No rank found for this job grade and ICF combination");
@@ -64,8 +62,8 @@ public class SalaryService {
         return payGrades.stream()
                 .map(pg -> new SalaryStepDto(
                         Integer.parseInt(pg.getStepNo()),
-                        pg.getSalary()
-                ))
+                        pg.getSalary(),
+                        pg.getPayGradeId()))
                 .collect(Collectors.toList());
     }
 
@@ -78,8 +76,7 @@ public class SalaryService {
 
         List<HrRank> ranks = rankRepository.findByJobGradeIdAndIcfId(
                 jobType.getJobGrade().getId(),
-                icfId
-        );
+                icfId);
 
         if (ranks.isEmpty()) {
             throw new ResourceNotFoundException("No rank found for this job grade and ICF combination");
@@ -87,15 +84,14 @@ public class SalaryService {
         HrRank targetRank = ranks.get(0);
         Optional<HrPayGrad> payGradeOpt = payGradeRepository.findByRankIdAndStepNo(
                 targetRank,
-                String.valueOf(stepNo)
-        );
-        HrPayGrad actualPayGrade = payGradeOpt.orElseThrow(() ->
-                new ResourceNotFoundException("No salary found for step " + stepNo +
-                        " for rank ID " + targetRank)
-        );
+                String.valueOf(stepNo));
+        HrPayGrad actualPayGrade = payGradeOpt
+                .orElseThrow(() -> new ResourceNotFoundException("No salary found for step " + stepNo +
+                        " for rank ID " + targetRank));
 
         return actualPayGrade.getSalary();
     }
+
     // src/main/java/com/example/employee_management/service/SalaryService.java
     public List<PayGradeStepDto> getSalaryAndStepNoByRankId(Long rankId) {
         return payGradeRepository.findSalaryAndStepNoByRankId(rankId);

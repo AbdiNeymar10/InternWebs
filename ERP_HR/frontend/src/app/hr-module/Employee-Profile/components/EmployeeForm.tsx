@@ -72,6 +72,7 @@ interface PositionNameOption {
 interface SalaryStepDto {
   stepNo: number;
   salary: number;
+  payGradeId?: number;
 }
 
 interface EmployeeFormData {
@@ -262,6 +263,9 @@ export default function EmployeeForm({
   >([]);
   const [jobTypeOptions, setJobTypeOptions] = useState<JobTitleOption[]>([]);
   const [incrementSteps, setIncrementSteps] = useState<SalaryStepDto[]>([]);
+  const [selectedPayGradeId, setSelectedPayGradeId] = useState<number | null>(
+    null
+  );
 
   // Fetch job details when jobType changes
   useEffect(() => {
@@ -325,6 +329,13 @@ export default function EmployeeForm({
               retirementNo: steps[0].stepNo.toString(),
             }));
             fetchSalaryForStep(steps[0].stepNo);
+            // Also auto-select the payGradeId for a single returned step so it will be
+            // included in the create payload
+            setSelectedPayGradeId(
+              (steps[0] as any).payGradeId
+                ? Number((steps[0] as any).payGradeId)
+                : null
+            );
           }
         } catch (error) {
           console.error("Error fetching increment steps:", error);
@@ -566,9 +577,13 @@ export default function EmployeeForm({
         department: formData.department
           ? { deptId: Number(formData.department) }
           : null,
-        // Preserve salary as string when provided. Only send null when empty.
+        payGrade: selectedPayGradeId
+          ? { payGradeId: Number(selectedPayGradeId) }
+          : null,
         salary:
-          formData.salary !== null && formData.salary !== undefined && String(formData.salary).trim() !== ""
+          formData.salary !== null &&
+          formData.salary !== undefined &&
+          String(formData.salary).trim() !== ""
             ? String(formData.salary)
             : null,
         pensionNumber: parseNumericInput(formData.pensionNumber),
@@ -1059,9 +1074,20 @@ export default function EmployeeForm({
                     const newStepNo = e.target.value;
                     setFormData({ ...formData, retirementNo: newStepNo });
                     if (newStepNo) {
-                      fetchSalaryForStep(parseInt(newStepNo));
+                      const stepNo = parseInt(newStepNo);
+                      fetchSalaryForStep(stepNo);
+                      // find the payGradeId for this step and store it
+                      const found = incrementSteps.find(
+                        (s) => s.stepNo === stepNo
+                      );
+                      setSelectedPayGradeId(
+                        found && (found as any).payGradeId
+                          ? Number((found as any).payGradeId)
+                          : null
+                      );
                     } else {
                       setFormData((prev) => ({ ...prev, salary: "" }));
+                      setSelectedPayGradeId(null);
                     }
                   }}
                   className="mt-1 block w-full border border-gray-300 rounded-md p-2 text-xs"
