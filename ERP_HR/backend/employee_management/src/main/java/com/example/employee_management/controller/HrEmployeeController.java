@@ -32,6 +32,7 @@ public class HrEmployeeController {
         this.hrEmployeeService = hrEmployeeService;
         this.departmentRepository = departmentRepository;
     }
+
     @Autowired
     private HrLuEmploymentTypeRepository employmentTypeRepository;
 
@@ -207,10 +208,10 @@ public class HrEmployeeController {
             employee.setSalary(dto.salary);
         }
         if (dto.employmentType != null) {
-    HrLuEmploymentType employmentType = employmentTypeRepository.findById(dto.employmentType)
-        .orElseThrow(() -> new RuntimeException("Employment type not found"));
-    employee.setEmploymentType(employmentType);
-  }
+            HrLuEmploymentType employmentType = employmentTypeRepository.findById(dto.employmentType)
+                    .orElseThrow(() -> new RuntimeException("Employment type not found"));
+            employee.setEmploymentType(employmentType);
+        }
 
         hrEmployeeService.updateEmployee(empId, employee);
         return ResponseEntity.ok().build();

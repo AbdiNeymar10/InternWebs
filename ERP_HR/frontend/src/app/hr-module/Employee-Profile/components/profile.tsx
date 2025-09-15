@@ -309,7 +309,7 @@ export default function EmployeeProfile({
             setProfileImage(base64Image);
             setError(null);
 
-            const response = await fetch(
+            const response = await authFetch(
               `http://localhost:8080/api/employees/${currentEmployee.empId}/image`,
               {
                 method: "POST",

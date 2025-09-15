@@ -8,17 +8,29 @@ import java.util.Map;
 
 public interface HrEmployeeService {
     List<HrEmployee> getAllEmployees();
+
     HrEmployee getEmployeeById(String empId);
+
     HrEmployee createEmployee(HrEmployee employee);
+
     HrEmployee updateEmployee(String empId, HrEmployee employeeDetails);
+
     void deleteEmployee(String empId);
+
     HrEmployee getEmployeeWithRelations(String empId);
+
     List<HrEmployee> getEmployeesByDepartment(Long deptId);
+
     HrEmployee getEmployeeWithPayGrade(String empId);
+
     byte[] getEmployeePhoto(String empId); // Changed from Blob to byte[]
+
     void updateEmployeePhoto(String empId, byte[] photo); // Changed from Blob to byte[]
+
     EmployeeDelegationDto getEmployeeDelegationDetails(String empId);
+
     EmployeeInfoDto getEmployeeInfo(String empId);
+
     List<Map<String, String>> searchEmployees(String query);
 
     class EmployeeDelegationDto {

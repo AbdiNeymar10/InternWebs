@@ -3,16 +3,20 @@ package com.example.employee_management.service.impl;
 import com.example.employee_management.entity.Department;
 // import com.example.employee_management.entity.HrDepartment;
 import com.example.employee_management.entity.HrEmployee;
+import com.example.employee_management.entity.HrLuPositionName;
 // import com.example.employee_management.entity.HRPay_Grad;
 import com.example.employee_management.exception.ResourceNotFoundException;
 import com.example.employee_management.repository.DepartmentRepository;
 // import com.example.employee_management.repository.HrDepartmentRepository;
 import com.example.employee_management.repository.HrEmployeeRepository;
+import com.example.employee_management.repository.HrLuPositionNameRepository;
 // import com.example.employee_management.repository.HRPay_GradRepository;
 import com.example.employee_management.service.HrEmployeeService;
 import com.example.employee_management.entity.HrPayGrad;
 import com.example.employee_management.repository.HrPayGradeRepository;
 import com.example.employee_management.dto.EmployeeInfoDto;
+
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,17 +38,20 @@ public class HrEmployeeServiceImpl implements HrEmployeeService {
     private final HrEmployeeRepository empRepository;
     private final DepartmentRepository departmentRepository;
     private final HrPayGradeRepository payGradeRepository;
+    private final HrLuPositionNameRepository positionRepository;
 
     @PersistenceContext
     private EntityManager entityManager;
 
     @Autowired
     public HrEmployeeServiceImpl(HrEmployeeRepository employeeRepository, DepartmentRepository departmentRepository,
-            HrPayGradeRepository payGradeRepository, HrEmployeeRepository empRepository) {
+            HrPayGradeRepository payGradeRepository, HrEmployeeRepository empRepository,
+            HrLuPositionNameRepository positionRepository) {
         this.employeeRepository = employeeRepository;
         this.departmentRepository = departmentRepository;
         this.payGradeRepository = payGradeRepository;
         this.empRepository = employeeRepository;
+        this.positionRepository = positionRepository;
     }
 
     @Override
@@ -60,7 +67,14 @@ public class HrEmployeeServiceImpl implements HrEmployeeService {
 
     @Override
     public HrEmployee getEmployeeWithRelations(String empId) {
-        return employeeRepository.findEmployeeWithAllRelations(empId);
+        // The repository's findEmployeeWithAllRelations method (ideally using
+        // @EntityGraph)
+        // is now responsible for fetching all required data, including the photo.
+        HrEmployee employee = employeeRepository.findEmployeeWithAllRelations(empId);
+        if (employee == null) {
+            throw new ResourceNotFoundException("Employee not found with id: " + empId);
+        }
+        return employee;
     }
 
     @Override
@@ -69,7 +83,9 @@ public class HrEmployeeServiceImpl implements HrEmployeeService {
     }
 
     @Override
+    @Transactional
     public HrEmployee createEmployee(HrEmployee employee) {
+        // To ensure data integrity, we re-fetch and set managed entities
         if (employee.getDepartment() != null && employee.getDepartment().getDeptId() != null) {
             Department department = departmentRepository.findById(employee.getDepartment().getDeptId())
                     .orElseThrow(() -> new ResourceNotFoundException(
@@ -84,55 +100,91 @@ public class HrEmployeeServiceImpl implements HrEmployeeService {
             employee.setPayGrade(payGrade);
         }
 
+        if (employee.getPosition() != null && employee.getPosition().getId() != null) {
+            HrLuPositionName position = positionRepository.findById(employee.getPosition().getId())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Position not found with id: " + employee.getPosition().getId()));
+            employee.setPosition(position);
+        }
+
         return employeeRepository.save(employee);
     }
 
     @Override
+    @Transactional
     public HrEmployee updateEmployee(String empId, HrEmployee employeeDetails) {
-        return employeeRepository.findById(empId)
-                .map(employee -> {
-                    // Update basic fields
-                    employee.setFirstName(employeeDetails.getFirstName());
-                    employee.setLastName(employeeDetails.getLastName());
-                    employee.setMiddleName(employeeDetails.getMiddleName());
-                    // Update other fields as needed...
-
-                    // Handle department update
-                    if (employeeDetails.getDepartment() != null &&
-                            employeeDetails.getDepartment().getDeptId() != null) {
-                        Department department = departmentRepository.findById(
-                                employeeDetails.getDepartment().getDeptId())
-                                .orElseThrow(() -> new ResourceNotFoundException(
-                                        "Department not found with id: " +
-                                                employeeDetails.getDepartment().getDeptId()));
-                        employee.setDepartment(department);
-                    } else {
-                        employee.setDepartment(null);
-                    }
-
-                    // Handle pay grade update
-                    if (employeeDetails.getPayGrade() != null &&
-                            employeeDetails.getPayGrade().getPayGradeId() != null) {
-                        HrPayGrad payGrade = payGradeRepository.findById(
-                                employeeDetails.getPayGrade().getPayGradeId())
-                                .orElseThrow(() -> new ResourceNotFoundException(
-                                        "Pay grade not found with id: " +
-                                                employeeDetails.getPayGrade().getPayGradeId()));
-                        employee.setPayGrade(payGrade);
-                    } else {
-                        employee.setPayGrade(null);
-                    }
-
-                    return employeeRepository.save(employee);
-                })
+        // 1. Fetch the existing, managed entity from the database.
+        HrEmployee existingEmployee = employeeRepository.findById(empId)
                 .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + empId));
+
+        // 2. Handle photo update
+        if (employeeDetails.getPhoto() != null && employeeDetails.getPhoto().length > 0) {
+            existingEmployee.setPhoto(employeeDetails.getPhoto());
+        }
+
+        // 3. Handle relationship updates using private helper methods for clarity
+        updateDepartment(employeeDetails, existingEmployee);
+        updatePayGrade(employeeDetails, existingEmployee);
+        updatePosition(employeeDetails, existingEmployee);
+
+        // 4. Copy other simple properties, ignoring the ones we handled manually
+        BeanUtils.copyProperties(employeeDetails, existingEmployee, "empId", "photo", "department", "payGrade",
+                "position");
+
+        // 5. Save the changes. Note: save() is not strictly necessary here on a managed
+        // entity
+        // within a @Transactional context, but it makes the intent clear and flushes
+        // changes.
+        employeeRepository.save(existingEmployee);
+
+        // 6. Return the fully loaded entity to the client.
+        // The repository method is responsible for eager loading all necessary fields.
+        // The unreliable lazy-loading workaround has been removed.
+        return employeeRepository.findEmployeeWithAllRelations(empId);
+    }
+
+    private void updateDepartment(HrEmployee employeeDetails, HrEmployee existingEmployee) {
+        if (employeeDetails.getDepartment() != null && employeeDetails.getDepartment().getDeptId() != null) {
+            Department department = departmentRepository.findById(employeeDetails.getDepartment().getDeptId())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Department not found with id: " + employeeDetails.getDepartment().getDeptId()));
+            existingEmployee.setDepartment(department);
+        } else if (employeeDetails.getDepartment() == null) {
+            existingEmployee.setDepartment(null);
+        }
+    }
+
+    private void updatePayGrade(HrEmployee employeeDetails, HrEmployee existingEmployee) {
+        if (employeeDetails.getPayGrade() != null && employeeDetails.getPayGrade().getPayGradeId() != null) {
+            HrPayGrad payGrade = payGradeRepository.findById(employeeDetails.getPayGrade().getPayGradeId())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Pay grade not found with id: " + employeeDetails.getPayGrade().getPayGradeId()));
+            existingEmployee.setPayGrade(payGrade);
+        } else if (employeeDetails.getPayGrade() == null) {
+            existingEmployee.setPayGrade(null);
+        }
+    }
+
+    private void updatePosition(HrEmployee employeeDetails, HrEmployee existingEmployee) {
+        if (employeeDetails.getPosition() != null && employeeDetails.getPosition().getId() != null) {
+            HrLuPositionName position = positionRepository.findById(employeeDetails.getPosition().getId())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Position not found with id: " + employeeDetails.getPosition().getId()));
+            existingEmployee.setPosition(position);
+        } else if (employeeDetails.getPosition() == null) {
+            existingEmployee.setPosition(null);
+        }
     }
 
     @Override
+    @Transactional
     public void deleteEmployee(String empId) {
-        HrEmployee employee = employeeRepository.findById(empId)
-                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + empId));
-        employeeRepository.delete(employee);
+        // It's slightly more efficient to check for existence before fetching the whole
+        // entity
+        if (!employeeRepository.existsById(empId)) {
+            throw new ResourceNotFoundException("Employee not found with id: " + empId);
+        }
+        employeeRepository.deleteById(empId);
     }
 
     @Override
@@ -146,8 +198,18 @@ public class HrEmployeeServiceImpl implements HrEmployeeService {
 
     @Override
     public byte[] getEmployeePhoto(String empId) {
+        // This is efficient as it doesn't load the entire employee object.
         byte[] photo = employeeRepository.getEmployeePhoto(empId);
+
+        // Provide a more specific error message.
         if (photo == null) {
+            // Check if the employee itself doesn't exist, or if they just don't have a
+            // photo.
+            if (!employeeRepository.existsById(empId)) {
+                throw new ResourceNotFoundException("Employee not found with id: " + empId);
+            }
+            // If the employee exists but the photo is null, it's still a "not found" for
+            // the photo resource.
             throw new ResourceNotFoundException("No photo found for employee with id: " + empId);
         }
         return photo;
@@ -156,38 +218,41 @@ public class HrEmployeeServiceImpl implements HrEmployeeService {
     @Override
     @Transactional
     public void updateEmployeePhoto(String empId, byte[] photo) {
+        long startTime = System.currentTimeMillis();
         if (!employeeRepository.existsById(empId)) {
             throw new ResourceNotFoundException("Employee not found with id: " + empId);
         }
         try {
             employeeRepository.updateEmployeePhoto(empId, photo);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to update employee photo: " + e.getMessage(), e);
+            // Consider adding a proper logger (e.g., SLF4J) instead of RuntimeException
+            // log.error("Failed to update photo for employee {}", empId, e);
+            throw new RuntimeException("Failed to update employee photo for empId: " + empId, e);
+        } finally {
+            long endTime = System.currentTimeMillis();
+            System.out.println("Photo update time: " + (endTime - startTime) + " ms for "
+                    + (photo != null ? photo.length : 0) + " bytes");
         }
     }
 
     @Override
     public EmployeeDelegationDto getEmployeeDelegationDetails(String empId) {
-        HrEmployee employee = employeeRepository.findById(empId)
-                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + empId));
+        // This method relies on the repository fetching the necessary relations.
+        HrEmployee employee = employeeRepository.findEmployeeWithAllRelations(empId);
+        if (employee == null) {
+            throw new ResourceNotFoundException("Employee not found with id: " + empId);
+        }
 
-        StringBuilder fullName = new StringBuilder();
-        if (employee.getFirstName() != null) {
-            fullName.append(employee.getFirstName());
-        }
-        if (employee.getMiddleName() != null) {
-            fullName.append(" ").append(employee.getMiddleName());
-        }
-        if (employee.getLastName() != null) {
-            fullName.append(" ").append(employee.getLastName());
-        }
+        String fullName = Stream.of(employee.getFirstName(), employee.getMiddleName(), employee.getLastName())
+                .filter(Objects::nonNull)
+                .collect(Collectors.joining(" "));
 
         String departmentName = (employee.getDepartment() != null && employee.getDepartment().getDepName() != null)
                 ? employee.getDepartment().getDepName()
                 : "N/A";
 
         return new EmployeeDelegationDto(
-                fullName.toString().trim(),
+                fullName.trim(),
                 employee.getEmpId(),
                 departmentName);
     }

@@ -85,7 +85,9 @@ function mapEmployeeToFormData(employee: Employee | null): any {
     dateOfBirth: employee.dateOfBirth || "",
     sex: employee.gender || "Male",
     maritalStatus: employee.maritalStatus || "",
-    salary: employee.salary || "",
+    salary:
+      employee.position?.salary ||
+      (typeof employee.salary === "object" ? "" : employee.salary) || "",
     hiredDate: employee.hiredDate || "",
     birthDate: employee.birthDate || "",
     accountNo: employee.accountNo || "",
@@ -115,7 +117,7 @@ function mapEmployeeToFormData(employee: Employee | null): any {
     nation: employee.nation
       ? { nationCode: employee.nation.nationCode }
       : undefined,
-    jobType: employee.position ? { id: employee.position.id } : undefined,
+    jobType: employee.jobType ? { id: employee.jobType.id } : undefined,
     icf: employee.icf ? { id: employee.icf.id } : undefined,
     jobResponsibility: employee.jobResponsibility
       ? { id: employee.jobResponsibility.id }
@@ -177,6 +179,9 @@ const mapHrEmployeeToEmployee = (hrEmployee: any): Employee => ({
       ? hrEmployee.empStatus
       : hrEmployee.positionStatus || null,
   photo: hrEmployee.photo, // Use the Base64 string directly from backend
+  jobType: hrEmployee.jobType
+    ? { id: hrEmployee.jobType.id, jobTitle: hrEmployee.jobType.jobTitle }
+    : null,
 });
 
 const mockEmployees: Employee[] = [

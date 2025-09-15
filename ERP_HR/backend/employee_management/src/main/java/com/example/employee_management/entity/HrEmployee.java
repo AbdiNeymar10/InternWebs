@@ -3,7 +3,7 @@ package com.example.employee_management.entity;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.Nulls;
-import com.example.employee_management.util.SalaryEncryptor;
+// import com.example.employee_management.util.SalaryEncryptor;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.math.BigDecimal;
@@ -53,7 +53,7 @@ public class HrEmployee {
     @Column(name = "RETIREMENT_NO", length = 255)
     private String retirementNo;
 
-    @Convert(converter = SalaryEncryptor.class)
+    // @Convert(converter = SalaryEncryptor.class)
     @Column(name = "SALARY", length = 500)
     @JsonSetter(nulls = Nulls.SKIP)
     private String salary;
