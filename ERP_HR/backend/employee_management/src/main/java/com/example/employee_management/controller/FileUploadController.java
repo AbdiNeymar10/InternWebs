@@ -57,7 +57,7 @@ public class FileUploadController {
 
     // Endpoint to download a file by its UPLOAD_ID
     @GetMapping("/download/{uploadId}")
-    public ResponseEntity<byte[]> downloadFileByUploadId(@PathVariable String uploadId) {
+    public ResponseEntity<byte[]> downloadFileByUploadId(@PathVariable Long uploadId) {
         logger.info("Received request to download file with UPLOAD_ID: {}", uploadId);
         SeparationFileUpload fileUpload = fileUploadService.getFileByUploadId(uploadId);
 
