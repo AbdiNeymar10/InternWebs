@@ -171,10 +171,7 @@ export default function Sidebar({
                   href="#"
                   className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
                   onClick={(e) => {
-                    if (
-                      userRole === "SUPER_ADMIN" ||
-                      userRole === "DEPARTMENT"
-                    ) {
+                    if (userRole === "ADMIN" || userRole === "DEPARTMENT") {
                       window.location.href =
                         "/hr-module/organizational-structure";
                     } else {
@@ -191,13 +188,29 @@ export default function Sidebar({
                   <FiLayers className="w-4 h-4" />
                   Organizational Structure
                 </a>
-                <Link
-                  href="/hr-module/salary-settings"
+                <a
+                  href="#"
                   className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
+                  onClick={(e) => {
+                    if (
+                      userRole &&
+                      ["ADMIN", "HR", "DEPARTMENT"].includes(userRole)
+                    ) {
+                      window.location.href = "/hr-module/salary-settings";
+                    } else {
+                      e.preventDefault();
+                      Swal.fire({
+                        icon: "warning",
+                        title: "Access Denied",
+                        text: "You do not have permission to access this module.",
+                        confirmButtonColor: "#3c8dbc",
+                      });
+                    }
+                  }}
                 >
                   <FiDollarSign className="w-4 h-4" />
                   Salary Settings
-                </Link>
+                </a>
                 <a
                   href="#"
                   className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
@@ -496,12 +509,7 @@ export default function Sidebar({
                   href="#"
                   className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
                   onClick={(e) => {
-                    if (
-                      userRole &&
-                      ["EMPLOYEE", "ADMIN", "HR", "DEPARTMENT"].includes(
-                        userRole
-                      )
-                    ) {
+                    if (userRole && ["ADMIN", "HR"].includes(userRole)) {
                       window.location.href = "/hr-module/Leave/leave-setting";
                     } else {
                       e.preventDefault();
@@ -566,13 +574,26 @@ export default function Sidebar({
                   Leave Schedule Approve
                 </a>
 
-                <Link
-                  href="/hr-module/Leave/leave-types"
+                <a
+                  href="#"
                   className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
+                  onClick={(e) => {
+                    if (userRole && ["ADMIN", "HR"].includes(userRole)) {
+                      window.location.href = "/hr-module/Leave/leave-types";
+                    } else {
+                      e.preventDefault();
+                      Swal.fire({
+                        icon: "warning",
+                        title: "Access Denied",
+                        text: "You do not have permission to access this module.",
+                        confirmButtonColor: "#3c8dbc",
+                      });
+                    }
+                  }}
                 >
                   <FiCalendar className="w-4 h-4" />
                   Leave Types
-                </Link>
+                </a>
 
                 <a
                   href="#"
@@ -880,8 +901,7 @@ export default function Sidebar({
               </div>
             )}
           </div>
-          {/* Recruitment Management Dropdown - Only for ADMIN and HR */}
-          {/* {shouldShowItem(["ADMIN", "HR"]) && ( */}
+            
           <div>
             <button
               onClick={() => toggleMenu("Recruitment")}
