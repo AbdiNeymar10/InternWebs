@@ -3,12 +3,14 @@ package com.example.employee_management.entity;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "HR_SEPARATION_FILE_UPLOAD") // Ensure this matches your table name
+@Table(name = "HR_SEPARATION_FILE_UPLOAD")
 public class SeparationFileUpload {
 
     @Id
-    @Column(name = "UPLOAD_ID", length = 20, nullable = false)
-    private String uploadId;
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "separation_file_upload_seq")
+    @SequenceGenerator(name = "separation_file_upload_seq", sequenceName = "SEPARATION_FILE_UPLOAD_SEQ", allocationSize = 1)
+    @Column(name = "UPLOAD_ID", nullable = false)
+    private Long uploadId;
 
     @Column(name = "FILE_NAME", length = 150)
     private String fileName;
@@ -34,11 +36,11 @@ public class SeparationFileUpload {
     private String retirementRequesterId;
 
     // Getters and Setters
-    public String getUploadId() {
+    public Long getUploadId() {
         return uploadId;
     }
 
-    public void setUploadId(String uploadId) {
+    public void setUploadId(Long uploadId) {
         this.uploadId = uploadId;
     }
 

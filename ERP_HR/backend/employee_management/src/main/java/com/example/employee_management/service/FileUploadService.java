@@ -28,7 +28,8 @@ public class FileUploadService {
     private EntityManager entityManager;
 
     @Transactional
-    public SeparationFileUpload storeSeparationSupportiveDoc(MultipartFile file, String separationId) throws IOException {
+    public SeparationFileUpload storeSeparationSupportiveDoc(MultipartFile file, String separationId)
+            throws IOException {
         String originalFileName = StringUtils.cleanPath(file.getOriginalFilename());
         logger.info("Attempting to store file: {} for separationId: {}", originalFileName, separationId);
 
@@ -44,11 +45,12 @@ public class FileUploadService {
                     .createNativeQuery("SELECT SEPARATION_FILE_UPLOAD_SEQ.NEXTVAL FROM DUAL") // CREATE THIS SEQUENCE
                     .getSingleResult();
         } catch (Exception e) {
-            logger.error("CRITICAL: Failed to get NEXTVAL from SEPARATION_FILE_UPLOAD_SEQ. Error: {}", e.getMessage(), e);
+            logger.error("CRITICAL: Failed to get NEXTVAL from SEPARATION_FILE_UPLOAD_SEQ. Error: {}", e.getMessage(),
+                    e);
             throw new RuntimeException("Could not generate file upload ID from sequence.", e);
         }
 
-        String newUploadId = sequenceValue.toString();
+        Long newUploadId = sequenceValue.longValue();
 
         SeparationFileUpload fileUpload = new SeparationFileUpload();
         fileUpload.setUploadId(newUploadId);
@@ -61,7 +63,8 @@ public class FileUploadService {
 
         try {
             SeparationFileUpload savedFile = separationFileUploadRepository.save(fileUpload);
-            logger.info("Successfully stored file with UPLOAD_ID: {} and FileName: {}", savedFile.getUploadId(), savedFile.getFileName());
+            logger.info("Successfully stored file with UPLOAD_ID: {} and FileName: {}", savedFile.getUploadId(),
+                    savedFile.getFileName());
             return savedFile;
         } catch (Exception e) {
             logger.error("Database error while storing file {}: {}", originalFileName, e.getMessage(), e);
@@ -76,6 +79,7 @@ public class FileUploadService {
     public SeparationFileUpload getFileByFileName(String fileName) {
         return separationFileUploadRepository.findByFileName(fileName).orElse(null);
     }
+
     public List<SeparationFileUpload> getFilesBySeparationId(String separationId) {
         return separationFileUploadRepository.findBySeparationId(separationId);
     }

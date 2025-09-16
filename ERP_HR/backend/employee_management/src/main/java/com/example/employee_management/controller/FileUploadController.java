@@ -17,7 +17,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
 @RestController
 @RequestMapping("/api/files")
 public class FileUploadController {
@@ -35,7 +34,7 @@ public class FileUploadController {
         try {
             SeparationFileUpload savedFile = fileUploadService.storeSeparationSupportiveDoc(file, separationId);
             Map<String, String> response = new HashMap<>();
-            response.put("uploadId", savedFile.getUploadId());
+            response.put("uploadId", String.valueOf(savedFile.getUploadId()));
             response.put("fileName", savedFile.getFileName());
             response.put("fileType", savedFile.getFileType());
             if (savedFile.getSeparationId() != null) {
@@ -74,7 +73,8 @@ public class FileUploadController {
                 .body(fileUpload.getUploadFile());
     }
 
-    // Endpoint to get file metadata by separationId (useful for listing files on approval pages)
+    // Endpoint to get file metadata by separationId (useful for listing files on
+    // approval pages)
     @GetMapping("/info/separation/{separationId}")
     public ResponseEntity<List<SeparationFileUpload>> getFilesInfoBySeparationId(@PathVariable String separationId) {
         logger.info("Received request for file info by separationId: {}", separationId);
