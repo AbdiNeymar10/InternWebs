@@ -110,6 +110,15 @@ export default function EmployeeProfile({
   allEmployees = [],
   onEmployeeSelect,
 }: EmployeeProfileProps) {
+  // Get user role from localStorage
+  const getUserRole = (): string | null => {
+    try {
+      const stored = localStorage.getItem("user");
+      if (stored) return JSON.parse(stored).role;
+    } catch (e) {}
+    return null;
+  };
+  const userRole = typeof window !== "undefined" ? getUserRole() : null;
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [profileImage, setProfileImage] = useState<string | undefined>(() =>
     employee?.photo ? `data:image/jpeg;base64,${employee.photo}` : undefined
@@ -461,7 +470,12 @@ export default function EmployeeProfile({
                   value={searchTerm}
                   onChange={handleSearchChange}
                   placeholder="Search employee ID or name..."
-                  className="block w-full pl-10 pr-3 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                  className={`block w-full pl-10 pr-3 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${
+                    userRole === "EMPLOYEE"
+                      ? "bg-gray-100 cursor-not-allowed opacity-60"
+                      : ""
+                  }`}
+                  disabled={userRole === "EMPLOYEE"}
                 />
                 {isLoading && (
                   <div className="absolute inset-y-0 right-0 pr-3 flex items-center">

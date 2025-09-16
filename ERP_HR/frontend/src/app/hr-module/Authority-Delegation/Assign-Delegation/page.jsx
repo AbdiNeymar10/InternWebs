@@ -2,7 +2,8 @@
 
 import { useState, useEffect, Component } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import AsyncSelect from 'react-select/async';
+import dynamic from 'next/dynamic';
+const AsyncSelect = dynamic(() => import('react-select/async'), { ssr: false });
 import { authFetch } from '@/utils/authFetch';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
