@@ -10,11 +10,9 @@ export const getDepartments = async (): Promise<DepartmentDto[]> => {
   return response.json();
 };
 
-// Fetch children departments based on deptLevel
-export const getChildren = async (
-  deptLevel: number
-): Promise<DepartmentDto[]> => {
-  const response = await authFetch(`${API_URL}/children/${deptLevel}`);
+// Fetch children departments based on deptId
+export const getChildren = async (deptId: number): Promise<DepartmentDto[]> => {
+  const response = await authFetch(`${API_URL}/children/${deptId}`);
   if (!response.ok) throw new Error("Failed to fetch children");
   return response.json();
 };

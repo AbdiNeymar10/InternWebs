@@ -28,7 +28,7 @@ const DepartmentList = ({ onEdit }: DepartmentListProps) => {
 
   // Filter the departments to only include deptId 61 and its descendants
   const filteredDepartments = departments.filter(
-    (department) => department.deptId === 61
+    (department) => department.deptId === 2
   );
 
   // Group departments by deptLevel

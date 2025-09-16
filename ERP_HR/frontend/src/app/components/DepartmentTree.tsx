@@ -47,9 +47,9 @@ const DepartmentTree = ({
         <button onClick={toggle} className="mr-2">
           <div>
             {expanded ? (
-              <FaMinusSquare className="text-gray-400" />
+              <FaMinusSquare className="text-gray-700" />
             ) : (
-              <FaPlusSquare className="text-gray-400" />
+              <FaPlusSquare className="text-gray-700" />
             )}
           </div>
         </button>
