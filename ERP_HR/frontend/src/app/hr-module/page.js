@@ -4,7 +4,7 @@ import { useMediaQuery } from "react-responsive";
 import Chart from "chart.js/auto";
 import Header from "../components/Header";
 import Sidebar from "./sidbar";
-import RegisterJobs from "./register-jobs/page"; 
+import RegisterJobs from "./register-jobs/page";
 
 export default function HRModule() {
   const isMobile = useMediaQuery({ maxWidth: 1024 });
@@ -12,7 +12,7 @@ export default function HRModule() {
   const pieChartRef = useRef(null);
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 3;
-  const [currentRoute, setCurrentRoute] = useState("dashboard"); 
+  const [currentRoute, setCurrentRoute] = useState("dashboard");
 
   useEffect(() => {
     let pieChartInstance = null;
@@ -113,7 +113,7 @@ export default function HRModule() {
   // Render content based on the current route
   const renderContent = () => {
     if (currentRoute === "register-jobs") {
-      return <RegisterJobs />; 
+      return <RegisterJobs />;
     }
 
     // Default dashboard content
@@ -203,9 +203,11 @@ export default function HRModule() {
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
       <Header toggleSidebar={() => setSidebarHidden((prev) => !prev)} />
-      <div className="flex flex-1">
+      <div className="flex flex-1 min-h-full">
         {/* Sidebar: toggled on all screen sizes by menu icon */}
-        <Sidebar className={sidebarHidden ? "hidden" : ""} />
+        <Sidebar
+          className={`h-auto min-h-full ${sidebarHidden ? "hidden" : ""}`}
+        />
         <div className="flex-1 p-6 overflow-auto">
           <h1 className="text-2xl font-bold mb-6">HR Module Dashboard</h1>
           <div className="mb-4">

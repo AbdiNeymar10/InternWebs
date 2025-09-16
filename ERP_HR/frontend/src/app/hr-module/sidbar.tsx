@@ -106,15 +106,11 @@ export default function Sidebar({
     <aside
       className={`bg-gray-800 text-white w-64 shadow-lg ${
         className || ""
-      } fixed left-0 z-50 md:static md:top-auto md:left-auto md:z-auto overflow-y-auto h-screen [scrollbar-width:none] [&::-webkit-scrollbar]:hidden`}
+      } min-h-full flex flex-col overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden`}
       style={{
         top:
           typeof window !== "undefined" && window.innerWidth < 768
             ? "48px"
-            : undefined,
-        height:
-          typeof window !== "undefined" && window.innerWidth < 768
-            ? "calc(100vh - 48px)"
             : undefined,
         transition: "transform 0.3s ease",
       }}
@@ -901,7 +897,7 @@ export default function Sidebar({
               </div>
             )}
           </div>
-            
+
           <div>
             <button
               onClick={() => toggleMenu("Recruitment")}
