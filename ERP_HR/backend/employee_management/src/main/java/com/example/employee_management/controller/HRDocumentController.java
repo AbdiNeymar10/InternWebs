@@ -11,6 +11,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -110,32 +112,55 @@ public class HRDocumentController {
         return provisionService.getRequestsByWorkId(workId);
     }
 
-    // Download file endpoint
-    @GetMapping("/download/{fileName:.+}")
-    public ResponseEntity<Resource> downloadFile(@PathVariable String fileName) throws IOException {
+    // New endpoint to download file by request ID (more secure)
+    @GetMapping("/{requestId}/download-file")
+    public ResponseEntity<Resource> downloadFileByRequestId(@PathVariable Long requestId) throws IOException {
+        // Check authentication
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).build();
+        }
+        
+        Optional<HRDocumentProvision> request = provisionService.getRequestById(requestId);
+        if (!request.isPresent() || request.get().getAttachmentPath() == null) {
+            return ResponseEntity.notFound().build();
+        }
+        
         // Load file as Resource
-        byte[] fileContent = fileStorageService.loadFile(fileName);
+        byte[] fileContent = fileStorageService.loadFile(request.get().getAttachmentPath());
         ByteArrayResource resource = new ByteArrayResource(fileContent);
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + request.get().getAttachmentName() + "\"")
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(resource);
     }
 
-    // View file endpoint (inline)
-    @GetMapping("/view/{fileName:.+}")
-    public ResponseEntity<Resource> viewFile(@PathVariable String fileName) throws IOException {
-        byte[] fileContent = fileStorageService.loadFile(fileName);
+    // New endpoint to view file by request ID (more secure)
+    @GetMapping("/{requestId}/view-file")
+    public ResponseEntity<Resource> viewFileByRequestId(@PathVariable Long requestId) throws IOException {
+        // Check authentication
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(401).build();
+        }
+        
+        Optional<HRDocumentProvision> request = provisionService.getRequestById(requestId);
+        if (!request.isPresent() || request.get().getAttachmentPath() == null) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        byte[] fileContent = fileStorageService.loadFile(request.get().getAttachmentPath());
         ByteArrayResource resource = new ByteArrayResource(fileContent);
 
+        String fileName = request.get().getAttachmentPath();
         String contentType = Files.probeContentType(Paths.get(fileName));
         if (contentType == null) {
             contentType = "application/octet-stream";
         }
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + fileName + "\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + request.get().getAttachmentName() + "\"")
                 .contentType(MediaType.parseMediaType(contentType))
                 .body(resource);
     }

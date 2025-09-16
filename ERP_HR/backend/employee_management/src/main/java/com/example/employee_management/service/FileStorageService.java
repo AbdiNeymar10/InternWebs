@@ -16,6 +16,9 @@ public class FileStorageService {
 
     @Value("${file.upload-dir}")
     private String uploadDir;
+    
+    @Value("${app.base-url:http://localhost:8080}")
+    private String baseUrl;
 
     public String storeFile(MultipartFile file, Long requestId) throws IOException {
         // Create upload directory if it doesn't exist
@@ -53,11 +56,11 @@ public class FileStorageService {
     }
 
     public String getFileDownloadUrl(String fileName) {
-        return "http://localhost:8080/api/hrdocument/download/" + fileName;
+        return baseUrl + "/api/hrdocument/" + fileName + "/download";
     }
 
     public String getFileViewUrl(String fileName) {
-        return "http://localhost:8080/api/hrdocument/view/" + fileName;
+        return baseUrl + "/api/hrdocument/" + fileName + "/view";
     }
 
     public boolean fileExists(String fileName) {

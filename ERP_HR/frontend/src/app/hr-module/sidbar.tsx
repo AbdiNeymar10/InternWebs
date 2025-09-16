@@ -106,7 +106,7 @@ export default function Sidebar({
     <aside
       className={`bg-gray-800 text-white w-64 shadow-lg ${
         className || ""
-      } fixed left-0 z-50 md:static md:top-auto md:left-auto md:z-auto`}
+      } fixed left-0 z-50 md:static md:top-auto md:left-auto md:z-auto overflow-y-auto h-screen [scrollbar-width:none] [&::-webkit-scrollbar]:hidden`}
       style={{
         top:
           typeof window !== "undefined" && window.innerWidth < 768
@@ -120,7 +120,7 @@ export default function Sidebar({
       }}
     >
       <nav className="h-full flex flex-col md:h-auto">
-        <div className="overflow-y-auto flex-grow p-4 md:overflow-visible md:p-4">
+        <div className="flex-grow p-4 md:overflow-visible md:p-4">
           {/* Dashboard Dropdown */}
           <div>
             <button
