@@ -34,7 +34,8 @@ public class FileUploadController {
         try {
             SeparationFileUpload savedFile = fileUploadService.storeSeparationSupportiveDoc(file, separationId);
             Map<String, String> response = new HashMap<>();
-            response.put("uploadId", String.valueOf(savedFile.getUploadId()));
+            response.put("uploadId", String.valueOf(savedFile.getUploadId())); // Now Long, convert to String for
+                                                                               // response
             response.put("fileName", savedFile.getFileName());
             response.put("fileType", savedFile.getFileType());
             if (savedFile.getSeparationId() != null) {

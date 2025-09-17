@@ -8,7 +8,8 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface SeparationFileUploadRepository extends JpaRepository<SeparationFileUpload, String> {
+public interface SeparationFileUploadRepository extends JpaRepository<SeparationFileUpload, Long> {
     Optional<SeparationFileUpload> findByFileName(String fileName);
+
     List<SeparationFileUpload> findBySeparationId(String separationId);
 }

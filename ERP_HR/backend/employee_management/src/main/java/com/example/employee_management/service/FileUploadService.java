@@ -28,7 +28,8 @@ public class FileUploadService {
     private EntityManager entityManager;
 
     @Transactional
-    public SeparationFileUpload storeSeparationSupportiveDoc(MultipartFile file, String separationId) throws IOException {
+    public SeparationFileUpload storeSeparationSupportiveDoc(MultipartFile file, String separationId)
+            throws IOException {
         String originalFileName = StringUtils.cleanPath(file.getOriginalFilename());
         logger.info("Attempting to store file: {} for separationId: {}", originalFileName, separationId);
 
@@ -36,18 +37,32 @@ public class FileUploadService {
             throw new IOException("Filename contains invalid path sequence " + originalFileName);
         }
 
-        // Let JPA generate the uploadId using the configured sequence
+        Long newUploadId;
+        try {
+            // Get sequence value and convert to Long
+            BigDecimal sequenceValue = (BigDecimal) entityManager
+                    .createNativeQuery("SELECT SEPARATION_FILE_UPLOAD_SEQ.NEXTVAL FROM DUAL")
+                    .getSingleResult();
+            newUploadId = sequenceValue.longValue();
+        } catch (Exception e) {
+            logger.error("CRITICAL: Failed to get NEXTVAL from SEPARATION_FILE_UPLOAD_SEQ. Error: {}", e.getMessage(),
+                    e);
+            throw new RuntimeException("Could not generate file upload ID from sequence.", e);
+        }
+
         SeparationFileUpload fileUpload = new SeparationFileUpload();
+        fileUpload.setUploadId(newUploadId); // Now Long
         fileUpload.setFileName(originalFileName);
         fileUpload.setFileType(file.getContentType());
         fileUpload.setUploadFile(file.getBytes());
         if (StringUtils.hasText(separationId)) {
-            fileUpload.setSeparationId(separationId); // Link to separation if ID is provided
+            fileUpload.setSeparationId(separationId); // Always String
         }
 
         try {
             SeparationFileUpload savedFile = separationFileUploadRepository.save(fileUpload);
-            logger.info("Successfully stored file with UPLOAD_ID: {} and FileName: {}", savedFile.getUploadId(), savedFile.getFileName());
+            logger.info("Successfully stored file with UPLOAD_ID: {} and FileName: {}", savedFile.getUploadId(),
+                    savedFile.getFileName());
             return savedFile;
         } catch (Exception e) {
             logger.error("Database error while storing file {}: {}", originalFileName, e.getMessage(), e);
@@ -62,6 +77,7 @@ public class FileUploadService {
     public SeparationFileUpload getFileByFileName(String fileName) {
         return separationFileUploadRepository.findByFileName(fileName).orElse(null);
     }
+
     public List<SeparationFileUpload> getFilesBySeparationId(String separationId) {
         return separationFileUploadRepository.findBySeparationId(separationId);
     }

@@ -7,8 +7,6 @@ import jakarta.persistence.*;
 public class SeparationFileUpload {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "separation_file_upload_seq")
-    @SequenceGenerator(name = "separation_file_upload_seq", sequenceName = "SEPARATION_FILE_UPLOAD_SEQ", allocationSize = 1)
     @Column(name = "UPLOAD_ID", nullable = false)
     private Long uploadId;
 
