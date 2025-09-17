@@ -116,14 +116,13 @@ public class EmployeeService {
                                 logger.debug("Successfully resolved job title from HR_LU_JOB_TYPE (ID: {}): {}",
                                         luJobTypeObject.getId(), resolvedJobTitleName);
                             } else {
-                                resolvedJobTitleName = "N/A - JobTitle (HrLuJobType link) in HrJobType is null for HrJobType.ID: "
-                                        + hrJobType.getId();
-                                logger.warn(resolvedJobTitleName);
+                                resolvedJobTitleName = "N/A";
+                                logger.warn("JobTitle not found for HrJobType.ID: {}", hrJobType.getId());
                             }
                         } else {
-                            resolvedJobTitleName = "N/A - HrJobType Not Found for ID: " + jobTypeIdFromDetail
-                                    + " (which came from HR_JOB_TYPE_DETAIL.JOB_TYPE_ID)";
-                            logger.warn(resolvedJobTitleName);
+                            resolvedJobTitleName = "N/A";
+                            logger.warn("HrJobType Not Found for ID: {} (from HR_JOB_TYPE_DETAIL.JOB_TYPE_ID)",
+                                    jobTypeIdFromDetail);
                         }
                     } else {
                         resolvedJobTitleName = "N/A - JOB_TYPE_ID in HrJobTypeDetail is null for detail PK ID: "
