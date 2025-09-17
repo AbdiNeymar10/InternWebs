@@ -35,7 +35,7 @@ public class HrLuJobType {
     }
 
     public HrLuJobType(Integer id, String jobTitle, String status, String code,
-                       String jobTitleInAmharic, String description) {
+            String jobTitleInAmharic, String description) {
         this.id = id;
         this.jobTitle = jobTitle;
         this.status = status;

@@ -50,6 +50,10 @@ function TransferRequest() {
     useState<string>("");
   const [loadingRejected, setLoadingRejected] = useState(false);
 
+  // Current logged in user role and empId (used to restrict what an EMPLOYEE can see)
+  const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
+  const [currentUserEmpId, setCurrentUserEmpId] = useState<string | null>(null);
+
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -185,6 +189,25 @@ function TransferRequest() {
     }
   };
   useEffect(() => {
+    // read role and empId from localStorage once on mount
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("user");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          setCurrentUserRole(parsed?.role ?? null);
+          // empId may be stored under different keys; normalize to string
+          const possibleEmpId =
+            parsed?.empId || parsed?.empID || parsed?.employeeId || parsed?.id;
+          setCurrentUserEmpId(
+            possibleEmpId != null ? String(possibleEmpId) : null
+          );
+        }
+      } catch (e) {
+        setCurrentUserRole(null);
+        setCurrentUserEmpId(null);
+      }
+    }
     authFetch("http://localhost:8080/api/departments")
       .then((res) => res.json())
       .then((data) => {
@@ -192,6 +215,35 @@ function TransferRequest() {
       })
       .catch((err) => console.error("Failed to fetch departments", err));
   }, []);
+
+  // Precompute visible requests for the Update Request dropdown, applying role-based restrictions
+  const visibleRequests = transferRequests
+    .filter(
+      (req) =>
+        req.transferRequesterId != null || (req.empId && req.employeeName)
+    )
+    .filter((req) => {
+      const empIdVal = req.empId != null ? String(req.empId) : "";
+      const requesterVal =
+        req.transferRequesterId != null ? String(req.transferRequesterId) : "";
+      const empName = req.employeeName ? req.employeeName.toLowerCase() : "";
+      const matchesSearch =
+        searchValue.trim() === "" ||
+        empIdVal.includes(searchValue.trim()) ||
+        empName.includes(searchValue.trim().toLowerCase());
+
+      // If the logged-in user is an EMPLOYEE, only show requests that belong to them
+      if (currentUserRole === "EMPLOYEE") {
+        // allow when either empId or transferRequesterId matches the logged-in empId
+        const belongsToUser =
+          (currentUserEmpId && empIdVal === currentUserEmpId) ||
+          (currentUserEmpId && requesterVal === currentUserEmpId);
+        return matchesSearch && Boolean(belongsToUser);
+      }
+
+      // other roles see everything matching the search
+      return matchesSearch;
+    });
 
   // Fetch employee info when employeeId changes
   useEffect(() => {
@@ -432,75 +484,35 @@ function TransferRequest() {
                         <li className="p-2 text-gray-400">Loading...</li>
                       ) : (
                         <>
-                          {transferRequests
-                            .filter(
-                              (req) =>
-                                req.transferRequesterId != null ||
-                                (req.empId && req.employeeName)
-                            )
-                            .filter((req) => {
-                              const empId = req.empId || "";
-                              const empName = req.employeeName
-                                ? req.employeeName.toLowerCase()
-                                : "";
-                              return (
-                                searchValue.trim() === "" ||
-                                empId.includes(searchValue.trim()) ||
-                                empName.includes(
-                                  searchValue.trim().toLowerCase()
-                                )
-                              );
-                            })
-                            .map((req, idx) => {
-                              const empId = req.empId || "";
-                              const fullName = req.employeeName || "";
-                              return (
-                                <li
-                                  key={
-                                    req.transferRequesterId ?? empId + "-" + idx
-                                  }
-                                  className={`p-2 hover:bg-gray-200 cursor-pointer ${
-                                    selectedRequest ===
-                                    String(req.transferRequesterId ?? empId)
-                                      ? "bg-blue-100"
-                                      : ""
-                                  }`}
-                                  onClick={() => {
-                                    setSelectedRequest(
-                                      String(req.transferRequesterId ?? empId)
-                                    );
-                                    setShowDropdown(false);
-                                    setSearchValue(`${empId} - ${fullName}`);
-                                  }}
-                                >
-                                  {empId} - {fullName}
-                                </li>
-                              );
-                            })}
-                          {!loading &&
-                            transferRequests
-                              .filter(
-                                (req) =>
-                                  req.transferRequesterId != null ||
-                                  (req.empId && req.employeeName)
-                              )
-                              .filter((req) => {
-                                const empId = req.empId || "";
-                                const empName = req.employeeName
-                                  ? req.employeeName.toLowerCase()
-                                  : "";
-                                return (
-                                  searchValue.trim() === "" ||
-                                  empId.includes(searchValue.trim()) ||
-                                  empName.includes(
-                                    searchValue.trim().toLowerCase()
-                                  )
-                                );
-                              }).length === 0 && (
-                              <li className="p-2 text-gray-400">
-                                No results found
+                          {visibleRequests.map((req, idx) => {
+                            const empId = req.empId || "";
+                            const fullName = req.employeeName || "";
+                            const key =
+                              req.transferRequesterId ?? empId + "-" + idx;
+                            const value = String(
+                              req.transferRequesterId ?? empId
+                            );
+                            return (
+                              <li
+                                key={key}
+                                className={`p-2 hover:bg-gray-200 cursor-pointer ${
+                                  selectedRequest === value ? "bg-blue-100" : ""
+                                }`}
+                                onClick={() => {
+                                  setSelectedRequest(value);
+                                  setShowDropdown(false);
+                                  setSearchValue(`${empId} - ${fullName}`);
+                                }}
+                              >
+                                {empId} - {fullName}
                               </li>
-                            )}
+                            );
+                          })}
+                          {!loading && visibleRequests.length === 0 && (
+                            <li className="p-2 text-gray-400">
+                              No results found
+                            </li>
+                          )}
                         </>
                       )}
                     </ul>
