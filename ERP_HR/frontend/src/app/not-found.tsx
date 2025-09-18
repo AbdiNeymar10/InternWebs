@@ -1,6 +1,25 @@
+"use client";
+
 import React from "react";
+import { useRouter } from "next/navigation";
 
 export default function NotFound() {
+  const router = useRouter();
+
+  const handleGoBack = () => {
+    // Attempt to go back. If there's no history, navigate to the app root as a fallback
+    try {
+      router.back();
+      // Note: next/navigation's router.back doesn't return a boolean, so as a safe fallback
+      // also schedule a push to root shortly after. If back() succeeds, the push will be ignored.
+      setTimeout(() => {
+        // If user is still on the 404 page after attempting back, push to root
+        router.push("/");
+      }, 400);
+    } catch (e) {
+      router.push("/");
+    }
+  };
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100">
       <div className="bg-white rounded-xl shadow-2xl p-10 flex flex-col items-center animate-fade-in">
@@ -33,12 +52,12 @@ export default function NotFound() {
           <br />
           Please check the URL or return to the homepage.
         </p>
-        <a
-          href="/"
+        <button
+          onClick={handleGoBack}
           className="px-6 py-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold shadow-lg hover:scale-105 transition-transform duration-200"
         >
-          Go Home
-        </a>
+          Go Back
+        </button>
       </div>
       <style>{`
         @keyframes fade-in {
