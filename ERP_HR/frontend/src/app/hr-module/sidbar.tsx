@@ -960,7 +960,7 @@ export default function Sidebar({
                   Recruitment Approve
                 </a>
 
-                <a
+                {/* <a
                   href="#"
                   className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
                   onClick={(e) => {
@@ -1010,77 +1010,7 @@ export default function Sidebar({
                 >
                   <BriefcaseIcon className="h-4 w-4" />
                   Vacancy Post
-                </a>
-                {/* <Link
-                  href="/hr-module/recruitment"
-                  className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
-                >
-                  <FiUsers className="w-4 h-4" />
-                  Recruitment Dashboard
-                </Link>
-                <Link
-                  href="/hr-module/recruitment/define-shortlisting-criteria"
-                  className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
-                >
-                  <FiArchive className="w-4 h-4" />
-                  Shortlisting Criteria
-                </Link>
-                <Link
-                  href="/hr-module/recruitment/filter-shortlisted-candidates"
-                  className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
-                >
-                  <FiArchive className="w-4 h-4" />
-                  Shortlisted Candidates
-                </Link>
-                <Link
-                  href="/hr-module/recruitment/post-vacancy"
-                  className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
-                >
-                  <FiArchive className="w-4 h-4" />
-                  Post Vacancy
-                </Link>
-                <Link
-                  href="/hr-module/recruitment/manage-job-application"
-                  className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
-                >
-                  <FiArchive className="w-4 h-4" />
-                  Manage Job Applications
-                </Link>
-                <Link
-                  href="/hr-module/recruitment/manage-recruitment-request"
-                  className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
-                >
-                  <FiArchive className="w-4 h-4" />
-                  Manage Recruitment Request
-                </Link>
-                <Link
-                  href="/hr-module/recruitment/maintain-exam-result"
-                  className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
-                >
-                  <FiArchive className="w-4 h-4" />
-                  Maintain Exam Result
-                </Link>
-                <Link
-                  href="/hr-module/recruitment/Apply-Vacancy"
-                  className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
-                >
-                  <FiArchive className="w-4 h-4" />
-                  Apply Vaccancy
-                </Link>
-                <Link
-                  href="/hr-module/recruitment/register-candidate-information"
-                  className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
-                >
-                  <FiArchive className="w-4 h-4" />
-                  Candidate Information
-                </Link>
-                <Link
-                  href="/hr-module/recruitment/view-vacancy"
-                  className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
-                >
-                  <FiArchive className="w-4 h-4" />
-                  View Vacancy
-                </Link> */}
+                </a> */}
               </div>
             )}
           </div>
