@@ -667,12 +667,7 @@ export default function Sidebar({
                   href="#"
                   className="flex items-center gap-2 p-2 hover:bg-gray-700 rounded text-sm"
                   onClick={(e) => {
-                    if (
-                      userRole &&
-                      ["EMPLOYEE", "ADMIN", "HR", "DEPARTMENT"].includes(
-                        userRole
-                      )
-                    ) {
+                    if (userRole && ["DEPARTMENT"].includes(userRole)) {
                       window.location.href =
                         "/hr-module/Leave/leave-transfer-request";
                     } else {
@@ -1123,24 +1118,7 @@ export default function Sidebar({
               </div>
             )}
           </div>
-          {/* requirement section */}
-          {/* <div>
-            <button
-              onClick={() => toggleMenu("Requirement")}
-              className="flex items-center justify-between w-full p-2 hover:bg-gray-700 rounded"
-            >
-              <div className="flex items-center gap-2">
-                <ListBulletIcon className="h-4 w-4" />
-                <span>Requirement</span>
-              </div>
-              {openMenus.Requirement ? <FiChevronUp /> : <FiChevronDown />}
-            </button>
-            {openMenus.Requirement && (
-              <div className="ml-6 mt-1 space-y-2">
-             
-              </div>
-            )}
-          </div> */}
+
           {/* User Management - Only for SUPER_ADMIN */}
           {userRole === "SUPER_ADMIN" && (
             <div>
