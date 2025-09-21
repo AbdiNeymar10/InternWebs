@@ -481,7 +481,11 @@ export default function EmployeeProfilePage() {
                     return;
                   }
                   const role = getUserRole();
-                  if (role && generalAllowed.includes(role)) {
+                  if (
+                    tab.id === "upload"
+                      ? ["ADMIN", "DEPARTMENT"].includes(role)
+                      : role && generalAllowed.includes(role)
+                  ) {
                     setActiveTab(tab.id);
                   } else {
                     Swal.fire({

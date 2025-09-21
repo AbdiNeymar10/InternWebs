@@ -281,11 +281,43 @@ export default function EmployeeForm({
               `Error fetching job details: ${response.status} ${response.statusText}`,
               errorText
             );
-            throw new Error(
-              `Network response was not ok: ${response.status} ${response.statusText}`
-            );
+            // Instead of throwing, show a toast message
+            if (typeof window !== "undefined") {
+              // Dynamically import Swal for toast
+              const Swal = (await import("sweetalert2")).default;
+              Swal.fire({
+                toast: true,
+                position: "top-end",
+                icon: "info",
+                title:
+                  "No job family or job class found for selected job title.",
+                showConfirmButton: false,
+                timer: 3000,
+              });
+            }
+            return;
           }
           const data = await response.json();
+          if (!data.jobFamilyId && !data.jobFamily) {
+            if (typeof window !== "undefined") {
+              const Swal = (await import("sweetalert2")).default;
+              Swal.fire({
+                toast: true,
+                position: "top-end",
+                icon: "info",
+                title:
+                  "No job family or job class found for selected job title.",
+                showConfirmButton: false,
+                timer: 3000,
+              });
+            }
+            setFormData((prev) => ({
+              ...prev,
+              jobFamily: "",
+              jobGrade: "",
+            }));
+            return;
+          }
           setFormData((prev) => ({
             ...prev,
             jobFamily: data.jobFamilyId
@@ -317,20 +349,43 @@ export default function EmployeeForm({
               `Error fetching increment steps: ${response.status} ${response.statusText}`,
               errorText
             );
-            throw new Error(
-              `Failed to fetch increment steps. Status: ${response.status}`
-            );
+            // Show toast message instead of throwing
+            if (typeof window !== "undefined") {
+              const Swal = (await import("sweetalert2")).default;
+              Swal.fire({
+                toast: true,
+                position: "top-end",
+                icon: "info",
+                title: "No increment step or salary found for selected ICF.",
+                showConfirmButton: false,
+                timer: 3000,
+              });
+            }
+            setIncrementSteps([]);
+            return;
           }
           const steps = await response.json();
           setIncrementSteps(steps);
+          if (!steps || steps.length === 0) {
+            if (typeof window !== "undefined") {
+              const Swal = (await import("sweetalert2")).default;
+              Swal.fire({
+                toast: true,
+                position: "top-end",
+                icon: "info",
+                title: "No increment step or salary found for selected ICF.",
+                showConfirmButton: false,
+                timer: 3000,
+              });
+            }
+            return;
+          }
           if (steps.length === 1) {
             setFormData((prev) => ({
               ...prev,
               retirementNo: steps[0].stepNo.toString(),
             }));
             fetchSalaryForStep(steps[0].stepNo);
-            // Also auto-select the payGradeId for a single returned step so it will be
-            // included in the create payload
             setSelectedPayGradeId(
               (steps[0] as any).payGradeId
                 ? Number((steps[0] as any).payGradeId)
@@ -339,6 +394,17 @@ export default function EmployeeForm({
           }
         } catch (error) {
           console.error("Error fetching increment steps:", error);
+          if (typeof window !== "undefined") {
+            const Swal = (await import("sweetalert2")).default;
+            Swal.fire({
+              toast: true,
+              position: "top-end",
+              icon: "info",
+              title: "No increment step or salary found for selected ICF.",
+              showConfirmButton: false,
+              timer: 3000,
+            });
+          }
           setIncrementSteps([]);
         }
       };

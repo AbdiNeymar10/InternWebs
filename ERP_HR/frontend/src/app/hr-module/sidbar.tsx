@@ -912,9 +912,7 @@ export default function Sidebar({
                   onClick={(e) => {
                     if (
                       userRole &&
-                      ["HR", "ADMIN", "EMPLOYEE", "DEPARTMENT"].includes(
-                        userRole
-                      )
+                      ["ADMIN", "DEPARTMENT"].includes(userRole)
                     ) {
                       window.location.href =
                         "/hr-module/Recruitment/Recruitment-Request";
@@ -1070,9 +1068,7 @@ export default function Sidebar({
                   onClick={(e) => {
                     if (
                       userRole &&
-                      ["HR", "ADMIN", "EMPLOYEE", "DEPARTMENT"].includes(
-                        userRole
-                      )
+                      ["ADMIN", "DEPARTMENT"].includes(userRole)
                     ) {
                       window.location.href =
                         "/hr-module/Authority-Delegation/Terminate-Delegation";
