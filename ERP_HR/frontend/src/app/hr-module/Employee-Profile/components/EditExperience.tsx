@@ -8,7 +8,7 @@ import {
   FiEdit2,
   FiBriefcase,
   FiRefreshCw,
-  FiSave, // For the new job type modal
+  FiSave,
 } from "react-icons/fi";
 
 // Assuming the library does not provide convertToEthiopian, implement it manually
@@ -17,10 +17,6 @@ function convertToEthiopian(
   month: number,
   day: number
 ): { year: number; month: number; day: number } {
-  // Implement the conversion logic or use an alternative library
-  // console.warn(
-  //   "convertToEthiopian is not available in the library. Replace this with actual logic."
-  // );
   // Dummy conversion logic, replace with actual implementation
   const JDN_OFFSET = 1723856; // Julian Day Number for 0000-00-00 in Ethiopian Calendar
   const GREGORIAN_EPOCH = 1721425.5; // Julian Day Number for 0000-01-01 in Gregorian Calendar
@@ -52,13 +48,10 @@ function convertToEthiopian(
   // Adjustments for Pagume (13th month)
   if (ethMonth > 13) {
     ethMonth = 13; // Pagume
-    // Days in Pagume depend on whether it's a leap year
     const isEthLeap = (ethYear + 1) % 4 === 0;
     const daysInPagume = isEthLeap ? 6 : 5;
     if (ethDay > daysInPagume) {
       // This case should ideally not happen if JDN logic is perfect
-      // but as a fallback, reset to last day of Pagume or roll over.
-      // For simplicity, let's assume it fits or needs more complex handling.
     }
   }
   return { year: ethYear, month: ethMonth, day: ethDay };
@@ -70,10 +63,6 @@ function convertToGregorian(
   ethMonth: number,
   ethDay: number
 ): { year: number; month: number; day: number } {
-  // console.warn(
-  //   "convertToGregorian is not available in the library. Replace this with actual logic."
-  // );
-  // Dummy return, replace with actual implementation
   const JDN_OFFSET = 1723856; // Julian Day Number for 0000-00-00 in Ethiopian Calendar
 
   // Convert Ethiopian date to Julian Day Number
@@ -117,18 +106,13 @@ function convertGregorianToEthiopian(
       day < 1 ||
       day > 31
     ) {
-      // Basic validation for Gregorian date parts
       console.error("Invalid Gregorian date input:", gregorianDateString);
       return "Invalid Date";
     }
     const ethDate = convertToEthiopian(year, month, day);
-    const formattedEthDate = `${ethDate.year}-${ethDate.month
+    return `${ethDate.year}-${ethDate.month
       .toString()
       .padStart(2, "0")}-${ethDate.day.toString().padStart(2, "0")}`;
-    // console.log(
-    //   `Converted ${gregorianDateString} to Ethiopian ${formattedEthDate}`
-    // );
-    return formattedEthDate;
   } catch (e) {
     console.error("Gregorian to Ethiopian conversion failed:", e);
     return "Conversion Error";
@@ -153,8 +137,8 @@ interface Experience {
   endDateEC: string;
 }
 
-const initialFormData: Omit<Experience, "id"> = {
-  employeeId: "1",
+// FIX 1: Removed hardcoded employeeId from the initial form data object.
+const initialFormData = {
   jobTitle: "",
   jobTitleInAmharic: "",
   refNo: "",
@@ -199,7 +183,8 @@ export default function EditExperienceTab({ empId }: EditExperienceTabProps) {
   const API_URL = "http://localhost:8080/api";
 
   const fetchExperiences = useCallback(
-    async (employeeIdToFetch: string = "1") => {
+    async (employeeIdToFetch: string) => {
+      if (!employeeIdToFetch) return;
       try {
         setLoading(true);
         setError(null);
@@ -254,7 +239,9 @@ export default function EditExperienceTab({ empId }: EditExperienceTabProps) {
 
   useEffect(() => {
     setFormData((prev) => ({ ...prev, employeeId: empId }));
-    fetchExperiences(empId);
+    if (empId) {
+      fetchExperiences(empId);
+    }
     fetchJobTypes();
   }, [fetchExperiences, fetchJobTypes, empId]);
 
@@ -264,10 +251,13 @@ export default function EditExperienceTab({ empId }: EditExperienceTabProps) {
   ) => {
     try {
       setLoading(true);
-      setError(null);
+setError(null);
       setSuccessMessage(null);
 
-      const pathEmployeeId = experienceDataToSave.employeeId || "1";
+      const pathEmployeeId = experienceDataToSave.employeeId;
+      if (!pathEmployeeId) {
+        throw new Error("Employee ID is missing.");
+      }
       const payloadForSave: Partial<Experience> = { ...experienceDataToSave };
 
       let response;
@@ -333,8 +323,9 @@ export default function EditExperienceTab({ empId }: EditExperienceTabProps) {
     setShowExperienceForm(true);
   };
 
+  // FIX 2: Ensure the form is reset with the correct empId from props.
   const resetExperienceFormAndState = () => {
-    setFormData(initialFormData);
+    setFormData({ ...initialFormData, employeeId: empId });
     setShowExperienceForm(false);
     setEditingId(null);
     setError(null);
@@ -379,11 +370,6 @@ export default function EditExperienceTab({ empId }: EditExperienceTabProps) {
       return updatedFormData;
     });
   };
-
-  // handleEthiopianDateChange is not used if EC dates are auto-calculated and read-only
-  // const handleEthiopianDateChange = (name: string, dateString: string) => {
-  //   setFormData((prev) => ({ ...prev, [name]: dateString }));
-  // };
 
   const handleJobTitleDropdownChange = (
     e: React.ChangeEvent<HTMLSelectElement>
@@ -639,8 +625,8 @@ export default function EditExperienceTab({ empId }: EditExperienceTabProps) {
                   <input
                     type="text"
                     name="endDateEC"
-                    value={formData.endDateEC} // Assuming you might want to input this or calculate it
-                    onChange={handleInputChange} // If it's manually entered or calculated from an "End Date (GC)"
+                    value={formData.endDateEC}
+                    onChange={handleInputChange}
                     className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Enter end date in EC"
                   />
@@ -791,17 +777,18 @@ export default function EditExperienceTab({ empId }: EditExperienceTabProps) {
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => fetchExperiences(formData.employeeId || "1")}
+              onClick={() => fetchExperiences(empId)}
               className="flex items-center bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-3 py-1 rounded-md shadow-sm hover:shadow transition-all duration-300 border border-white border-opacity-20 text-xs md:text-sm"
               title="Refresh Experiences"
               disabled={loading}
             >
               <FiRefreshCw size={16} />
             </button>
+            {/* FIX 3: Ensure the onClick handler for adding a new experience uses the correct empId. */}
             <button
               onClick={() => {
                 setEditingId(null);
-                setFormData(initialFormData);
+                setFormData({ ...initialFormData, employeeId: empId });
                 setShowExperienceForm(true);
               }}
               className="flex items-center bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-3 py-1 rounded-md shadow-sm hover:shadow transition-all duration-300 border border-white border-opacity-20 text-xs md:text-sm"

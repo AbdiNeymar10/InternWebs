@@ -6,6 +6,7 @@ import com.example.employee_management.exception.ResourceNotFoundException;
 import com.example.employee_management.repository.EmpExperienceRepository;
 import com.example.employee_management.repository.HrEmployeeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,19 +18,63 @@ public class EmpExperienceService {
 
     private final EmpExperienceRepository empExperienceRepository;
     private final HrEmployeeRepository employeeRepository;
+    private final JdbcTemplate jdbcTemplate;
 
     @Autowired
     public EmpExperienceService(
             EmpExperienceRepository empExperienceRepository,
-            HrEmployeeRepository employeeRepository
+            HrEmployeeRepository employeeRepository,
+            JdbcTemplate jdbcTemplate
     ) {
         this.empExperienceRepository = empExperienceRepository;
         this.employeeRepository = employeeRepository;
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
+    // Generate unique EXP_ID using sequence
+    private Long generateExpId() {
+        String sql = "SELECT HR_EXPERIENCE_SEQ.NEXTVAL FROM DUAL";
+        return jdbcTemplate.queryForObject(sql, Long.class);
+    }
+
+    // Generate unique EMP_EXPE_ID using sequence
+    private Long generateEmpExpeId() {
+        String sql = "SELECT HR_EMP_EXPERIENCE_SEQ.NEXTVAL FROM DUAL";
+        return jdbcTemplate.queryForObject(sql, Long.class);
+    }
+
+    // Generate unique EMP_EXE_ID using sequence
+    private Long generateEmpExeId() {
+        String sql = "SELECT HR_EMP_EXE_SEQ.NEXTVAL FROM DUAL";
+        return jdbcTemplate.queryForObject(sql, Long.class);
     }
 
     public EmpExperience saveExperience(String empId, EmpExperience empExperience) {
         HrEmployee employee = employeeRepository.findById(empId)
                 .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + empId));
+        
+        // Generate all required IDs if not provided
+        if (empExperience.getEmpExpeId() == null) {
+            empExperience.setEmpExpeId(generateEmpExpeId());
+        }
+        if (empExperience.getExpId() == null) {
+            empExperience.setExpId(generateExpId());
+        }
+        if (empExperience.getEmpExeId() == null) {
+            empExperience.setEmpExeId(generateEmpExeId());
+        }
+        
+        // Set default values for required fields if not provided
+        if (empExperience.getCurrentJobFlag() == null) {
+            empExperience.setCurrentJobFlag("N");
+        }
+        if (empExperience.getOrgType() == null) {
+            empExperience.setOrgType("EXTERNAL");
+        }
+        if (empExperience.getEmploymentType() == null) {
+            empExperience.setEmploymentType("Full-time");
+        }
+        
         empExperience.setEmployee(employee);
         return empExperienceRepository.save(empExperience);
     }
@@ -40,10 +85,7 @@ public class EmpExperienceService {
             throw new ResourceNotFoundException("Experience not found with id: " + empExpeId);
         }
 
-        HrEmployee employee = employeeRepository.findById(empExperienceDetails.getEmpId())
-                .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + empExperienceDetails.getEmpId()));
-
-        existingExperience.setEmployee(employee);
+        // Update fields only if they are provided
         if (empExperienceDetails.getJobTitle() != null)
             existingExperience.setJobTitle(empExperienceDetails.getJobTitle());
         if (empExperienceDetails.getInstitution() != null)
@@ -68,6 +110,10 @@ public class EmpExperienceService {
             existingExperience.setCurrentJobFlag(empExperienceDetails.getCurrentJobFlag());
         if (empExperienceDetails.getOrgType() != null)
             existingExperience.setOrgType(empExperienceDetails.getOrgType());
+        if (empExperienceDetails.getExpId() != null)
+            existingExperience.setExpId(empExperienceDetails.getExpId());
+        if (empExperienceDetails.getEmpExeId() != null)
+            existingExperience.setEmpExeId(empExperienceDetails.getEmpExeId());
 
         return empExperienceRepository.save(existingExperience);
     }

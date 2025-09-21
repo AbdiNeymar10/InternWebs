@@ -59,6 +59,10 @@ public class EmpExperience {
     @Column(name = "EXP_ID", columnDefinition = "NUMBER(19)")
     private Long expId;
 
+    // ADD THIS MISSING FIELD - EMP_EXE_ID
+    @Column(name = "EMP_EXE_ID", columnDefinition = "NUMBER(19)")
+    private Long empExeId;
+
     @Column(name = "CURRENT_JOB_FLAG", length = 255, columnDefinition = "VARCHAR2(255 CHAR)", nullable = false)
     private String currentJobFlag;
 

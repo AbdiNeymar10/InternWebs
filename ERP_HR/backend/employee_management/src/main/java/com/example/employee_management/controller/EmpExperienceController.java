@@ -9,10 +9,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.dao.DataAccessException;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 
 @RestController
 @RequestMapping("/api/employees/{empId}/experiences")
@@ -34,8 +36,7 @@ public class EmpExperienceController {
             HrLuEmploymentTypeService employmentTypeService,
             InstitutionService institutionService,
             OrganizationTitleService organizationTitleService,
-            TerminationReasonService terminationReasonService
-    ) {
+            TerminationReasonService terminationReasonService) {
         this.empExperienceService = empExperienceService;
         this.jdbcTemplate = jdbcTemplate;
         this.employmentTypeService = employmentTypeService;
@@ -45,8 +46,47 @@ public class EmpExperienceController {
     }
 
     private Long generateUniqueId() {
-        String sql = "SELECT HR_EMP_EXPERIENCE_SEQ.NEXTVAL FROM DUAL";
-        return jdbcTemplate.queryForObject(sql, Long.class);
+        // Limit values to fit the DB column: EMP_EXPE_ID is NUMBER(10)
+        final long MAX_ALLOWED = 9_999_999_999L; // 10 digits
+
+        // Try a few common SQL forms for retrieving the next value from a sequence
+        String[] sqlAttempts = new String[] {
+                // Oracle (with DUAL)
+                "SELECT HR_EMP_EXPERIENCE_SEQ.NEXTVAL FROM DUAL",
+                // Postgres
+                "SELECT nextval('HR_EMP_EXPERIENCE_SEQ')",
+                // Some DBs allow calling the sequence directly
+                "SELECT HR_EMP_EXPERIENCE_SEQ.NEXTVAL"
+        };
+
+        for (String sql : sqlAttempts) {
+            try {
+                Object result = jdbcTemplate.queryForObject(sql, Object.class);
+                if (result instanceof Number) {
+                    long val = ((Number) result).longValue();
+                    if (val <= 0) {
+                        logger.debug("Sequence returned non-positive value: {}", val);
+                    }
+                    if (val > MAX_ALLOWED) {
+                        long reduced = (val % MAX_ALLOWED) + 1;
+                        logger.warn("Sequence value {} exceeds {}. Reduced to {}", val, MAX_ALLOWED, reduced);
+                        return reduced;
+                    }
+                    return val;
+                }
+            } catch (DataAccessException ex) {
+                logger.debug("Sequence attempt failed (will try next): {} -> {}", sql, ex.getMessage());
+            }
+        }
+
+        // Final fallback: generate an id that fits within NUMBER(10)
+        long millis = System.currentTimeMillis();
+        long randomPart = ThreadLocalRandom.current().nextLong(1, 1000);
+        long generated = (millis % MAX_ALLOWED) + randomPart;
+        // ensure strictly positive and within range
+        generated = (generated <= 0) ? 1L : (generated > MAX_ALLOWED ? (generated % MAX_ALLOWED) + 1 : generated);
+        logger.warn("Falling back to generated id for EmpExperience: {}", generated);
+        return generated;
     }
 
     @PostMapping
@@ -61,7 +101,8 @@ public class EmpExperienceController {
             return new ResponseEntity<>(savedExperience, HttpStatus.CREATED);
         } catch (Exception e) {
             logger.error("Failed to save experience for empId: " + empId, e);
-            return new ResponseEntity<>("Failed to save experience: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Failed to save experience: " + e.getMessage(),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -90,18 +131,21 @@ public class EmpExperienceController {
             response.put("referenceData", getReferenceData());
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity<>("Failed to fetch experiences for employee: " + empId, HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Failed to fetch experiences for employee: " + empId,
+                    HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateExperience(@PathVariable String empId, @PathVariable Long id, @RequestBody EmpExperience empExperience) {
+    public ResponseEntity<?> updateExperience(@PathVariable String empId, @PathVariable Long id,
+            @RequestBody EmpExperience empExperience) {
         try {
             empExperience.setEmpId(empId);
             EmpExperience updatedExperience = empExperienceService.updateExperience(id, empExperience);
             return new ResponseEntity<>(updatedExperience, HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity<>("Failed to update experience: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Failed to update experience: " + e.getMessage(),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -115,7 +159,8 @@ public class EmpExperienceController {
             empExperienceService.deleteExperience(id);
             return new ResponseEntity<>("Experience deleted successfully", HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity<>("Failed to delete experience: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Failed to delete experience: " + e.getMessage(),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

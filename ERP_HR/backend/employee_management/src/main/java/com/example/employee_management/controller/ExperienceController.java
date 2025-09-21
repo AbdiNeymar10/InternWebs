@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/employees/{employeeId}/experiences")
+@RequestMapping("/api/employees/{employeeId}/experience-records") // Changed to match frontend
 @CrossOrigin(origins = "http://localhost:3000")
 @RequiredArgsConstructor
 @Slf4j
@@ -23,7 +23,7 @@ public class ExperienceController {
     @GetMapping
     public ResponseEntity<?> getExperiencesByEmployeeId(@PathVariable String employeeId) {
         try {
-            log.info("GET /api/employees/{}/experiences", employeeId);
+            log.info("GET /api/employees/{}/experience-records", employeeId);
             List<ExperienceDTO> experiences = experienceService.getExperiencesByEmployeeId(employeeId);
             return ResponseEntity.ok(experiences);
         } catch (Exception e) {
@@ -36,7 +36,7 @@ public class ExperienceController {
     @GetMapping("/{id}")
     public ResponseEntity<?> getExperienceById(@PathVariable String employeeId, @PathVariable Long id) {
         try {
-            log.info("GET /api/employees/{}/experiences/{}", employeeId, id);
+            log.info("GET /api/employees/{}/experience-records/{}", employeeId, id);
             ExperienceDTO experience = experienceService.getExperienceById(id);
             if (!experience.getEmployeeId().equals(employeeId)) {
                 log.warn("Attempt to access experience id {} for wrong employee id {}", id, employeeId);
@@ -60,7 +60,7 @@ public class ExperienceController {
             @PathVariable String employeeId,
             @RequestBody ExperienceDTO experienceDTO) {
         try {
-            log.info("POST /api/employees/{}/experiences with DTO: {}", employeeId, experienceDTO);
+            log.info("POST /api/employees/{}/experience-records with DTO: {}", employeeId, experienceDTO);
             experienceDTO.setEmployeeId(employeeId);
             ExperienceDTO createdExperience = experienceService.createExperience(experienceDTO);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdExperience);
@@ -81,7 +81,7 @@ public class ExperienceController {
             @PathVariable Long id,
             @RequestBody ExperienceDTO experienceDTO) {
         try {
-            log.info("PUT /api/employees/{}/experiences/{} with DTO: {}", employeeId, id, experienceDTO);
+            log.info("PUT /api/employees/{}/experience-records/{} with DTO: {}", employeeId, id, experienceDTO);
             experienceDTO.setEmployeeId(employeeId);
             ExperienceDTO updatedExperience = experienceService.updateExperience(id, experienceDTO);
             return ResponseEntity.ok(updatedExperience);
@@ -105,7 +105,7 @@ public class ExperienceController {
             @PathVariable String employeeId,
             @PathVariable Long id) {
         try {
-            log.info("DELETE /api/employees/{}/experiences/{}", employeeId, id);
+            log.info("DELETE /api/employees/{}/experience-records/{}", employeeId, id);
             experienceService.deleteExperience(id);
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {

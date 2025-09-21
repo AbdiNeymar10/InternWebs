@@ -5,7 +5,6 @@ import lombok.Data;
 @Data
 public class ExperienceDTO {
     private Long id;
-    // Removed version field as per corrected Experience entity
     private String employeeId;
     private String jobTitle;
     private String jobTitleInAmharic;

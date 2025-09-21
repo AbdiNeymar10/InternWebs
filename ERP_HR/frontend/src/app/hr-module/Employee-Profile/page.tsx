@@ -220,14 +220,14 @@ export default function EmployeeProfilePage() {
     { id: "cost-sharing", name: "Cost Sharing", icon: <FiDollarSign /> },
     { id: "promotion", name: "Promotion History", icon: <FiTrendingUp /> },
     { id: "edit", name: "Edit Experience", icon: <FiEdit /> },
-    { id: "print", name: "Print Experience", icon: <FiPrinter /> },
+    // { id: "print", name: "Print Experience", icon: <FiPrinter /> },
     { id: "upload", name: "Upload", icon: <FiUpload /> },
-    { id: "job-description", name: "Job Description", icon: <FiFileText /> },
-    {
-      id: "position-description",
-      name: "Position Description",
-      icon: <FiBriefcase />,
-    },
+    // { id: "job-description", name: "Job Description", icon: <FiFileText /> },
+    // {
+    //   id: "position-description",
+    //   name: "Position Description",
+    //   icon: <FiBriefcase />,
+    // },
   ];
 
   // Role helpers
