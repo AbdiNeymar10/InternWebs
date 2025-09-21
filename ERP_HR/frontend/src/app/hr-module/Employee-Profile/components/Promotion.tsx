@@ -1,7 +1,16 @@
 "use client";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiCalendar, FiEdit2, FiSearch, FiChevronLeft, FiChevronRight, FiFilter, FiX, FiCheck } from "react-icons/fi";
+import {
+  FiCalendar,
+  FiEdit2,
+  FiSearch,
+  FiChevronLeft,
+  FiChevronRight,
+  FiFilter,
+  FiX,
+  FiCheck,
+} from "react-icons/fi";
 import { toast, Toaster } from "react-hot-toast";
 import { authFetch } from "@/utils/authFetch";
 
@@ -25,21 +34,29 @@ type PromotionRecord = {
 
 interface PromotionTabProps {
   empId: string;
+  allEmployees?: any[];
 }
 
 const statusOptions = ["Approved", "Pending", "Rejected"];
 
-export default function PromotionTab({ empId }: PromotionTabProps) {
+export default function PromotionTab({
+  empId,
+  allEmployees,
+}: PromotionTabProps) {
   const [promotions, setPromotions] = useState<PromotionRecord[]>([]);
-  const [filteredPromotions, setFilteredPromotions] = useState<PromotionRecord[]>([]);
+  const [filteredPromotions, setFilteredPromotions] = useState<
+    PromotionRecord[]
+  >([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [showEditForm, setShowEditForm] = useState(false);
-  const [editingRecord, setEditingRecord] = useState<PromotionRecord | null>(null);
+  const [editingRecord, setEditingRecord] = useState<PromotionRecord | null>(
+    null
+  );
   const [submitSuccess, setSubmitSuccess] = useState(false);
-  
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -67,17 +84,23 @@ export default function PromotionTab({ empId }: PromotionTabProps) {
       setIsLoading(true);
       setError("");
       try {
-        const response = await authFetch("http://localhost:8080/api/promotion-history");
-        
+        const response = await authFetch(
+          "http://localhost:8080/api/promotion-history"
+        );
         if (!response.ok) {
-          throw new Error(`Failed to fetch promotions: ${response.status} ${response.statusText}`);
+          throw new Error(
+            `Failed to fetch promotions: ${response.status} ${response.statusText}`
+          );
         }
-        
         const data = await response.json();
         const formattedData = data.map((item: any) => ({
           promotionHistoryId: item.promotionHistoryId?.toString() || "",
-          prevDepartmentId: item.prevDepartmentId ? item.prevDepartmentId.toString() : "",
-          deptTransferTo: item.deptTransferTo ? item.deptTransferTo.toString() : "",
+          prevDepartmentId: item.prevDepartmentId
+            ? item.prevDepartmentId.toString()
+            : "",
+          deptTransferTo: item.deptTransferTo
+            ? item.deptTransferTo.toString()
+            : "",
           prevJobPosition: item.prevJobPosition || "",
           promLetterNumber: item.promLetterNumber || "",
           stepNo: item.stepNo || "",
@@ -91,48 +114,66 @@ export default function PromotionTab({ empId }: PromotionTabProps) {
           employeeId: item.employeeId || "",
           employeeName: item.employeeName || `Employee ${item.employeeId}`,
         }));
-        
-        setPromotions(formattedData);
-        setFilteredPromotions(formattedData);
-        setTotalPages(Math.ceil(formattedData.length / itemsPerPage));
+
+        // Role-based filtering
+        let filtered = formattedData;
+        let role = "";
+        try {
+          if (typeof window !== "undefined") {
+            const stored = localStorage.getItem("user");
+            if (stored) role = JSON.parse(stored).role;
+          }
+        } catch {}
+        if (!["HR", "ADMIN"].includes(role)) {
+          filtered = formattedData.filter(
+            (promo: PromotionRecord) => promo.employeeId === empId
+          );
+        }
+
+        setPromotions(filtered);
+        setFilteredPromotions(filtered);
+        setTotalPages(Math.ceil(filtered.length / itemsPerPage));
         toast.success("Promotion records loaded successfully");
       } catch (error) {
         console.error("Error fetching promotions:", error);
-        const errorMsg = error instanceof Error ? error.message : "Failed to fetch promotion records";
+        const errorMsg =
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch promotion records";
         setError(errorMsg);
         toast.error(errorMsg);
       } finally {
         setIsLoading(false);
       }
     };
-    
     fetchPromotions();
-  }, [itemsPerPage]);
+  }, [itemsPerPage, empId]);
 
   // Apply filters and search
   useEffect(() => {
     if (!promotions.length) return;
 
     let results = promotions;
-    
+
     // Apply status filter
     if (statusFilter !== "all") {
-      results = results.filter(promo => promo.status === statusFilter);
+      results = results.filter((promo) => promo.status === statusFilter);
     }
-    
+
     // Apply search term
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
-      results = results.filter(promo => 
-        promo.employeeId.toLowerCase().includes(term) ||
-        promo.employeeName?.toLowerCase().includes(term) ||
-        promo.prevJobPosition.toLowerCase().includes(term) ||
-        promo.prevDepartmentId.toLowerCase().includes(term) ||
-        promo.deptTransferTo.toLowerCase().includes(term) ||
-        promo.promLetterNumber.toLowerCase().includes(term)
+      results = results.filter(
+        (promo) =>
+          promo.employeeId.toLowerCase().includes(term) ||
+          promo.employeeName?.toLowerCase().includes(term) ||
+          promo.prevJobPosition.toLowerCase().includes(term) ||
+          promo.prevDepartmentId.toLowerCase().includes(term) ||
+          promo.deptTransferTo.toLowerCase().includes(term) ||
+          promo.promLetterNumber.toLowerCase().includes(term)
       );
     }
-    
+
     setFilteredPromotions(results);
     setTotalPages(Math.ceil(results.length / itemsPerPage));
     setCurrentPage(1); // Reset to first page when filters change
@@ -141,7 +182,10 @@ export default function PromotionTab({ empId }: PromotionTabProps) {
   // Get current items for pagination
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredPromotions.slice(indexOfFirstItem, indexOfLastItem);
+  const currentItems = filteredPromotions.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
 
   // Change page
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
@@ -201,7 +245,11 @@ export default function PromotionTab({ empId }: PromotionTabProps) {
     setShowEditForm(true);
   };
 
-  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleFormChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
+  ) => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
@@ -218,42 +266,61 @@ export default function PromotionTab({ empId }: PromotionTabProps) {
         ...formData,
         prevSalary: parseFloat(formData.prevSalary),
         promotionHistoryId: parseInt(editingRecord.promotionHistoryId, 10),
-        prevDepartmentId: formData.prevDepartmentId ? parseInt(formData.prevDepartmentId, 10) : null,
-        deptTransferTo: formData.deptTransferTo ? parseInt(formData.deptTransferTo, 10) : null,
-        branchFrom: formData.branchFrom ? parseInt(formData.branchFrom, 10) : null,
+        prevDepartmentId: formData.prevDepartmentId
+          ? parseInt(formData.prevDepartmentId, 10)
+          : null,
+        deptTransferTo: formData.deptTransferTo
+          ? parseInt(formData.deptTransferTo, 10)
+          : null,
+        branchFrom: formData.branchFrom
+          ? parseInt(formData.branchFrom, 10)
+          : null,
         branchId: formData.branchId ? parseInt(formData.branchId, 10) : null,
         employeeId: editingRecord.employeeId,
       };
 
-      const response = await authFetch(`http://localhost:8080/api/promotion-history/${editingRecord.promotionHistoryId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(promotionRecord),
-      });
+      const response = await authFetch(
+        `http://localhost:8080/api/promotion-history/${editingRecord.promotionHistoryId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(promotionRecord),
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to update record");
       }
 
       const savedRecord = await response.json();
-      
+
       // Update the local state with the updated record
-      setPromotions(promotions.map(promo => 
-        promo.promotionHistoryId === editingRecord.promotionHistoryId 
-          ? { 
-              ...savedRecord, 
-              promotionHistoryId: savedRecord.promotionHistoryId.toString(),
-              prevSalary: savedRecord.prevSalary?.toString() || "0",
-              prevDepartmentId: savedRecord.prevDepartmentId ? savedRecord.prevDepartmentId.toString() : "",
-              deptTransferTo: savedRecord.deptTransferTo ? savedRecord.deptTransferTo.toString() : "",
-              branchFrom: savedRecord.branchFrom ? savedRecord.branchFrom.toString() : "",
-              branchId: savedRecord.branchId ? savedRecord.branchId.toString() : "",
-              employeeName: editingRecord.employeeName,
-            } 
-          : promo
-      ));
+      setPromotions(
+        promotions.map((promo) =>
+          promo.promotionHistoryId === editingRecord.promotionHistoryId
+            ? {
+                ...savedRecord,
+                promotionHistoryId: savedRecord.promotionHistoryId.toString(),
+                prevSalary: savedRecord.prevSalary?.toString() || "0",
+                prevDepartmentId: savedRecord.prevDepartmentId
+                  ? savedRecord.prevDepartmentId.toString()
+                  : "",
+                deptTransferTo: savedRecord.deptTransferTo
+                  ? savedRecord.deptTransferTo.toString()
+                  : "",
+                branchFrom: savedRecord.branchFrom
+                  ? savedRecord.branchFrom.toString()
+                  : "",
+                branchId: savedRecord.branchId
+                  ? savedRecord.branchId.toString()
+                  : "",
+                employeeName: editingRecord.employeeName,
+              }
+            : promo
+        )
+      );
 
       setSubmitSuccess(true);
       setTimeout(() => {
@@ -261,11 +328,14 @@ export default function PromotionTab({ empId }: PromotionTabProps) {
         setShowEditForm(false);
         setEditingRecord(null);
       }, 1500);
-      
+
       toast.success("Promotion record updated successfully");
     } catch (error) {
       console.error("Error updating promotion:", error);
-      const errorMsg = error instanceof Error ? error.message : "Failed to update promotion record";
+      const errorMsg =
+        error instanceof Error
+          ? error.message
+          : "Failed to update promotion record";
       toast.error(errorMsg);
     }
   };
@@ -304,7 +374,7 @@ export default function PromotionTab({ empId }: PromotionTabProps) {
           },
         }}
       />
-      
+
       {/* Edit Form Modal */}
       <AnimatePresence>
         {showEditForm && (
@@ -583,7 +653,7 @@ export default function PromotionTab({ empId }: PromotionTabProps) {
           </>
         )}
       </AnimatePresence>
-      
+
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -615,7 +685,7 @@ export default function PromotionTab({ empId }: PromotionTabProps) {
               </p>
             </div>
           </div>
-          
+
           <div className="flex flex-col sm:flex-row gap-2 mt-3 md:mt-0 w-full md:w-auto">
             <div className="relative">
               <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -627,7 +697,7 @@ export default function PromotionTab({ empId }: PromotionTabProps) {
                 className="pl-10 pr-4 py-2 rounded-md text-gray-700 w-full md:w-64 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
-            
+
             <div className="relative">
               <FiFilter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <select
@@ -643,16 +713,14 @@ export default function PromotionTab({ empId }: PromotionTabProps) {
             </div>
           </div>
         </div>
-        
+
         {isLoading ? (
           <div className="py-10 text-center text-[#3c8dbc]">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3c8dbc] mx-auto"></div>
             <p className="mt-3">Loading promotion records...</p>
           </div>
         ) : error ? (
-          <div className="py-10 text-center text-red-500">
-            {error}
-          </div>
+          <div className="py-10 text-center text-red-500">{error}</div>
         ) : (
           <>
             <div className="overflow-x-auto">
@@ -769,27 +837,37 @@ export default function PromotionTab({ empId }: PromotionTabProps) {
                   ))}
                 </tbody>
               </table>
-              
+
               {currentItems.length === 0 && (
                 <div className="py-10 text-center text-gray-500">
                   No promotion records found
-                  {searchTerm || statusFilter !== "all" ? " matching your criteria" : ""}
+                  {searchTerm || statusFilter !== "all"
+                    ? " matching your criteria"
+                    : ""}
                 </div>
               )}
             </div>
-            
+
             {/* Pagination */}
             {totalPages > 1 && (
               <div className="bg-gray-50 px-4 py-3 border-t border-gray-200">
                 <div className="flex flex-col sm:flex-row items-center justify-between">
                   <div className="text-sm text-gray-700 mb-4 sm:mb-0">
-                    Showing <span className="font-semibold">{indexOfFirstItem + 1}</span> to{" "}
+                    Showing{" "}
+                    <span className="font-semibold">
+                      {indexOfFirstItem + 1}
+                    </span>{" "}
+                    to{" "}
                     <span className="font-semibold">
                       {Math.min(indexOfLastItem, filteredPromotions.length)}
-                    </span> of{" "}
-                    <span className="font-semibold">{filteredPromotions.length}</span> results
+                    </span>{" "}
+                    of{" "}
+                    <span className="font-semibold">
+                      {filteredPromotions.length}
+                    </span>{" "}
+                    results
                   </div>
-                  
+
                   <div className="flex items-center space-x-2">
                     <select
                       value={itemsPerPage}
@@ -801,7 +879,7 @@ export default function PromotionTab({ empId }: PromotionTabProps) {
                       <option value="20">20 per page</option>
                       <option value="50">50 per page</option>
                     </select>
-                    
+
                     <nav className="flex items-center space-x-2">
                       <button
                         onClick={() => paginate(Math.max(1, currentPage - 1))}
@@ -810,37 +888,42 @@ export default function PromotionTab({ empId }: PromotionTabProps) {
                       >
                         <FiChevronLeft size={16} />
                       </button>
-                      
-                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                        // Show pages around current page
-                        let pageNum;
-                        if (totalPages <= 5) {
-                          pageNum = i + 1;
-                        } else if (currentPage <= 3) {
-                          pageNum = i + 1;
-                        } else if (currentPage >= totalPages - 2) {
-                          pageNum = totalPages - 4 + i;
-                        } else {
-                          pageNum = currentPage - 2 + i;
+
+                      {Array.from(
+                        { length: Math.min(5, totalPages) },
+                        (_, i) => {
+                          // Show pages around current page
+                          let pageNum;
+                          if (totalPages <= 5) {
+                            pageNum = i + 1;
+                          } else if (currentPage <= 3) {
+                            pageNum = i + 1;
+                          } else if (currentPage >= totalPages - 2) {
+                            pageNum = totalPages - 4 + i;
+                          } else {
+                            pageNum = currentPage - 2 + i;
+                          }
+
+                          return (
+                            <button
+                              key={pageNum}
+                              onClick={() => paginate(pageNum)}
+                              className={`relative inline-flex items-center px-3 py-2 border text-sm font-medium ${
+                                currentPage === pageNum
+                                  ? "z-10 bg-blue-50 border-blue-500 text-blue-600"
+                                  : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
+                              }`}
+                            >
+                              {pageNum}
+                            </button>
+                          );
                         }
-                        
-                        return (
-                          <button
-                            key={pageNum}
-                            onClick={() => paginate(pageNum)}
-                            className={`relative inline-flex items-center px-3 py-2 border text-sm font-medium ${
-                              currentPage === pageNum
-                                ? "z-10 bg-blue-50 border-blue-500 text-blue-600"
-                                : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
-                            }`}
-                          >
-                            {pageNum}
-                          </button>
-                        );
-                      })}
-                      
+                      )}
+
                       <button
-                        onClick={() => paginate(Math.min(totalPages, currentPage + 1))}
+                        onClick={() =>
+                          paginate(Math.min(totalPages, currentPage + 1))
+                        }
                         disabled={currentPage === totalPages}
                         className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                       >

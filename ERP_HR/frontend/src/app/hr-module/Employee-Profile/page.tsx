@@ -564,8 +564,21 @@ export default function EmployeeProfilePage() {
         )}
         {activeTab === "promotion" && currentEmployee && (
           <div className="mt-10">
-            {" "}
-            <Promotion empId={currentEmployee.empId} />
+            {(() => {
+              const role = getUserRole();
+              if (["HR", "ADMIN"].includes(role)) {
+                // HR and ADMIN see all promotion history
+                return (
+                  <Promotion
+                    allEmployees={employees}
+                    empId={currentEmployee.empId}
+                  />
+                );
+              } else {
+                // Others see only their own
+                return <Promotion empId={currentEmployee.empId} />;
+              }
+            })()}
           </div>
         )}
         {activeTab === "upload" && currentEmployee && (
