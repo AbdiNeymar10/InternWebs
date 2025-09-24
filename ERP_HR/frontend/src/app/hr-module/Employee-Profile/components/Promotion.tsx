@@ -713,7 +713,7 @@ export default function PromotionTab({
             </div>
           </div>
         </div>
-
+        // promotion records table
         {isLoading ? (
           <div className="py-10 text-center text-[#3c8dbc]">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3c8dbc] mx-auto"></div>
