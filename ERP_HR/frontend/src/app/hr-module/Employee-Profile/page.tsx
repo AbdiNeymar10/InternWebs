@@ -535,11 +535,26 @@ export default function EmployeeProfilePage() {
           </div>
         )}
 
-        {activeTab === "training" && currentEmployee && (
-          <div className="mt-10">
-            <TrainingTab empId={currentEmployee.empId} />
-          </div>
-        )}
+        {activeTab === "training" &&
+          currentEmployee &&
+          (() => {
+            const role = getUserRole();
+            if (["ADMIN", "DEPARTMENT"].includes(role)) {
+              return (
+                <div className="mt-10">
+                  <TrainingTab empId={currentEmployee.empId} />
+                </div>
+              );
+            } else {
+              Swal.fire({
+                icon: "warning",
+                title: "Access Denied",
+                text: "You do not have permission to access this module.",
+                confirmButtonColor: "#3c8dbc",
+              });
+              return null;
+            }
+          })()}
         {activeTab === "cost-sharing" && currentEmployee && (
           <div className="mt-10">
             <CostSharingTab empId={currentEmployee.empId} />
