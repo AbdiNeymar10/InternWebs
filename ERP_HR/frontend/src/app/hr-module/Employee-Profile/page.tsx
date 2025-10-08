@@ -397,8 +397,9 @@ export default function EmployeeProfilePage() {
             `Failed to fetch updated employee: ${updatedResponse.statusText}`
           );
         }
+        // Log to verify photo field is included
         const updatedEmployeeData = await updatedResponse.json();
-        console.log("Updated employee data:", updatedEmployeeData); // Log to verify photo field
+        console.log("Updated employee data:", updatedEmployeeData);
         const updatedEmployee = mapHrEmployeeToEmployee(updatedEmployeeData);
         const updatedEmployees = employees.map((emp) =>
           emp.empId === updatedEmployee.empId ? updatedEmployee : emp
