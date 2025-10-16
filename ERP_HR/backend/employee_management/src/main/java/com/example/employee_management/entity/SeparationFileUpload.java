@@ -3,7 +3,7 @@ package com.example.employee_management.entity;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "HR_SEPARATION_FILE_UPLOAD") // Ensure this matches your table name
+@Table(name = "HR_SEPARATION_FILE_UPLOAD") 
 public class SeparationFileUpload {
 
     @Id

@@ -3,7 +3,7 @@ package com.example.employee_management.controller;
 import com.example.employee_management.entity.HrLuLeaveType;
 import com.example.employee_management.service.HrLuLeaveTypeService;
 import jakarta.validation.Valid; // Use jakarta validation
-import org.springframework.http.HttpStatus;
+// import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
