@@ -73,7 +73,7 @@ interface ApprovalFormData {
   recruitRequestId: number | null;
   departmentName: string;
   jobTitle: string;
-  jobGrade: string; // Field for the job grade
+  jobGrade: string;
   icf: string;
   numOfEmps: string;
   recruitmentType: string;
@@ -82,7 +82,7 @@ interface ApprovalFormData {
   budgetYear: string;
   incrementStep: string;
   recruitBatchCode: string;
-  advertisementType: string; // Will be controlled by the new dropdown
+  advertisementType: string;
   requesterRemark: string;
   gmRemark: string;
   decision: "APPROVE" | "REJECT" | "";
