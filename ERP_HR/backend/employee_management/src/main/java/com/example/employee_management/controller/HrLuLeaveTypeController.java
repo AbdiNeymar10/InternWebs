@@ -3,7 +3,6 @@ package com.example.employee_management.controller;
 import com.example.employee_management.entity.HrLuLeaveType;
 import com.example.employee_management.service.HrLuLeaveTypeService;
 import jakarta.validation.Valid; // Use jakarta validation
-// import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -61,6 +60,6 @@ public class HrLuLeaveTypeController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         // The service will throw an exception if the ID to delete is not found.
         service.deleteById(id);
-        return ResponseEntity.noContent().build(); // Return 204 No Content on successful deletion.
+        return ResponseEntity.noContent().build(); 
     }
 }
