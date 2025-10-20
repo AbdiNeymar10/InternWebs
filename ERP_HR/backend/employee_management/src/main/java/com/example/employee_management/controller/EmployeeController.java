@@ -33,11 +33,6 @@ public class EmployeeController {
         return ResponseEntity.ok(employeeDetailsDTO);
     }
 
-    // --- Other existing methods ---
-    // If you have a POST for creating employees, it might also need to be updated
-    // to accept a DTO and potentially return EmployeeDetailsDTO.
-    // For now, focusing on the GET request.
-
     // Example: If you still need an endpoint that returns the raw Employee entity
     // (perhaps for internal use or other parts of the system), you could keep it
     // or create a new one, but it would need access to EmployeeRepository.
