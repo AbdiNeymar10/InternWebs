@@ -35,7 +35,6 @@ public class HrLuLeaveTypeController {
 
     @PostMapping
     public ResponseEntity<HrLuLeaveType> create(@Valid @RequestBody HrLuLeaveType leaveType) {
-        // Ensure the ID is null so the database generates a new one.
         leaveType.setId(null);
         HrLuLeaveType savedLeaveType = service.save(leaveType);
 
