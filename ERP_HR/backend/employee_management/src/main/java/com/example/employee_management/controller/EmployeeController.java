@@ -33,12 +33,7 @@ public class EmployeeController {
         return ResponseEntity.ok(employeeDetailsDTO);
     }
 
-    // Example: If you still need an endpoint that returns the raw Employee entity
-    // (perhaps for internal use or other parts of the system), you could keep it
-    // or create a new one, but it would need access to EmployeeRepository.
-    // For this specific request, we are modifying the existing /by-emp-id/{empId}
-    // to return the DTO.
-
+  
     @GetMapping("/ping")
     public String ping() {
         return "pong";
