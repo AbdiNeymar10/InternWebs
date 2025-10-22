@@ -61,7 +61,7 @@ public class Education_LevelController {
         return ResponseEntity.ok(service.save(educationLevel));
     }
 
-    // Delete an education level record by ID
+    
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteEducationLevel(@PathVariable Long id) {
         service.deleteById(id);
