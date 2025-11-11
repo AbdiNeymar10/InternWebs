@@ -55,5 +55,4 @@ Backend
 - If frontend cannot reach backend, ensure backend is running at http://localhost:8080 and CORS is configured.
 - For file upload issues check `HRDocumentController` and frontend `Upload` component.
 
-## License
-Add your project license here.
+
