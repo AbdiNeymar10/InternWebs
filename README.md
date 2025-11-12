@@ -9,9 +9,9 @@ INSA HR is a full-stack HR management system built with a Java Spring Boot backe
 ## Quick start
 
 Prerequisites:
-- Node.js 18+ and npm
+- React.js 18+ and npm
 - Java 17+ and Maven
-- PostgreSQL (or your configured DB) — configure backend DB in application properties
+- Oracle (or your configured DB) — configure backend DB in application properties
 
 Frontend (development)
 1. Install dependencies:
